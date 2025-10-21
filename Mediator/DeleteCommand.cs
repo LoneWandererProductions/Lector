@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -6,10 +6,15 @@ namespace Mediator
 {
     public sealed class DeleteCommand : ICommand
     {
+        public string Namespace => "system"; // or any other logical group you like
         public string Name => "delete";
-        public string Description => "Delete a resource";
+        public string Description => "Deletes a resource by name.";
         public int ParameterCount => 1;
         public int ExtensionParameterCount => 1;
+
+        public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+
+        public IReadOnlyDictionary<string, int>? Extensions => null;
 
         public CommandResult Execute(params string[] args)
         {

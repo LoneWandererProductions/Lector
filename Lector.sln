@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36511.14 d17.14
+VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lector", "Lector\Lector.csproj", "{4D4CDDC4-79F0-4386-8B2D-F5B66C6E1406}"
 EndProject
@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		.gitignore = .gitignore
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedSystemObjects", "ExtendedSystemObjects\ExtendedSystemObjects.csproj", "{2FF07C67-FC74-EFDF-98D7-6DEC304191F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +36,10 @@ Global
 		{80AE2CCF-CDA4-4A15-AAE5-4F7842D2B796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80AE2CCF-CDA4-4A15-AAE5-4F7842D2B796}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80AE2CCF-CDA4-4A15-AAE5-4F7842D2B796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FF07C67-FC74-EFDF-98D7-6DEC304191F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FF07C67-FC74-EFDF-98D7-6DEC304191F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FF07C67-FC74-EFDF-98D7-6DEC304191F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FF07C67-FC74-EFDF-98D7-6DEC304191F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

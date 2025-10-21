@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Weaver.Messages;
+﻿using Weaver.Messages;
 
 namespace Weaver.Interfaces
 {
@@ -12,6 +7,10 @@ namespace Weaver.Interfaces
         string Name { get; }
 
         string Description { get; }
+
+        string Namespace { get; }
+
+        CommandSignature Signature { get; }
 
         int ParameterCount => 0; // default means variable
         int ExtensionParameterCount => 0;
@@ -26,5 +25,10 @@ namespace Weaver.Interfaces
         /// Optional extension calls like .help(), .save(), .tryrun()
         /// </summary>
         CommandResult InvokeExtension(string extensionName, params string[] args);
+
+        /// <summary>
+        /// Optional: expose available extensions with parameter counts
+        /// </summary>
+        IReadOnlyDictionary<string, int>? Extensions { get; }
     }
 }

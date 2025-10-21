@@ -1,9 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Weaver.Interfaces;
-using Weaver.Messages;
-using System;
-
-namespace Mediator
+﻿namespace Mediator
 {
     [TestClass]
     public class DeleteCommandTests

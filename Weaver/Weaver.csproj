@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Parser\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtendedSystemObjects\ExtendedSystemObjects.csproj" />
+  </ItemGroup>
+
 </Project>
