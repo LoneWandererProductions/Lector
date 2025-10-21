@@ -59,6 +59,43 @@ namespace Weaver
                 : _commands.Values.Where(c => c.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase));
         }
 
+        public CommandResult Process(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return CommandResult.Fail("Empty input.");
+
+            // Temporary parser stub
+            string ns = "global";
+            string name;
+            string[] args;
+            string? ext = null;
+            string[] extArgs = Array.Empty<string>();
+
+            // Example: delete myfile.txt
+            var tokens = raw.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (tokens.Length == 0)
+                return CommandResult.Fail("No command given.");
+
+            name = tokens[0];
+            args = tokens.Skip(1).ToArray();
+
+            if (!_commands.TryGetValue((ns, name, args.Length), out var cmd))
+                // fallback: ignore param count for now
+                cmd = _commands.Values.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (cmd == null)
+                return CommandResult.Fail($"Unknown command '{name}'.");
+
+            var result = cmd.Execute(args);
+
+            if (result.Feedback != null)
+            {
+                _continuations[result.Feedback.RequestId] = input => cmd.InvokeExtension("feedback", input);
+            }
+
+            return result;
+        }
+
         public CommandResult ProcessInput(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw))
