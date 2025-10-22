@@ -1,16 +1,37 @@
 ﻿namespace Weaver.Messages
 {
     /// <summary>
+    /// Represents the result of parsing a raw command input.
     /// example: "delete(file.txt).saveTo(backupFolder)"
     /// returns ParsedCommand:
     /// Name = "delete", Args = ["file.txt"], Extension = "saveTo", ExtensionArgs = ["backupFolder"]
     /// </summary>
-    public class ParsedCommand
+    public sealed class ParsedCommand
     {
-        public string Namespace { get; init; } = "global";
-        public string Name { get; init; } = "";
-        public string[] Args { get; init; } = Array.Empty<string>();
-        public string? Extension { get; init; }
-        public string[] ExtensionArgs { get; init; } = Array.Empty<string>();
+        /// <summary>
+        /// The optional namespace of the command (e.g. "system").
+        /// </summary>
+        public string Namespace { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The command name (e.g. "echo").
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The arguments for the main command.
+        /// </summary>
+        public string[] Args { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// The optional extension name (e.g. "help").
+        /// </summary>
+        public string Extension { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The arguments for the extension, if any.
+        /// </summary>
+        public string[] ExtensionArgs { get; set; } = Array.Empty<string>();
     }
+
 }

@@ -18,7 +18,7 @@ namespace Mediator
             weave.Register(new DeleteCommand());
 
             // Act 1: initial command triggers confirmation
-            var result = weave.Process("delete myfile.txt");
+            var result = weave.ProcessInput("delete myfile.txt");
 
             // Assert 1: result requests feedback
             Assert.IsNotNull(result.Feedback, "Expected a feedback request from delete command.");
@@ -45,7 +45,7 @@ namespace Mediator
             weave.Register(new DeleteCommand());
 
             // Step 1: trigger feedback
-            var result = weave.Process("delete secret.doc");
+            var result = weave.ProcessInput("delete secret.doc");
             var reqId = result.Feedback?.RequestId ?? throw new AssertFailedException("Missing feedback request.");
 
             // Step 2: simulate user saying "no"
@@ -63,7 +63,7 @@ namespace Mediator
             var weave = new Weave();
             weave.Register(new DeleteCommand());
 
-            var result = weave.Process("delete temp.log");
+            var result = weave.ProcessInput("delete temp.log");
             var reqId = result.Feedback?.RequestId ?? throw new AssertFailedException("Missing feedback request.");
 
             // Step 1: simulate bad input

@@ -1,6 +1,7 @@
 ﻿using Weaver.Core;
 using Weaver.Interfaces;
 using Weaver.Messages;
+using Weaver.Parser;
 
 namespace Weaver
 {
@@ -59,43 +60,56 @@ namespace Weaver
                 : _commands.Values.Where(c => c.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase));
         }
 
-        public CommandResult Process(string raw)
-        {
-            if (string.IsNullOrWhiteSpace(raw))
-                return CommandResult.Fail("Empty input.");
-
-            // Temporary parser stub
-            string ns = "global";
-            string name;
-            string[] args;
-            string? ext = null;
-            string[] extArgs = Array.Empty<string>();
-
-            // Example: delete myfile.txt
-            var tokens = raw.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length == 0)
-                return CommandResult.Fail("No command given.");
-
-            name = tokens[0];
-            args = tokens.Skip(1).ToArray();
-
-            if (!_commands.TryGetValue((ns, name, args.Length), out var cmd))
-                // fallback: ignore param count for now
-                cmd = _commands.Values.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-
-            if (cmd == null)
-                return CommandResult.Fail($"Unknown command '{name}'.");
-
-            var result = cmd.Execute(args);
-
-            if (result.Feedback != null)
-            {
-                _continuations[result.Feedback.RequestId] = input => cmd.InvokeExtension("feedback", input);
-            }
-
-            return result;
-        }
-
+        /// <summary>
+        /// Processes a raw command input string and executes the corresponding command.
+        /// </summary>
+        /// <param name="raw">The raw command input.</param>
+        /// <returns>
+        /// A <see cref="CommandResult"/> containing the result of execution, or a failure message if the input is invalid.
+        /// </returns>
+        /// <remarks>
+        /// <para>The supported command syntax is:</para>
+        /// <list type="bullet">
+        ///   <item>
+        ///     <description>
+        ///       <c>command()</c> – A command with zero arguments.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///       <c>command(arg1, arg2, ...)</c> – A command with one or more arguments, separated by commas.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///       <c>namespace:command()</c> or <c>namespace:command(arg1, ...)</c> – A namespaced command.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///       <c>command(...).Extension()</c> – An optional extension applied to a command, with optional extension arguments.
+        ///       Extensions are invoked after the main command executes.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///       <c>namespace:command(...).Extension(...)</c> – Full namespaced command with extension and optional arguments.
+        ///     </description>
+        ///   </item>
+        /// </list>
+        /// <para>Notes:</para>
+        /// <list type="bullet">
+        ///   <item>
+        ///     <description>Parentheses are required for both commands and extensions, even if empty.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>Arguments may be quoted with single or double quotes to allow commas inside a single argument.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>Only one extension is supported per command in the current parser.</description>
+        ///   </item>
+        /// </list>
+        /// </remarks>
         public CommandResult ProcessInput(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw))
@@ -104,9 +118,8 @@ namespace Weaver
             ParsedCommand parsed;
             try
             {
-                // TODO: replace with your old parser
-                // parsed = OldParser.Parse(raw);
-                throw new NotImplementedException("Parser not plugged in yet.");
+                //parser
+                parsed = SimpleCommandParser.Parse(raw);
             }
             catch (Exception ex)
             {
@@ -173,9 +186,7 @@ namespace Weaver
                     if (!string.IsNullOrEmpty(parsed.Extension) &&
                         parsed.Extension.Equals("tryrun", StringComparison.OrdinalIgnoreCase))
                     {
-                        return userInput.Equals("yes", StringComparison.OrdinalIgnoreCase)
-                            ? cmd.Execute(parsed.Args)
-                            : CommandResult.Fail("Execution cancelled.");
+                        return userInput.Equals("yes", StringComparison.OrdinalIgnoreCase) ? cmd.Execute(parsed.Args) : CommandResult.Fail("Execution cancelled.");
                     }
 
                     return cmd.InvokeExtension("feedback", userInput);
