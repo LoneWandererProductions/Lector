@@ -63,12 +63,12 @@ internal sealed class Lexer
                 if (Keywords.Contains(ident))
                 {
                     var type = ident.Equals("if", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordIf :
-                               ident.Equals("else", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordElse :
-                               ident.Equals("label", StringComparison.OrdinalIgnoreCase) ? TokenType.Label :
-                               ident.Equals("goto", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordGoto :
-                               ident.Equals("do", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordDo :
-                               ident.Equals("while", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordWhile :
-                               TokenType.Keyword;
+                        ident.Equals("else", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordElse :
+                        ident.Equals("label", StringComparison.OrdinalIgnoreCase) ? TokenType.Label :
+                        ident.Equals("goto", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordGoto :
+                        ident.Equals("do", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordDo :
+                        ident.Equals("while", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordWhile :
+                        TokenType.Keyword;
 
                     tokens.Add(new Token { Type = type, Lexeme = ident, Line = line, Column = col });
                 }

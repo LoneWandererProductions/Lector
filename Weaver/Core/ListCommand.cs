@@ -11,25 +11,43 @@ using Weaver.Messages;
 
 namespace Weaver.Core
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Weaver.Interfaces.ICommand" />
     public sealed class ListCommand : ICommand
     {
+        /// <inheritdoc />
         public string Namespace => "internal";
+
+        /// <inheritdoc />
         public string Name => "list";
+
+        /// <inheritdoc />
         public string Description => "Lists all commands.";
+
+        /// <inheritdoc />
         public int ParameterCount => 0; // we’ll allow 0
 
         private readonly Func<IEnumerable<ICommand>> _getCommands;
 
+        /// <inheritdoc />
         public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
 
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ListCommand"/> class.
+        /// </summary>
+        /// <param name="getCommands">The get commands.</param>
         public ListCommand(Func<IEnumerable<ICommand>> getCommands)
         {
             _getCommands = getCommands;
         }
 
-
+        /// <inheritdoc />
         public CommandResult Execute(params string[] args)
         {
             var allCommands = _getCommands();
@@ -46,6 +64,7 @@ namespace Weaver.Core
             return CommandResult.Ok("Available commands:\n\n" + string.Join("\n\n", grouped));
         }
 
+        /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
             return CommandResult.Fail("'list' has no extensions.");

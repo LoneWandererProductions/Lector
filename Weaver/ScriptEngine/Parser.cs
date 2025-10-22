@@ -1,4 +1,4 @@
-﻿using Weaver.ScriptEngine;
+﻿namespace Weaver.ScriptEngine;
 
 internal sealed class Parser
 {
@@ -53,6 +53,7 @@ internal sealed class Parser
                     {
                         Advance(); // skip structural tokens
                     }
+
                     break;
             }
         }
@@ -142,6 +143,7 @@ internal sealed class Parser
                     {
                         Advance(); // skip structural tokens
                     }
+
                     break;
             }
         }
@@ -195,18 +197,22 @@ internal sealed class Parser
     }
 
     private bool IsAlphanumeric(TokenType type) =>
-        type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf || type == TokenType.KeywordElse;
+        type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf ||
+        type == TokenType.KeywordElse;
 
     private void Expect(TokenType expected)
     {
         if (IsAtEnd() || Peek().Type != expected)
-            throw new ArgumentException($"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'");
+            throw new ArgumentException(
+                $"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'");
+
         Advance();
     }
 
     private bool Match(TokenType type)
     {
         if (IsAtEnd() || Peek().Type != type) return false;
+
         Advance();
         return true;
     }

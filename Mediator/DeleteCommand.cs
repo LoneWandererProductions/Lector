@@ -35,6 +35,7 @@ namespace Mediator
                 }
             };
         }
+
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
             if (string.Equals(extensionName, "feedback", StringComparison.OrdinalIgnoreCase))

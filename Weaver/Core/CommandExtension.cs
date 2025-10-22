@@ -8,7 +8,6 @@
 
 namespace Weaver.Core
 {
-
     public sealed class CommandExtension
     {
         public string Name { get; init; } = "";

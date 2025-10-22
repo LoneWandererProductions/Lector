@@ -1,7 +1,7 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Interfaces
- * FILE:        IScriptIO.cs
+ * FILE:        IScriptIo.cs
  * PURPOSE:     Interface declaration for script input/output devices.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -11,7 +11,7 @@ namespace Weaver.Interfaces
     /// <summary>
     /// Represents a generic input/output device for scripts.
     /// </summary>
-    public interface IScriptIO
+    public interface IScriptIo
     {
         /// <summary>
         /// Reads the input.

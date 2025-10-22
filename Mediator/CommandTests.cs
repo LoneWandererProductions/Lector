@@ -7,7 +7,6 @@
  */
 
 using Weaver.Interfaces;
-using Weaver.Core;
 using Weaver;
 
 namespace Mediator
@@ -17,7 +16,7 @@ namespace Mediator
     {
         private List<ICommand> _allCommands = new();
         private DeleteCommand _deleteCommand = null!;
-        private Weave _weaver = new Weave();
+        private readonly Weave _weaver = new Weave();
 
         [TestInitialize]
         public void Setup()
@@ -46,6 +45,9 @@ namespace Mediator
             Assert.IsTrue(result.Message.Contains("Deletes a resource"));
         }
 
+        /// <summary>
+        /// Deletes the command execute weave feedback requested.
+        /// </summary>
         [TestMethod]
         public void DeleteCommand_Execute_Weave_FeedbackRequested()
         {
@@ -56,6 +58,9 @@ namespace Mediator
             Assert.AreEqual("Delete 'file.txt'? (yes/no/cancel)", result.Feedback!.Prompt);
         }
 
+        /// <summary>
+        /// Deletes the command try run feedback flow works.
+        /// </summary>
         [TestMethod]
         public void DeleteCommand_TryRun_FeedbackFlow_Works()
         {
@@ -71,7 +76,7 @@ namespace Mediator
             Assert.IsFalse(string.IsNullOrEmpty(requestId));
 
             // Step 2: user confirms execution
-            var confirmResult = _weaver.ProcessInput( "yes");
+            var confirmResult = _weaver.ProcessInput("yes");
 
             Assert.IsTrue(confirmResult.Success);
             Assert.AreEqual("Resource deleted successfully.", confirmResult.Message);

@@ -19,27 +19,26 @@ namespace Weaver.Messages
         /// <summary>
         /// The optional namespace of the command (e.g. "system").
         /// </summary>
-        public string Namespace { get; set; } = string.Empty;
+        public string Namespace { get; init; } = string.Empty;
 
         /// <summary>
         /// The command name (e.g. "echo").
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
 
         /// <summary>
         /// The arguments for the main command.
         /// </summary>
-        public string[] Args { get; set; } = Array.Empty<string>();
+        public string[] Args { get; init; } = Array.Empty<string>();
 
         /// <summary>
         /// The optional extension name (e.g. "help").
         /// </summary>
-        public string Extension { get; set; } = string.Empty;
+        public string Extension { get; init; } = string.Empty;
 
         /// <summary>
         /// The arguments for the extension, if any.
         /// </summary>
-        public string[] ExtensionArgs { get; set; } = Array.Empty<string>();
+        public string[] ExtensionArgs { get; init; } = Array.Empty<string>();
     }
-
 }

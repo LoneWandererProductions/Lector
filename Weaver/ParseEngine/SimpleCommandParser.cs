@@ -125,10 +125,9 @@ namespace Weaver.ParseEngine
 
             // Split by commas outside quotes
             var args = Regex.Matches(argString, @"(?:""[^""]*""|'[^']*'|[^,]+)")
-                            .Cast<Match>()
-                            .Select(m => m.Value.Trim().Trim('"', '\''))
-                            .Where(a => !string.IsNullOrWhiteSpace(a))
-                            .ToArray();
+                .Select(m => m.Value.Trim().Trim('"', '\''))
+                .Where(a => !string.IsNullOrWhiteSpace(a))
+                .ToArray();
 
             return args;
         }

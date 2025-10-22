@@ -11,14 +11,23 @@ namespace Mediator
     [TestClass]
     public class DeleteCommandTests
     {
+        /// <summary>
+        /// The command
+        /// </summary>
         private DeleteCommand _command = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
             _command = new DeleteCommand();
         }
 
+        /// <summary>
+        /// Invokes the extension should handle yes.
+        /// </summary>
         [TestMethod]
         public void InvokeExtension_ShouldHandleYes()
         {
@@ -27,6 +36,9 @@ namespace Mediator
             Assert.AreEqual("Resource deleted successfully.", result.Message);
         }
 
+        /// <summary>
+        /// Invokes the extension should handle no.
+        /// </summary>
         [TestMethod]
         public void InvokeExtension_ShouldHandleNo()
         {
@@ -35,6 +47,9 @@ namespace Mediator
             Assert.AreEqual("Deletion cancelled by user.", result.Message);
         }
 
+        /// <summary>
+        /// Invokes the extension should handle cancel.
+        /// </summary>
         [TestMethod]
         public void InvokeExtension_ShouldHandleCancel()
         {
@@ -43,6 +58,9 @@ namespace Mediator
             Assert.AreEqual("Deletion cancelled by user.", result.Message);
         }
 
+        /// <summary>
+        /// Invokes the extension should re prompt on unknown input.
+        /// </summary>
         [TestMethod]
         public void InvokeExtension_ShouldRePromptOnUnknownInput()
         {

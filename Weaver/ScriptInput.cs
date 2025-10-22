@@ -18,19 +18,19 @@ namespace Weaver
     public sealed class ScriptInput
     {
         private readonly ScriptExecutor _executor;
-        private readonly IScriptIO _io;
+        private readonly IScriptIo _io;
 
-        public ScriptInput(Weave weave, string script, IScriptIO? io = null)
+        public ScriptInput(Weave weave, string script, IScriptIo? io = null)
         {
-            _io = io ?? new ConsoleScriptIO();
+            _io = io ?? new ConsoleScriptIo();
 
             // Tokenize and parse
             var lexer = new Lexer(script);
             var parser = new Parser(lexer.Tokenize());
             var blocks = parser.ParseIntoCategorizedBlocks();
             var statements = blocks
-                .Select(line => line.Statement)   // get the string
-                .Where(s => s != null)            // optional: skip nulls
+                .Select(line => line.Statement) // get the string
+                .Where(s => s != null) // optional: skip nulls
                 .ToList();
 
             _executor = new ScriptExecutor(weave, statements);
@@ -81,7 +81,7 @@ namespace Weaver
     /// <summary>
     /// Provides a simple console-based IO device for scripts.
     /// </summary>
-    public sealed class ConsoleScriptIO : IScriptIO
+    public sealed class ConsoleScriptIo : IScriptIo
     {
         public string ReadInput(string prompt)
         {

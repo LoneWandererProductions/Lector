@@ -25,7 +25,7 @@ namespace Weaver.ScriptEngine
 
         private readonly Stack<(int loopStart, string condition)> _doWhileStack = new();
 
-        public ScriptExecutor(Weave weave, List<string> statements)
+        public ScriptExecutor(Weave weave, List<string?> statements)
         {
             _weave = weave;
             _statements = statements;
