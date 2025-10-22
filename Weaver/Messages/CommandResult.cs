@@ -11,7 +11,7 @@ namespace Weaver.Messages
     public sealed class CommandResult
     {
         public string Message { get; init; } = "";
-        public bool Success { get; init; }
+        public bool Success { get; set; }
         public bool RequiresConfirmation { get; init; }
         public string[]? Suggestions { get; init; }
 

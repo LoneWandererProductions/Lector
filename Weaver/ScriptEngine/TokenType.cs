@@ -40,5 +40,7 @@ internal enum TokenType
     Equal = 27,
     EqualEqual = 28,
     Bang = 29,
-    BangEqual = 30
+    BangEqual = 30,
+    KeywordDo = 31,
+    KeywordWhile = 32
 }

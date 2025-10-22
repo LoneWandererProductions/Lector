@@ -1,6 +1,6 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.Parser
+ * PROJECT:     Weaver.ParseEngine
  * FILE:        SimpleCommandParser.cs
  * PURPOSE:     Your file purpose here
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -9,7 +9,7 @@
 using System.Text.RegularExpressions;
 using Weaver.Messages;
 
-namespace Weaver.Parser
+namespace Weaver.ParseEngine
 {
     /// <summary>
     /// Provides parsing functionality for commands with optional namespaces and extensions.

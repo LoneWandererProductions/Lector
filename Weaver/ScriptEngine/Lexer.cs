@@ -18,7 +18,7 @@ internal sealed class Lexer
     /// </summary>
     private static readonly HashSet<string> Keywords = new(StringComparer.OrdinalIgnoreCase)
     {
-        "if", "else", "label", "goto"
+        "if", "else", "label", "goto", "do", "while"
     };
 
     private readonly string _input;
@@ -62,17 +62,13 @@ internal sealed class Lexer
                     CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.LetterNumber);
                 if (Keywords.Contains(ident))
                 {
-                    var type = ident.Equals("if", StringComparison.OrdinalIgnoreCase)
-                        ? TokenType.KeywordIf
-                        : ident.Equals("else", StringComparison.OrdinalIgnoreCase)
-                            ? TokenType.KeywordElse
-                            : ident.Equals("label", StringComparison.OrdinalIgnoreCase)
-                                ? TokenType.Label
-                                : // or TokenType.KeywordLabel
-                                ident.Equals("goto", StringComparison.OrdinalIgnoreCase)
-                                    ? TokenType.KeywordGoto
-                                    : // add this token type
-                                    TokenType.Keyword; // fallback
+                    var type = ident.Equals("if", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordIf :
+                               ident.Equals("else", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordElse :
+                               ident.Equals("label", StringComparison.OrdinalIgnoreCase) ? TokenType.Label :
+                               ident.Equals("goto", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordGoto :
+                               ident.Equals("do", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordDo :
+                               ident.Equals("while", StringComparison.OrdinalIgnoreCase) ? TokenType.KeywordWhile :
+                               TokenType.Keyword;
 
                     tokens.Add(new Token { Type = type, Lexeme = ident, Line = line, Column = col });
                 }

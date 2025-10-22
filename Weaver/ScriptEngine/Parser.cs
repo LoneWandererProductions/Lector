@@ -7,13 +7,15 @@
  */
 
 #nullable enable
-using ExtendedSystemObjects;
 using System.Text;
 
 namespace Weaver.ScriptEngine;
 
 internal sealed class Parser
 {
+     internal record ScriptLine(string Category, string? Statement);
+
+
     private readonly List<Token> _tokens;
     private int _position;
 
@@ -26,10 +28,9 @@ internal sealed class Parser
     /// Parses the into categorized blocks.
     /// </summary>
     /// <returns></returns>
-    public CategorizedDictionary<int, string?> ParseIntoCategorizedBlocks()
+    public List<ScriptLine> ParseIntoCategorizedBlocks()
     {
-        var result = new CategorizedDictionary<int, string?>();
-        var commandIndex = 0;
+        var result = new List<ScriptLine>();
 
         while (!IsAtEnd())
         {
@@ -38,39 +39,28 @@ internal sealed class Parser
             switch (current.Type)
             {
                 case TokenType.KeywordIf:
-                    // Parse if statement with condition and block
-                    ParseIfStatement(result, ref commandIndex);
+                    ParseIfStatement(result);
                     break;
 
                 case TokenType.KeywordElse:
-                    // Parse else block
-                    ParseElseBlock(result, ref commandIndex);
+                    ParseElseBlock(result);
                     break;
 
                 case TokenType.Label:
-                    {
-                        var stmt = ReadStatementAsString();
-                        result.Add("Label", commandIndex++, stmt);
-                        break;
-                    }
+                    result.Add(new ScriptLine("Label", ReadStatementAsString()));
+                    break;
 
                 case TokenType.KeywordGoto:
-                    {
-                        var stmt = ReadStatementAsString();
-                        result.Add("Goto", commandIndex++, stmt);
-                        break;
-                    }
+                    result.Add(new ScriptLine("Goto", ReadStatementAsString()));
+                    break;
 
                 case TokenType.Comment:
-                    Advance(); // skip comments
+                    Advance(); // skip
                     break;
 
                 default:
-                    {
-                        var stmt = ReadStatementAsString();
-                        result.Add("Command", commandIndex++, stmt);
-                        break;
-                    }
+                    result.Add(new ScriptLine("Command", ReadStatementAsString()));
+                    break;
             }
         }
 
@@ -82,33 +72,23 @@ internal sealed class Parser
     /// </summary>
     /// <param name="output">The output.</param>
     /// <param name="commandIndex">Index of the command.</param>
-    private void ParseIfStatement(CategorizedDictionary<int, string?> output, ref int commandIndex)
+    private void ParseIfStatement(List<ScriptLine> output)
     {
-        // Consume 'if' keyword
-        Advance();
-
-        // Extract condition between '(' and ')'
+        Advance(); // consume 'if'
         var condition = ReadCondition();
-        output.Add("If_Condition", commandIndex++, condition);
+        output.Add(new ScriptLine("If_Condition", condition));
 
-        // Expect '{' opening brace of block
         Expect(TokenType.OpenBrace);
+        output.Add(new ScriptLine("If_Open", null));
 
-        output.Add("If_Open", commandIndex++, null);
-
-        // Parse block statements inside '{ }'
         var statements = ParseBlockStatements();
-        foreach (var (cat, stmt) in statements)
-        {
-            output.Add(cat, commandIndex++, stmt);
-        }
+        output.AddRange(statements);
 
-        output.Add("If_End", commandIndex++, null);
+        output.Add(new ScriptLine("If_End", null));
 
-        // Check if next token is 'else' for else block
         if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
         {
-            ParseElseBlock(output, ref commandIndex);
+            ParseElseBlock(output);
         }
     }
 
@@ -117,24 +97,16 @@ internal sealed class Parser
     /// </summary>
     /// <param name="output">The output.</param>
     /// <param name="commandIndex">Index of the command.</param>
-    private void ParseElseBlock(CategorizedDictionary<int, string?> output, ref int commandIndex)
+    private void ParseElseBlock(List<ScriptLine> output)
     {
-        // Consume 'else' keyword
-        Advance();
-
-        // Expect '{' opening brace of block
+        Advance(); // consume 'else'
         Expect(TokenType.OpenBrace);
+        output.Add(new ScriptLine("Else_Open", null));
 
-        output.Add("Else_Open", commandIndex++, null);
-
-        // Parse block statements inside '{ }'
         var statements = ParseBlockStatements();
-        foreach (var (cat, stmt) in statements)
-        {
-            output.Add(cat, commandIndex++, stmt);
-        }
+        output.AddRange(statements);
 
-        output.Add("Else_End", commandIndex++, null);
+        output.Add(new ScriptLine("Else_End", null));
     }
 
     /// <summary>
@@ -175,9 +147,9 @@ internal sealed class Parser
     /// Parses the block statements.
     /// </summary>
     /// <returns>Tuble of Block statements</returns>
-    private List<(string Category, string? Statement)> ParseBlockStatements()
+    private List<ScriptLine> ParseBlockStatements()
     {
-        var statements = new List<(string, string?)>();
+        var statements = new List<ScriptLine>();
 
         while (!IsAtEnd() && Peek().Type != TokenType.CloseBrace)
         {
@@ -186,50 +158,73 @@ internal sealed class Parser
             switch (token.Type)
             {
                 case TokenType.KeywordIf:
-                    // Handle nested if
-                    Advance(); // consume 'if'
+                    Advance();
                     var condition = ReadCondition();
-                    statements.Add(("If_Condition", condition));
+                    statements.Add(new ScriptLine("If_Condition", condition));
                     Expect(TokenType.OpenBrace);
-                    statements.Add(("If_Open", null));
-                    var ifBody = ParseBlockStatements();
-                    statements.AddRange(ifBody);
-                    statements.Add(("If_End", null));
+                    statements.Add(new ScriptLine("If_Open", null));
+                    statements.AddRange(ParseBlockStatements());
+                    statements.Add(new ScriptLine("If_End", null));
 
-                    // Optional else
                     if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
                     {
-                        Advance(); // consume 'else'
+                        Advance();
                         Expect(TokenType.OpenBrace);
-                        statements.Add(("Else_Open", null));
-                        var elseBody = ParseBlockStatements();
-                        statements.AddRange(elseBody);
-                        statements.Add(("Else_End", null));
+                        statements.Add(new ScriptLine("Else_Open", null));
+                        statements.AddRange(ParseBlockStatements());
+                        statements.Add(new ScriptLine("Else_End", null));
                     }
-
                     break;
 
                 case TokenType.Label:
-                    statements.Add(("Label", ReadStatementAsString()));
+                    statements.Add(new ScriptLine("Label", ReadStatementAsString()));
                     break;
 
                 case TokenType.KeywordGoto:
-                    statements.Add(("Goto", ReadStatementAsString()));
+                    statements.Add(new ScriptLine("Goto", ReadStatementAsString()));
                     break;
 
                 case TokenType.Comment:
                     Advance(); // skip
                     break;
 
+                case TokenType.KeywordDo:
+                    statements.AddRange(ParseDoWhile());
+                    break;
+
                 default:
-                    statements.Add(("Command", ReadStatementAsString()));
+                    statements.Add(new ScriptLine("Command", ReadStatementAsString()));
                     break;
             }
         }
 
-        Expect(TokenType.CloseBrace); // consume '}'
+        Expect(TokenType.CloseBrace);
         return statements;
     }
+
+    private List<ScriptLine> ParseDoWhile()
+    {
+        var output = new List<ScriptLine>();
+
+        Advance(); // consume 'do'
+        Expect(TokenType.OpenBrace);
+        output.Add(new ScriptLine("Do_Open", null));
+
+        output.AddRange(ParseBlockStatements());
+
+        output.Add(new ScriptLine("Do_End", null));
+
+        if (!IsAtEnd() && Peek().Type == TokenType.KeywordWhile)
+        {
+            Advance(); // consume 'while'
+            var condition = ReadCondition();
+            output.Add(new ScriptLine("While_Condition", condition));
+            Match(TokenType.Semicolon);
+        }
+
+        return output;
+    }
+
 
 
     /// <summary>
@@ -247,7 +242,6 @@ internal sealed class Parser
 
         Advance();
     }
-
 
     private string ReadStatementAsString()
     {
