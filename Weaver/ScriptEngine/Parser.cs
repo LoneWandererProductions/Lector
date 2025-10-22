@@ -13,7 +13,17 @@ namespace Weaver.ScriptEngine;
 
 internal sealed class Parser
 {
-     internal record ScriptLine(string Category, string? Statement);
+    internal record ScriptLine(string Category, string? Statement)
+    {
+        public virtual bool Equals(ScriptLine? other)
+        {
+            if (other is null) return false;
+            return string.Equals(Category, other.Category, StringComparison.Ordinal)
+                   && string.Equals(Statement, other.Statement, StringComparison.Ordinal);
+        }
+
+        public override int GetHashCode() => HashCode.Combine(Category, Statement);
+    }
 
 
     private readonly List<Token> _tokens;
@@ -193,8 +203,17 @@ internal sealed class Parser
                     break;
 
                 default:
-                    statements.Add(new ScriptLine("Command", ReadStatementAsString()));
+                    if (token.Type == TokenType.OpenBrace || token.Type == TokenType.CloseBrace)
+                    {
+                        // skip braces here — they are handled by control structures
+                        Advance();
+                    }
+                    else
+                    {
+                        statements.Add(new ScriptLine("Command", ReadStatementAsString()));
+                    }
                     break;
+
             }
         }
 
@@ -224,8 +243,6 @@ internal sealed class Parser
 
         return output;
     }
-
-
 
     /// <summary>
     /// Expects the specified expected.

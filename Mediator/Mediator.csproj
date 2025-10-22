@@ -16,7 +16,7 @@
     <ProjectReference Include="..\Weaver\Weaver.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
