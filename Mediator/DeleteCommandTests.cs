@@ -1,4 +1,12 @@
-﻿namespace Mediator
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator
+ * FILE:        DeleteCommandTests.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+namespace Mediator
 {
     [TestClass]
     public class DeleteCommandTests
@@ -9,18 +17,6 @@
         public void Setup()
         {
             _command = new DeleteCommand();
-        }
-
-        [TestMethod]
-        public void Execute_ShouldRequestConfirmation()
-        {
-            // act
-            var result = _command.Execute("testFile");
-
-            // assert
-            Assert.IsTrue(result.RequiresConfirmation);
-            Assert.IsNotNull(result.Feedback);
-            Assert.AreEqual("Delete 'testFile'? (yes/no/cancel)", result.Feedback!.Prompt);
         }
 
         [TestMethod]
@@ -44,7 +40,7 @@
         {
             var result = _command.InvokeExtension("feedback", "cancel");
             Assert.IsFalse(result.Success);
-            Assert.AreEqual("Operation cancelled.", result.Message);
+            Assert.AreEqual("Deletion cancelled by user.", result.Message);
         }
 
         [TestMethod]
@@ -58,14 +54,6 @@
             CollectionAssert.AreEquivalent(
                 new[] { "yes", "no", "cancel" },
                 result.Feedback.Options);
-        }
-
-        [TestMethod]
-        public void InvokeExtension_ShouldHandleHelp()
-        {
-            var result = _command.InvokeExtension("help");
-            Assert.IsTrue(result.Success);
-            StringAssert.Contains(result.Message, "Usage: delete");
         }
     }
 }

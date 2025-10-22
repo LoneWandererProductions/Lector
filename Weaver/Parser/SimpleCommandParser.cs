@@ -1,5 +1,11 @@
-﻿using System;
-using System.Linq;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.Parser
+ * FILE:        SimpleCommandParser.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
 using System.Text.RegularExpressions;
 using Weaver.Messages;
 

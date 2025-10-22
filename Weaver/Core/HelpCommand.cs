@@ -1,4 +1,12 @@
-﻿using Weaver.Interfaces;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.Core
+ * FILE:        HelpCommand.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace Weaver.Core

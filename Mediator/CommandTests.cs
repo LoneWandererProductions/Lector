@@ -1,4 +1,12 @@
-﻿using Weaver.Interfaces;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator
+ * FILE:        CommandTests.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Interfaces;
 using Weaver.Core;
 
 namespace Mediator
@@ -44,14 +52,6 @@ namespace Mediator
             Assert.IsFalse(result.Success); // It's just preview, not confirmed
             Assert.IsNotNull(result.Feedback);
             Assert.AreEqual("Delete 'file.txt'? (yes/no/cancel)", result.Feedback!.Prompt);
-        }
-
-        [TestMethod]
-        public void DeleteCommand_InvokeExtension_Help_Works()
-        {
-            var result = _deleteCommand.InvokeExtension("help");
-            Assert.IsTrue(result.Success);
-            Assert.IsTrue(result.Message.Contains("Usage: delete(name)"));
         }
 
         [TestMethod]

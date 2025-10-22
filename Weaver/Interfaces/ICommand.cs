@@ -1,4 +1,12 @@
-﻿using Weaver.Messages;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.Interfaces
+ * FILE:        ICommand.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Messages;
 
 namespace Weaver.Interfaces
 {
@@ -30,5 +38,11 @@ namespace Weaver.Interfaces
         /// Optional: expose available extensions with parameter counts
         /// </summary>
         IReadOnlyDictionary<string, int>? Extensions { get; }
+
+        /// <summary>
+        /// Optional preview mode: called by .tryrun().
+        /// Returns a preview result without committing side effects.
+        /// </summary>
+        CommandResult? TryRun(params string[] args) => null;
     }
 }

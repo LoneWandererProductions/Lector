@@ -1,4 +1,12 @@
-﻿namespace Weaver.Messages
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.Messages
+ * FILE:        ParsedCommand.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+namespace Weaver.Messages
 {
     /// <summary>
     /// Represents the result of parsing a raw command input.

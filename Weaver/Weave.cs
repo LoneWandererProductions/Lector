@@ -1,25 +1,45 @@
-﻿using Weaver.Core;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver
+ * FILE:        Weave.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Core;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.Parser;
 
 namespace Weaver
 {
+    /// <summary>
+    /// Represents a unique command signature consisting of namespace, name, and parameter count.
+    /// </summary>
+    /// <param name="Namespace">The namespace of the command.</param>
+    /// <param name="Name">The name of the command.</param>
+    /// <param name="ParameterCount">The number of parameters the command expects.</param>
     public record CommandSignature(string Namespace, string Name, int ParameterCount);
 
+    /// <summary>
+    /// Core command execution engine.
+    /// Manages registration, lookup, execution, and feedback for commands with optional extensions.
+    /// </summary>
     public sealed class Weave
     {
+        // Stores pending feedback continuations, keyed by request ID.
         private readonly Dictionary<string, Func<string, CommandResult>> _continuations
             = new(StringComparer.OrdinalIgnoreCase);
 
-        // key: (namespace, name, paramCount)
+        // Stores registered commands, keyed by (namespace, name, parameter count).
         private readonly Dictionary<(string ns, string name, int paramCount), ICommand> _commands
             = new();
 
+        // Stores per-command extension definitions, keyed by (namespace, name, parameter count).
         private readonly Dictionary<(string ns, string name, int paramCount), Dictionary<string, int>> _commandExtensions
             = new();
 
-        // built-in extensions to inject into every command
+        // Built-in extensions injected into every command.
         private static readonly Dictionary<string, CommandExtension> _globalExtensions
             = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -27,32 +47,52 @@ namespace Weaver
                 ["tryrun"] = new CommandExtension { Name = "tryrun", ParameterCount = 0, IsInternal = true, IsPreview = true }
             };
 
+        private ICommand? _pendingFeedbackCommand;
+        private FeedbackRequest? _pendingFeedback;
 
+        public Weave()
+        {
+            // Register internal programs at startup
+            // 'help' is both a command and an extension
+            var help = new Core.HelpCommand(GetCommands());
+            Register(help);  // only called once here
+        }
+
+        /// <summary>
+        /// Registers a command in the engine.
+        /// Combines command-defined extensions with global extensions for internal use.
+        /// </summary>
+        /// <param name="command">The command to register.</param>
         public void Register(ICommand command)
         {
-            // Build a merged dictionary for internal use
+            // Build a merged extension dictionary (command + global)
             var mergedExtensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            // Command-defined extensions
+            // Include command-defined extensions
             if (command.Extensions != null)
             {
                 foreach (var kv in command.Extensions)
                     mergedExtensions[kv.Key] = kv.Value;
             }
 
-            // Global extensions
+            // Include global extensions, skipping duplicates
             foreach (var kv in _globalExtensions)
                 if (!mergedExtensions.ContainsKey(kv.Key))
                     mergedExtensions[kv.Key] = kv.Value.ParameterCount;
 
-            // Store internally as needed for ProcessInput
+            // Store extensions for internal lookup during execution
             _commandExtensions[(command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount)]
                 = mergedExtensions;
 
+            // Store the command itself for execution
             _commands[(command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount)] = command;
         }
 
-
+        /// <summary>
+        /// Retrieves all registered commands, optionally filtered by namespace.
+        /// </summary>
+        /// <param name="ns">Optional namespace filter; if null, returns all commands.</param>
+        /// <returns>An enumerable of commands matching the filter.</returns>
         public IEnumerable<ICommand> GetCommands(string? ns = null)
         {
             return ns == null
@@ -115,105 +155,112 @@ namespace Weaver
             if (string.IsNullOrWhiteSpace(raw))
                 return CommandResult.Fail("Empty input.");
 
-            ParsedCommand parsed;
-            try
+            // 1️⃣ Pending feedback loop
+            if (_pendingFeedbackCommand != null && _pendingFeedback != null)
             {
-                //parser
-                parsed = SimpleCommandParser.Parse(raw);
-            }
-            catch (Exception ex)
-            {
-                return CommandResult.Fail($"Syntax error: {ex.Message}");
-            }
+                var input = raw.Trim();
+                var result = _pendingFeedbackCommand.InvokeExtension("feedback", input);
 
-            // lookup command
-            if (!_commands.TryGetValue((parsed.Namespace.ToLowerInvariant(), parsed.Name.ToLowerInvariant(), parsed.Args.Length), out var cmd))
-                return CommandResult.Fail($"Unknown command '{parsed.Name}' in namespace '{parsed.Namespace}' with {parsed.Args.Length} parameters.");
-
-            CommandResult result;
-
-            if (!string.IsNullOrEmpty(parsed.Extension))
-            {
-                // Extension exists?
-                if (!cmd.Extensions.TryGetValue(parsed.Extension, out var extParamCount))
-                    return CommandResult.Fail($"Unknown extension '{parsed.Extension}' for command '{cmd.Name}'.");
-
-                if (parsed.ExtensionArgs.Length != extParamCount)
-                    return CommandResult.Fail($"Extension '{parsed.Extension}' expects {extParamCount} arguments, got {parsed.ExtensionArgs.Length}.");
-
-                // Check for global .help / .tryrun
-                if (_globalExtensions.TryGetValue(parsed.Extension, out var globalExt))
+                if (result.Feedback == null)
                 {
-                    if (globalExt.Name == "help")
-                    {
-                        result = CommandResult.Ok($"{cmd.Namespace}:{cmd.Name} — {cmd.Description}");
-                    }
-                    else if (globalExt.IsPreview)
-                    {
-                        var preview = cmd.Execute(parsed.Args);
-                        result = new CommandResult
-                        {
-                            Message = $"Preview:\n{preview.Message}\n\nRun for real? (yes/no)",
-                            Feedback = new FeedbackRequest
-                            {
-                                Prompt = "Confirm execution (yes/no)",
-                                Options = new[] { "yes", "no" },
-                                RequestId = Guid.NewGuid().ToString()
-                            }
-                        };
-                    }
-                    else
-                    {
-                        // fallback
-                        result = cmd.InvokeExtension(parsed.Extension, parsed.ExtensionArgs);
-                    }
+                    _pendingFeedbackCommand = null;
+                    _pendingFeedback = null;
                 }
                 else
                 {
-                    result = cmd.InvokeExtension(parsed.Extension, parsed.ExtensionArgs);
+                    _pendingFeedback = result.Feedback;
                 }
-            }
-            else
-            {
-                result = cmd.Execute(parsed.Args);
+
+                return result;
             }
 
-            // register feedback continuation
-            if (result.Feedback is { } fb)
+            // 2️⃣ Parse command
+            ParsedCommand parsed;
+            try { parsed = SimpleCommandParser.Parse(raw); }
+            catch (Exception ex) { return CommandResult.Fail($"Syntax error: {ex.Message}"); }
+
+            var cmd = FindCommand(parsed.Name, parsed.Args.Length, parsed.Namespace);
+            if (cmd == null)
+                return CommandResult.Fail($"Unknown command '{parsed.Name}'{(string.IsNullOrEmpty(parsed.Namespace) ? "" : $" in namespace '{parsed.Namespace}'")}.");
+
+            // 3️⃣ Check for global extensions
+            if (!string.IsNullOrEmpty(parsed.Extension))
             {
-                _continuations[fb.RequestId] = userInput =>
+                var ext = parsed.Extension.ToLowerInvariant();
+
+                // Global .help() returns the description
+                if (ext == "help")
+                    return CommandResult.Ok(cmd.Description);
+
+                // Global .tryrun() calls TryRun if implemented
+                if (ext == "tryrun")
                 {
-                    if (!string.IsNullOrEmpty(parsed.Extension) &&
-                        parsed.Extension.Equals("tryrun", StringComparison.OrdinalIgnoreCase))
+                    var preview = cmd.TryRun(parsed.Args) ?? cmd.Execute(parsed.Args);
+                    var feedback = new FeedbackRequest
                     {
-                        return userInput.Equals("yes", StringComparison.OrdinalIgnoreCase) ? cmd.Execute(parsed.Args) : CommandResult.Fail("Execution cancelled.");
-                    }
+                        Prompt = $"Preview:\n{preview.Message}\nProceed with actual execution? (yes/no)",
+                        Options = new[] { "yes", "no" }
+                    };
 
-                    return cmd.InvokeExtension("feedback", userInput);
-                };
+                    _pendingFeedbackCommand = cmd;
+                    _pendingFeedback = feedback;
+
+                    return new CommandResult
+                    {
+                        Message = feedback.Prompt,
+                        Feedback = feedback
+                    };
+                }
+
+                // Let command handle other extensions
+                var resultExt = cmd.InvokeExtension(ext, parsed.Args);
+                return resultExt;
             }
 
-            return result;
+            // 4️⃣ Execute normal command
+            var resultExec = cmd.Execute(parsed.Args);
+
+            // 5️⃣ Store feedback if requested
+            if (resultExec.Feedback != null)
+            {
+                _pendingFeedbackCommand = cmd;
+                _pendingFeedback = resultExec.Feedback;
+            }
+
+            return resultExec;
         }
 
-        public CommandResult ContinueFeedback(string requestId, string userInput)
+        /// <summary>
+        /// Finds the command. Based on Namespace.
+        /// If namespace is null, searches all commands for name and argCount.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="argCount">The argument count.</param>
+        /// <param name="ns">The ns.</param>
+        /// <returns>Command we called.</returns>
+        private ICommand? FindCommand(string name, int argCount, string? ns = null)
         {
-            if (string.IsNullOrEmpty(requestId))
-                return CommandResult.Fail("Invalid feedback id.");
-
-            if (!_continuations.TryGetValue(requestId, out var continuation))
-                return CommandResult.Fail($"No pending feedback with id '{requestId}'.");
-
-            _continuations.Remove(requestId);
-
-            try
+            if (!string.IsNullOrWhiteSpace(ns))
             {
-                return continuation(userInput ?? "");
+                // Exact match with namespace
+                _commands.TryGetValue((ns.ToLowerInvariant(), name.ToLowerInvariant(), argCount), out var cmd);
+                return cmd;
             }
-            catch (Exception ex)
-            {
-                return CommandResult.Fail($"Feedback continuation failed: {ex.Message}");
-            }
+
+            // No namespace provided: search all commands
+            var matches = _commands.Values
+                .Where(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase) &&
+                            (c.ParameterCount == argCount || c.ParameterCount == 0)) // allow variable-count
+                .ToList();
+
+            if (matches.Count == 1)
+                return matches[0];
+
+            if (matches.Count > 1)
+                return matches[0]; // or optionally throw an ambiguity error
+
+            return null; // not found
         }
+
     }
 }
