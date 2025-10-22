@@ -17,7 +17,7 @@ namespace Weaver.Core
 
         public HelpCommand(IEnumerable<ICommand> allCommands)
         {
-            _allCommands = _allCommands = allCommands;
+            _allCommands = allCommands;
         }
 
         public string Namespace => "internal";

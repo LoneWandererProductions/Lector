@@ -50,10 +50,19 @@ namespace Weaver
         private ICommand? _pendingFeedbackCommand;
         private FeedbackRequest? _pendingFeedback;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Weave"/> class.
+        /// </summary>
         public Weave()
         {
+            // Register 'list' internal program
+            // Register 'list' next, using dynamic command list
+            var list = new Core.ListCommand(() => GetCommands());
+            Register(list);
+
             // Register internal programs at startup
             // 'help' is both a command and an extension
+            //TOD check If I must do the same here
             var help = new Core.HelpCommand(GetCommands());
             Register(help);  // only called once here
         }
