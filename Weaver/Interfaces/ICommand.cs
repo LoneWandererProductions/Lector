@@ -20,7 +20,20 @@ namespace Weaver.Interfaces
 
         CommandSignature Signature { get; }
 
+        /// <summary>
+        /// Gets the parameter count.
+        /// </summary>
+        /// <value>
+        /// The parameter count.
+        /// </value>
         int ParameterCount => 0; // default means variable
+
+        /// <summary>
+        /// Gets the extension parameter count.
+        /// </summary>
+        /// <value>
+        /// The extension parameter count.
+        /// </value>
         int ExtensionParameterCount => 0;
 
         /// <summary>
@@ -37,7 +50,7 @@ namespace Weaver.Interfaces
         /// <summary>
         /// Optional: expose available extensions with parameter counts
         /// </summary>
-        IReadOnlyDictionary<string, int>? Extensions { get; }
+        IReadOnlyDictionary<string, int>? Extensions => null;
 
         /// <summary>
         /// Optional preview mode: called by .tryrun().

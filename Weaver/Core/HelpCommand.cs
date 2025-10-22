@@ -13,18 +13,17 @@ namespace Weaver.Core
 {
     public sealed class HelpCommand : ICommand
     {
-        private readonly IEnumerable<ICommand> _allCommands;
+        private readonly Func<IEnumerable<ICommand>> _getCommands;
 
-        public HelpCommand(IEnumerable<ICommand> allCommands)
+        public HelpCommand(Func<IEnumerable<ICommand>> getCommands)
         {
-            _allCommands = allCommands;
+            _getCommands = getCommands;
         }
 
         public string Namespace => "internal";
         public string Name => "help";
         public string Description => "Lists all commands or shows information about a specific command.";
         public int ParameterCount => 1; // we’ll allow 0 or 1 dynamically
-        public int ExtensionParameterCount => 0;
 
         public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
 
@@ -32,9 +31,12 @@ namespace Weaver.Core
 
         public CommandResult Execute(params string[] args)
         {
+            var allCommands = _getCommands();
+
+
             if (args.Length == 0)
             {
-                var grouped = _allCommands
+                var grouped = allCommands
                     .GroupBy(c => c.Namespace)
                     .OrderBy(g => g.Key)
                     .Select(g =>
@@ -47,7 +49,7 @@ namespace Weaver.Core
             }
 
             var cmdName = args[0];
-            var match = _allCommands.FirstOrDefault(c =>
+            var match = allCommands.FirstOrDefault(c =>
                 c.Name.Equals(cmdName, StringComparison.OrdinalIgnoreCase));
 
             if (match != null)

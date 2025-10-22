@@ -1,30 +1,8 @@
-﻿/*
- * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Interpreter.ScriptEngine
- * FILE:        Parser.cs
- * PURPOSE:     Your file purpose here
- * PROGRAMMER:  Peter Geinitz (Wayfarer)
- */
-
-#nullable enable
-using System.Text;
-
-namespace Weaver.ScriptEngine;
+﻿using Weaver.ScriptEngine;
 
 internal sealed class Parser
 {
-    internal record ScriptLine(string Category, string? Statement)
-    {
-        public virtual bool Equals(ScriptLine? other)
-        {
-            if (other is null) return false;
-            return string.Equals(Category, other.Category, StringComparison.Ordinal)
-                   && string.Equals(Statement, other.Statement, StringComparison.Ordinal);
-        }
-
-        public override int GetHashCode() => HashCode.Combine(Category, Statement);
-    }
-
+    internal record ScriptLine(string Category, string? Statement);
 
     private readonly List<Token> _tokens;
     private int _position;
@@ -34,28 +12,16 @@ internal sealed class Parser
         _tokens = tokens;
     }
 
-    /// <summary>
-    /// Parses the into categorized blocks.
-    /// </summary>
-    /// <returns></returns>
     public List<ScriptLine> ParseIntoCategorizedBlocks()
     {
         var result = new List<ScriptLine>();
 
         while (!IsAtEnd())
         {
-            var current = Peek();
+            var token = Peek();
 
-            switch (current.Type)
+            switch (token.Type)
             {
-                case TokenType.KeywordIf:
-                    ParseIfStatement(result);
-                    break;
-
-                case TokenType.KeywordElse:
-                    ParseElseBlock(result);
-                    break;
-
                 case TokenType.Label:
                     result.Add(new ScriptLine("Label", ReadStatementAsString()));
                     break;
@@ -64,12 +30,29 @@ internal sealed class Parser
                     result.Add(new ScriptLine("Goto", ReadStatementAsString()));
                     break;
 
+                case TokenType.KeywordIf:
+                    ParseIfBlock(result);
+                    break;
+
+                case TokenType.KeywordDo:
+                    ParseDoWhileBlock(result);
+                    break;
+
                 case TokenType.Comment:
                     Advance(); // skip
                     break;
 
                 default:
-                    result.Add(new ScriptLine("Command", ReadStatementAsString()));
+                    if (token.Type != TokenType.OpenBrace &&
+                        token.Type != TokenType.CloseBrace &&
+                        token.Type != TokenType.Semicolon)
+                    {
+                        result.Add(new ScriptLine("Command", ReadStatementAsString()));
+                    }
+                    else
+                    {
+                        Advance(); // skip structural tokens
+                    }
                     break;
             }
         }
@@ -77,12 +60,7 @@ internal sealed class Parser
         return result;
     }
 
-    /// <summary>
-    /// Parses if statement.
-    /// </summary>
-    /// <param name="output">The output.</param>
-    /// <param name="commandIndex">Index of the command.</param>
-    private void ParseIfStatement(List<ScriptLine> output)
+    private void ParseIfBlock(List<ScriptLine> output)
     {
         Advance(); // consume 'if'
         var condition = ReadCondition();
@@ -90,73 +68,39 @@ internal sealed class Parser
 
         Expect(TokenType.OpenBrace);
         output.Add(new ScriptLine("If_Open", null));
-
-        var statements = ParseBlockStatements();
-        output.AddRange(statements);
-
+        output.AddRange(ParseBlockStatements());
         output.Add(new ScriptLine("If_End", null));
 
         if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
-        {
             ParseElseBlock(output);
-        }
     }
 
-    /// <summary>
-    /// Parses the else block.
-    /// </summary>
-    /// <param name="output">The output.</param>
-    /// <param name="commandIndex">Index of the command.</param>
     private void ParseElseBlock(List<ScriptLine> output)
     {
         Advance(); // consume 'else'
         Expect(TokenType.OpenBrace);
         output.Add(new ScriptLine("Else_Open", null));
-
-        var statements = ParseBlockStatements();
-        output.AddRange(statements);
-
+        output.AddRange(ParseBlockStatements());
         output.Add(new ScriptLine("Else_End", null));
     }
 
-    /// <summary>
-    /// Reads the condition.
-    /// </summary>
-    /// <returns></returns>
-    private string ReadCondition()
+    private void ParseDoWhileBlock(List<ScriptLine> output)
     {
-        // Expect '('
-        Expect(TokenType.OpenParen);
+        Advance(); // consume 'do'
+        Expect(TokenType.OpenBrace);
+        output.Add(new ScriptLine("Do_Open", null));
+        output.AddRange(ParseBlockStatements());
+        output.Add(new ScriptLine("Do_End", null));
 
-        var sb = new StringBuilder();
-        var parenDepth = 1;
-
-        while (!IsAtEnd() && parenDepth > 0)
+        if (!IsAtEnd() && Peek().Type == TokenType.KeywordWhile)
         {
-            var token = Advance();
-
-            if (token.Type == TokenType.OpenParen)
-            {
-                parenDepth++;
-            }
-            else if (token.Type == TokenType.CloseParen)
-            {
-                parenDepth--;
-            }
-
-            if (parenDepth > 0)
-            {
-                sb.Append(token.Lexeme);
-            }
+            Advance(); // consume 'while'
+            var condition = ReadCondition();
+            output.Add(new ScriptLine("While_Condition", condition));
+            Match(TokenType.Semicolon); // optional semicolon
         }
-
-        return sb.ToString().Trim();
     }
 
-    /// <summary>
-    /// Parses the block statements.
-    /// </summary>
-    /// <returns>Tuble of Block statements</returns>
     private List<ScriptLine> ParseBlockStatements()
     {
         var statements = new List<ScriptLine>();
@@ -168,22 +112,11 @@ internal sealed class Parser
             switch (token.Type)
             {
                 case TokenType.KeywordIf:
-                    Advance();
-                    var condition = ReadCondition();
-                    statements.Add(new ScriptLine("If_Condition", condition));
-                    Expect(TokenType.OpenBrace);
-                    statements.Add(new ScriptLine("If_Open", null));
-                    statements.AddRange(ParseBlockStatements());
-                    statements.Add(new ScriptLine("If_End", null));
+                    ParseIfBlock(statements);
+                    break;
 
-                    if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
-                    {
-                        Advance();
-                        Expect(TokenType.OpenBrace);
-                        statements.Add(new ScriptLine("Else_Open", null));
-                        statements.AddRange(ParseBlockStatements());
-                        statements.Add(new ScriptLine("Else_End", null));
-                    }
+                case TokenType.KeywordDo:
+                    ParseDoWhileBlock(statements);
                     break;
 
                 case TokenType.Label:
@@ -195,168 +128,90 @@ internal sealed class Parser
                     break;
 
                 case TokenType.Comment:
-                    Advance(); // skip
-                    break;
-
-                case TokenType.KeywordDo:
-                    statements.AddRange(ParseDoWhile());
+                    Advance();
                     break;
 
                 default:
-                    if (token.Type == TokenType.OpenBrace || token.Type == TokenType.CloseBrace)
-                    {
-                        // skip braces here — they are handled by control structures
-                        Advance();
-                    }
-                    else
+                    if (token.Type != TokenType.OpenBrace &&
+                        token.Type != TokenType.CloseBrace &&
+                        token.Type != TokenType.Semicolon)
                     {
                         statements.Add(new ScriptLine("Command", ReadStatementAsString()));
                     }
+                    else
+                    {
+                        Advance(); // skip structural tokens
+                    }
                     break;
-
             }
         }
 
-        Expect(TokenType.CloseBrace);
+        Expect(TokenType.CloseBrace); // close block
         return statements;
-    }
-
-    private List<ScriptLine> ParseDoWhile()
-    {
-        var output = new List<ScriptLine>();
-
-        Advance(); // consume 'do'
-        Expect(TokenType.OpenBrace);
-        output.Add(new ScriptLine("Do_Open", null));
-
-        output.AddRange(ParseBlockStatements());
-
-        output.Add(new ScriptLine("Do_End", null));
-
-        if (!IsAtEnd() && Peek().Type == TokenType.KeywordWhile)
-        {
-            Advance(); // consume 'while'
-            var condition = ReadCondition();
-            output.Add(new ScriptLine("While_Condition", condition));
-            Match(TokenType.Semicolon);
-        }
-
-        return output;
-    }
-
-    /// <summary>
-    /// Expects the specified expected.
-    /// </summary>
-    /// <param name="expected">The expected.</param>
-    /// <exception cref="ArgumentException">Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'.</exception>
-    private void Expect(TokenType expected)
-    {
-        if (IsAtEnd() || Peek().Type != expected)
-        {
-            throw new ArgumentException(
-                $"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'.");
-        }
-
-        Advance();
     }
 
     private string ReadStatementAsString()
     {
-        var sb = new StringBuilder();
-        var insideParens = false;
+        var sb = new System.Text.StringBuilder();
         Token? previous = null;
+        bool insideParens = false;
 
         while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
         {
-            var current = Advance();
+            var token = Advance();
 
-            if (insideParens &&
-                previous != null &&
-                IsAlphanumeric(previous.Type) &&
-                IsAlphanumeric(current.Type))
-            {
+            if (insideParens && previous != null && IsAlphanumeric(previous.Type) && IsAlphanumeric(token.Type))
                 sb.Append(' ');
-            }
 
-            sb.Append(current.Lexeme);
+            sb.Append(token.Lexeme);
 
-            if (current.Type == TokenType.OpenParen)
-            {
+            if (token.Type == TokenType.OpenParen)
                 insideParens = true;
-            }
-            else if (current.Type == TokenType.CloseParen)
-            {
+            else if (token.Type == TokenType.CloseParen)
                 insideParens = false;
-            }
 
-            previous = current;
+            previous = token;
         }
 
-        if (Match(TokenType.Semicolon))
+        Match(TokenType.Semicolon); // consume semicolon if present
+        return sb.ToString().Trim();
+    }
+
+    private string ReadCondition()
+    {
+        Expect(TokenType.OpenParen);
+        var sb = new System.Text.StringBuilder();
+        int depth = 1;
+
+        while (!IsAtEnd() && depth > 0)
         {
-            sb.Append(';');
+            var t = Advance();
+            if (t.Type == TokenType.OpenParen) depth++;
+            if (t.Type == TokenType.CloseParen) depth--;
+            if (depth > 0) sb.Append(t.Lexeme);
         }
 
-        return sb.ToString();
+        return sb.ToString().Trim();
     }
 
-    /// <summary>
-    /// Determines whether the specified type is alphanumeric.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <returns>
-    ///   <c>true</c> if the specified type is alphanumeric; otherwise, <c>false</c>.
-    /// </returns>
-    private bool IsAlphanumeric(TokenType type)
+    private bool IsAlphanumeric(TokenType type) =>
+        type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf || type == TokenType.KeywordElse;
+
+    private void Expect(TokenType expected)
     {
-        return type == TokenType.Identifier ||
-               type == TokenType.KeywordIf ||
-               type == TokenType.KeywordElse ||
-               type == TokenType.Number; // add any others you want spaced
+        if (IsAtEnd() || Peek().Type != expected)
+            throw new ArgumentException($"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'");
+        Advance();
     }
 
-    /// <summary>
-    /// Determines whether [is at end].
-    /// </summary>
-    /// <returns>
-    ///   <c>true</c> if [is at end]; otherwise, <c>false</c>.
-    /// </returns>
-    private bool IsAtEnd()
-    {
-        return _position >= _tokens.Count;
-    }
-
-    /// <summary>
-    /// Advances this instance.
-    /// </summary>
-    /// <returns>Next Token.</returns>
-    private Token Advance()
-    {
-        return _tokens[_position++];
-    }
-
-    /// <summary>
-    /// Peeks this instance.
-    /// </summary>
-    /// <returns>Token at position</returns>
-    private Token Peek()
-    {
-        return _tokens[_position];
-    }
-
-    /// <summary>
-    /// Matches the specified type.
-    /// </summary>
-    /// <param name="type">The type.</param>
-    /// <returns>If type of token is matched.</returns>
     private bool Match(TokenType type)
     {
-        if (IsAtEnd() || _tokens[_position].Type != type)
-        {
-            return false;
-        }
-
-        _position++;
+        if (IsAtEnd() || Peek().Type != type) return false;
+        Advance();
         return true;
     }
+
+    private Token Peek() => _tokens[_position];
+    private Token Advance() => _tokens[_position++];
+    private bool IsAtEnd() => _position >= _tokens.Count;
 }

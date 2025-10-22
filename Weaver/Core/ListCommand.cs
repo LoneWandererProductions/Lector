@@ -13,18 +13,10 @@ namespace Weaver.Core
 {
     public sealed class ListCommand : ICommand
     {
-        private readonly IEnumerable<ICommand> _allCommands;
-
-        public ListCommand(IEnumerable<ICommand> allCommands)
-        {
-            _allCommands = allCommands;
-        }
-
         public string Namespace => "internal";
         public string Name => "list";
         public string Description => "Lists all commands.";
         public int ParameterCount => 0; // we’ll allow 0
-        public int ExtensionParameterCount => 0;
 
         private readonly Func<IEnumerable<ICommand>> _getCommands;
 
@@ -40,7 +32,9 @@ namespace Weaver.Core
 
         public CommandResult Execute(params string[] args)
         {
-            var grouped = _allCommands
+            var allCommands = _getCommands();
+
+            var grouped = allCommands
                 .GroupBy(c => c.Namespace)
                 .OrderBy(g => g.Key)
                 .Select(g =>
