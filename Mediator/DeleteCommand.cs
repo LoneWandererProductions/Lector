@@ -1,3 +1,11 @@
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator
+ * FILE:        DeleteCommand.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;

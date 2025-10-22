@@ -1,4 +1,12 @@
-﻿using Weaver.Interfaces;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver
+ * FILE:        ScriptInput.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
