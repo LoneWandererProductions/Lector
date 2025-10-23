@@ -12,8 +12,17 @@ namespace Weaver.Messages
 {
     public sealed class MessageMediator
     {
+        /// <summary>
+        /// The pending
+        /// </summary>
         private readonly Dictionary<string, ICommand> _pending = new(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Registers the specified command.
+        /// </summary>
+        /// <param name="command">The command.</param>
+        /// <param name="feedback">The feedback.</param>
+        /// <exception cref="System.ArgumentNullException">feedback</exception>
         public void Register(ICommand command, FeedbackRequest feedback)
         {
             if (feedback == null)
@@ -22,16 +31,28 @@ namespace Weaver.Messages
             _pending[feedback.RequestId] = command;
         }
 
+        /// <summary>
+        /// Resolves the specified request identifier.
+        /// </summary>
+        /// <param name="requestId">The request identifier.</param>
+        /// <returns></returns>
         public ICommand? Resolve(string requestId)
         {
             return _pending.TryGetValue(requestId, out var cmd) ? cmd : null;
         }
 
+        /// <summary>
+        /// Clears the specified request identifier.
+        /// </summary>
+        /// <param name="requestId">The request identifier.</param>
         public void Clear(string requestId)
         {
             _pending.Remove(requestId);
         }
 
+        /// <summary>
+        /// Clears all.
+        /// </summary>
         public void ClearAll()
         {
             _pending.Clear();

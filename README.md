@@ -26,7 +26,23 @@ weave.Register(myCommand);
 
 
 ## Processing Input
+
 ```csharp
 var result = weave.ProcessInput("namespace:myCommand(arg1, arg2).help");
 Console.WriteLine(result.Message);
+
+## Handling Feedback
+
+If a command requires confirmation or additional input, Weave will handle it automatically:
+
+if (result.RequiresConfirmation)
+{
+    // Next user input is routed automatically to the pending feedback
+    var followUp = Console.ReadLine();
+    var followUpResult = weave.ProcessInput(followUp);
+}
+
+License
+
+This project is licensed under the MIT License
 

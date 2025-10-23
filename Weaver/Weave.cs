@@ -289,6 +289,9 @@ namespace Weaver
             return null;
         }
 
+        /// <summary>
+        /// Resets this instance.
+        /// </summary>
         public void Reset()
         {
             _pendingFeedback = null;
