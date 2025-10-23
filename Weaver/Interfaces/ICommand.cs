@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Interfaces
  * FILE:        ICommand.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Declaration of the command interface for Weaver commands. Defines properties and methods that all commands must implement.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -10,14 +10,41 @@ using Weaver.Messages;
 
 namespace Weaver.Interfaces
 {
+    /// <summary>
+    /// Interface and backbone for all Weaver commands.
+    /// </summary>
     public interface ICommand
     {
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
         string Name { get; }
 
+        /// <summary>
+        /// Gets the description.
+        /// </summary>
+        /// <value>
+        /// The description.
+        /// </value>
         string Description { get; }
 
+        /// <summary>
+        /// Gets the namespace.
+        /// </summary>
+        /// <value>
+        /// The namespace.
+        /// </value>
         string Namespace { get; }
 
+        /// <summary>
+        /// Gets the signature.
+        /// </summary>
+        /// <value>
+        /// The signature.
+        /// </value>
         CommandSignature Signature { get; }
 
         /// <summary>

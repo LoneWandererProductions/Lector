@@ -13,7 +13,7 @@ namespace Weaver.Core
 {
     /// <inheritdoc />
     /// <summary>
-    /// 
+    ///     Internal command, shows basic information about available commands and about Weaver itself.
     /// </summary>
     /// <seealso cref="Weaver.Interfaces.ICommand" />
     public sealed class HelpCommand : ICommand
