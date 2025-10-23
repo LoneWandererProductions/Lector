@@ -18,7 +18,7 @@ namespace Mediator
         public string Name => "delete";
         public string Description => "Deletes a resource by name.";
         public int ParameterCount => 1;
-        public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         public IReadOnlyDictionary<string, int>? Extensions => null; // No need for 'feedback' extension now
 
@@ -51,7 +51,8 @@ namespace Mediator
                                 Feedback = new FeedbackRequest(
                                     prompt: "Please answer: yes / no / cancel",
                                     options: new[] { "yes", "no", "cancel" },
-                                    onRespond: s => throw new NotImplementedException() // recursive wrapping handled by Weave
+                                    onRespond: s =>
+                                        throw new NotImplementedException() // recursive wrapping handled by Weave
                                 )
                             };
                     }

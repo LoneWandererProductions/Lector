@@ -3,7 +3,6 @@ using Weaver.Messages;
 
 namespace Mediator
 {
-
     /// <summary>
     /// Test extension that appends "[EXT]" to the command message
     /// </summary>
@@ -13,7 +12,7 @@ namespace Mediator
 
         public string Description => "Test";
 
-        public string? Namespace => "Test";
+        public string Namespace => "Test";
 
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
         {

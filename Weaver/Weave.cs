@@ -49,11 +49,6 @@ namespace Weaver
         private readonly MessageMediator _mediator = new();
 
         /// <summary>
-        /// The pending feedback command
-        /// </summary>
-        private ICommand? _pendingFeedbackCommand;
-
-        /// <summary>
         /// The pending feedback
         /// </summary>
         private FeedbackRequest? _pendingFeedback;
@@ -202,18 +197,15 @@ namespace Weaver
                 {
                     // Unexpected state
                     _pendingFeedback = null;
-                    _pendingFeedbackCommand = null;
                     return CommandResult.Fail("Pending feedback has no associated command.");
                 }
 
                 var result = _pendingFeedback.Respond(raw);
 
-                if (!result.RequiresConfirmation)
-                {
-                    _mediator.Clear(_pendingFeedback.RequestId);
-                    _pendingFeedback = null;
-                    _pendingFeedbackCommand = null;
-                }
+                if (result.RequiresConfirmation) return result;
+
+                _mediator.Clear(_pendingFeedback.RequestId);
+                _pendingFeedback = null;
 
                 return result;
             }
@@ -221,8 +213,14 @@ namespace Weaver
 
             // 2️⃣ Parse command
             ParsedCommand parsed;
-            try { parsed = SimpleCommandParser.Parse(raw); }
-            catch (Exception ex) { return CommandResult.Fail($"Syntax error: {ex.Message}"); }
+            try
+            {
+                parsed = SimpleCommandParser.Parse(raw);
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail($"Syntax error: {ex.Message}");
+            }
 
             var cmd = FindCommand(parsed.Name, parsed.Args.Length, parsed.Namespace);
             if (cmd == null)
@@ -231,13 +229,14 @@ namespace Weaver
             // 3️⃣ Handle extensions
             if (!string.IsNullOrEmpty(parsed.Extension))
             {
-                var ext = _extensions.FirstOrDefault(e => e.Name.Equals(parsed.Extension, StringComparison.OrdinalIgnoreCase));
-                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute) ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
+                var ext = _extensions.FirstOrDefault(e =>
+                    e.Name.Equals(parsed.Extension, StringComparison.OrdinalIgnoreCase));
+                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute) ??
+                             cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
                 if (result.RequiresConfirmation && result.Feedback != null)
                 {
                     _pendingFeedback = result.Feedback;
-                    _pendingFeedbackCommand = cmd;
 
                     // Register feedback with mediator
                     _mediator.Register(cmd, _pendingFeedback);
@@ -251,7 +250,6 @@ namespace Weaver
             if (execResult.RequiresConfirmation && execResult.Feedback != null)
             {
                 _pendingFeedback = execResult.Feedback;
-                _pendingFeedbackCommand = cmd;
 
                 // Register feedback with mediator
                 _mediator.Register(cmd, _pendingFeedback);
@@ -295,9 +293,7 @@ namespace Weaver
         public void Reset()
         {
             _pendingFeedback = null;
-            _pendingFeedbackCommand = null;
             _mediator.ClearAll();
         }
-
     }
 }

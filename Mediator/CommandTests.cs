@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Diagnostics;
 using Weaver;
 using Weaver.Interfaces;
 
@@ -15,7 +14,6 @@ namespace Mediator
     [TestClass]
     public class CommandTests
     {
-        private List<ICommand> _allCommands = new();
         private DeleteCommand _deleteCommand = null!;
         private readonly Weave _weaver = new Weave();
 
@@ -24,7 +22,7 @@ namespace Mediator
         {
             // Create commands
             _deleteCommand = new DeleteCommand();
-            _allCommands = new List<ICommand> { _deleteCommand };
+            new List<ICommand> { _deleteCommand };
             _weaver.Register(_deleteCommand);
         }
 
@@ -84,7 +82,6 @@ namespace Mediator
 
             // Step 3: user cancels execution
             var cancelResult = _weaver.ProcessInput("delete(file.txt).tryrun()");
-            var cancelRequestId = cancelResult.Feedback!.RequestId;
             var cancelFeedback = _weaver.ProcessInput("no");
 
             Assert.IsFalse(cancelFeedback.Success);

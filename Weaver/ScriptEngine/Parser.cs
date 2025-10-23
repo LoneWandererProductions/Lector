@@ -101,13 +101,12 @@ internal sealed class Parser
         output.AddRange(ParseBlockStatements());
         output.Add(new ScriptLine("Do_End", null));
 
-        if (!IsAtEnd() && Peek().Type == TokenType.KeywordWhile)
-        {
-            Advance(); // consume 'while'
-            var condition = ReadCondition();
-            output.Add(new ScriptLine("While_Condition", condition));
-            Match(TokenType.Semicolon); // optional semicolon
-        }
+        if (IsAtEnd() || Peek().Type != TokenType.KeywordWhile) return;
+
+        Advance(); // consume 'while'
+        var condition = ReadCondition();
+        output.Add(new ScriptLine("While_Condition", condition));
+        Match(TokenType.Semicolon); // optional semicolon
     }
 
     private List<ScriptLine> ParseBlockStatements()

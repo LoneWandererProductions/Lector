@@ -29,7 +29,7 @@ namespace Weaver.Messages
         /// <value>
         /// The prompt.
         /// </value>
-        public string Prompt { get; init; } = "";
+        public string Prompt { get; init; }
 
         /// <summary>
         /// Gets the options.

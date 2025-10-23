@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Weaver;
+﻿using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 

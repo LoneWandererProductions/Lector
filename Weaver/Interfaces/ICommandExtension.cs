@@ -40,7 +40,10 @@ namespace Weaver.Interfaces
         /// </summary>
         /// <param name="command">The command that this extension applies to.</param>
         /// <param name="args">The arguments passed to the command.</param>
-        /// <returns>A <see cref="CommandResult"/> representing the outcome of the extension execution.</returns>
+        /// <param name="executor">The executor.</param>
+        /// <returns>
+        /// A <see cref="CommandResult" /> representing the outcome of the extension execution.
+        /// </returns>
         CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor);
 
         /// <summary>
@@ -49,7 +52,9 @@ namespace Weaver.Interfaces
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="args">The arguments.</param>
-        void BeforeExecute(ICommand command, string[]? args = null) { }
+        void BeforeExecute(ICommand command, string[]? args = null)
+        {
+        }
 
         /// <summary>
         ///  Optional: can run pre/post hooks around command execution.
@@ -57,6 +62,8 @@ namespace Weaver.Interfaces
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="result">The result.</param>
-        void AfterExecute(ICommand command, CommandResult result) { }
+        void AfterExecute(ICommand command, CommandResult result)
+        {
+        }
     }
 }

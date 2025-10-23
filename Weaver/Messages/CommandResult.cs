@@ -27,7 +27,7 @@ namespace Weaver.Messages
         /// <value>
         ///   <c>true</c> if success; otherwise, <c>false</c>.
         /// </value>
-        public bool Success { get; set; }
+        public bool Success { get; init; }
 
         /// <summary>
         /// Gets a value indicating whether [requires confirmation].

@@ -32,5 +32,4 @@ namespace Weaver.Interfaces
         /// <param name="input">User input</param>
         CommandResult Respond(string input);
     }
-
 }

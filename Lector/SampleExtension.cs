@@ -5,7 +5,7 @@ namespace Lector
 {
     public sealed class SampleExtension : ICommandExtension
     {
-        public string Name => "sample";  // name of the extension
+        public string Name => "sample"; // name of the extension
         public string Description => "A sample extension that wraps command execution.";
         public string Namespace => "system";
 
