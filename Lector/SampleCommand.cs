@@ -6,26 +6,22 @@ using Weaver.Messages;
 
 namespace Lector
 {
-
     /// <summary>
     /// Template command for the Weaver engine.
-    /// Implements ICommand with optional extensions and preview support.
+    /// Implements ICommand with optional preview support.
     /// </summary>
     public sealed class SampleCommand : ICommand
     {
-        public string Namespace => "system";          // Example namespace
-        public string Name => "sample";               // Command name
-        public string Description => "A sample command demonstrating extension and preview usage.";
-        public int ParameterCount => 1;               // Expected number of arguments
-        public IReadOnlyDictionary<string, int>? Extensions => new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["feedback"] = 1  // Optional built-in extension for feedback loop
-        };
-
+        public string Namespace => "system";
+        public string Name => "sample";
+        public string Description => "A sample command demonstrating feedback and preview usage.";
+        public int ParameterCount => 1;
+        public IReadOnlyDictionary<string, int>? Extensions => null; // no manual feedback extension needed
         public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
 
         /// <summary>
         /// Normal execution of the command.
+        /// Uses FeedbackRequest for confirmation.
         /// </summary>
         public CommandResult Execute(params string[] args)
         {
@@ -34,16 +30,33 @@ namespace Lector
 
             var target = args[0];
 
-            // For demonstration: require user confirmation via feedback
+            var feedback = new FeedbackRequest(
+                prompt: $"Process '{target}'? (yes/no)",
+                options: new[] { "yes", "no" },
+                onRespond: input =>
+                {
+                    return input.Trim().ToLowerInvariant() switch
+                    {
+                        "yes" => CommandResult.Ok($"'{target}' processed successfully."),
+                        "no" => CommandResult.Fail($"Processing of '{target}' cancelled by user."),
+                        _ => new CommandResult
+                        {
+                            Message = $"Unrecognized response '{input}'. Please answer yes/no.",
+                            RequiresConfirmation = true,
+                            Feedback = new FeedbackRequest(
+                                prompt: "Please answer: yes / no",
+                                options: new[] { "yes", "no" },
+                                onRespond: s => throw new NotImplementedException() // recursive handled by Weave
+                            )
+                        }
+                    };
+                });
+
             return new CommandResult
             {
                 Message = $"Do you want to process '{target}'?",
-                Feedback = new FeedbackRequest
-                {
-                    Prompt = $"Process '{target}'? (yes/no)",
-                    Options = new[] { "yes", "no" }
-                },
-                RequiresConfirmation = true
+                RequiresConfirmation = true,
+                Feedback = feedback
             };
         }
 
@@ -64,31 +77,10 @@ namespace Lector
         }
 
         /// <summary>
-        /// Optional extension calls (e.g., feedback, custom extensions)
+        /// No extension handling required: all feedback handled via IFeedback.
         /// </summary>
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            if (extensionName.Equals("feedback", StringComparison.OrdinalIgnoreCase))
-            {
-                var input = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "";
-
-                return input switch
-                {
-                    "yes" => CommandResult.Ok("Action completed successfully."),
-                    "no" => CommandResult.Fail("Action cancelled by user."),
-                    _ => new CommandResult
-                    {
-                        Message = $"Unrecognized response '{input}'. Please answer yes/no.",
-                        Feedback = new FeedbackRequest
-                        {
-                            Prompt = "Please answer: yes / no",
-                            Options = new[] { "yes", "no" }
-                        },
-                        RequiresConfirmation = true
-                    }
-                };
-            }
-
             return CommandResult.Fail($"Unknown extension '{extensionName}'.");
         }
     }

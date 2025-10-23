@@ -184,75 +184,48 @@ namespace Weaver
         /// </remarks>
         public CommandResult ProcessInput(string raw)
         {
-            if (string.IsNullOrWhiteSpace(raw))
+            raw = raw?.Trim() ?? "";
+            if (string.IsNullOrEmpty(raw))
                 return CommandResult.Fail("Empty input.");
 
-            raw = raw.Trim();
-
-            // 1️⃣ Handle pending feedback first
-            if (_pendingFeedbackCommand != null && _pendingFeedback != null)
+            // 1️⃣ Pending feedback
+            if (_pendingFeedback?.IsPending == true)
             {
-                var feedbackResult = _pendingFeedbackCommand.InvokeExtension("feedback", raw);
-
-                if (!feedbackResult.RequiresConfirmation)
-                    ClearFeedbackState();
-                else
-                    _pendingFeedback = feedbackResult.Feedback;
-
-                return feedbackResult;
+                var result = _pendingFeedback.Respond(raw);
+                if (!result.RequiresConfirmation)
+                    _pendingFeedback = null;
+                return result;
             }
 
-            // 2️⃣ Parse the command
+            // 2️⃣ Parse command
             ParsedCommand parsed;
-            try
-            {
-                parsed = SimpleCommandParser.Parse(raw);
-            }
-            catch (Exception ex)
-            {
-                return CommandResult.Fail($"Syntax error: {ex.Message}");
-            }
+            try { parsed = SimpleCommandParser.Parse(raw); }
+            catch (Exception ex) { return CommandResult.Fail($"Syntax error: {ex.Message}"); }
 
             var cmd = FindCommand(parsed.Name, parsed.Args.Length, parsed.Namespace);
             if (cmd == null)
-                return CommandResult.Fail(
-                    $"Unknown command '{parsed.Name}'{(string.IsNullOrEmpty(parsed.Namespace) ? "" : $" in namespace '{parsed.Namespace}'")}.");
+                return CommandResult.Fail($"Unknown command '{parsed.Name}'.");
 
-            // 3️⃣ Handle extension if present
+            // 3️⃣ Handle extensions
             if (!string.IsNullOrEmpty(parsed.Extension))
             {
-                var extName = parsed.Extension.ToLowerInvariant();
+                var ext = _extensions.FirstOrDefault(e => e.Name.Equals(parsed.Extension, StringComparison.OrdinalIgnoreCase));
+                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute) ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
-                CommandResult resultExec;
-                // Check registered extensions
-                var ext = _extensions.FirstOrDefault(e => e.Name.Equals(extName, StringComparison.OrdinalIgnoreCase));
-                if (ext != null)
-                    resultExec = ext.Invoke(cmd, parsed.Args, cmd.Execute); // <-- returns preview with Feedback
-                else
-                    resultExec = cmd.InvokeExtension(extName, parsed.Args);
+                if (result.RequiresConfirmation)
+                    _pendingFeedback = result.Feedback;
 
-                // Store feedback if needed
-                if (resultExec.RequiresConfirmation && resultExec.Feedback != null)
-                {
-                    _pendingFeedbackCommand = cmd;
-                    _pendingFeedback = resultExec.Feedback;
-                }
-
-                return resultExec;
+                return result;
             }
 
-            // 4️⃣ Execute normal command
-            var result = cmd.Execute(parsed.Args);
+            // 4️⃣ Normal execution
+            var execResult = cmd.Execute(parsed.Args);
+            if (execResult.RequiresConfirmation)
+                _pendingFeedback = execResult.Feedback;
 
-            // 5️⃣ Store pending feedback if returned
-            if (result.RequiresConfirmation)
-            {
-                _pendingFeedbackCommand = cmd;
-                _pendingFeedback = result.Feedback;
-            }
-
-            return result;
+            return execResult;
         }
+
 
 
         /// <summary>

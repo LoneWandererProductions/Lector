@@ -14,72 +14,91 @@ namespace Mediator
 {
     public sealed class DeleteCommand : ICommand
     {
-        /// <inheritdoc />
         public string Namespace => "system";
-
-        /// <inheritdoc />
         public string Name => "delete";
-
-        /// <inheritdoc />
         public string Description => "Deletes a resource by name.";
-
-        /// <inheritdoc />
         public int ParameterCount => 1;
-
-
-        /// <inheritdoc />
-        public IReadOnlyDictionary<string, int>? Extensions => new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["feedback"] = 1
-        };
-
-
-        /// <inheritdoc />
         public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
 
+        public IReadOnlyDictionary<string, int>? Extensions => null; // No need for 'feedback' extension now
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Executes the delete command.
+        /// </summary>
         public CommandResult Execute(params string[] args)
         {
             var target = args[0];
+
+            // Build a feedback request using IFeedback
+            var feedback = new FeedbackRequest(
+                prompt: $"Delete '{target}'? (yes/no/cancel)",
+                options: new[] { "yes", "no", "cancel" },
+                onRespond: input =>
+                {
+                    switch (input.Trim().ToLowerInvariant())
+                    {
+                        case "yes":
+                            return CommandResult.Ok($"Resource '{target}' deleted successfully.");
+                        case "no":
+                        case "cancel":
+                            return CommandResult.Fail("Deletion cancelled by user.");
+                        default:
+                            // Keep feedback pending for invalid input
+                            return new CommandResult
+                            {
+                                Message = $"Unrecognized response '{input}'. Please answer yes/no/cancel.",
+                                RequiresConfirmation = true,
+                                Feedback = new FeedbackRequest(
+                                    prompt: "Please answer: yes / no / cancel",
+                                    options: new[] { "yes", "no", "cancel" },
+                                    onRespond: s => throw new NotImplementedException() // recursive wrapping handled by Weave
+                                )
+                            };
+                    }
+                }
+            );
+
             return new CommandResult
             {
                 Message = $"Are you sure you want to delete '{target}'?",
                 RequiresConfirmation = true,
-                Feedback = new FeedbackRequest
-                {
-                    Prompt = $"Delete '{target}'? (yes/no/cancel)",
-                    Options = new[] { "yes", "no", "cancel" }
-                }
+                Feedback = feedback
             };
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// No longer needed: all feedback is handled via IFeedback.
+        /// </summary>
+        // In DeleteCommand
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            if (extensionName.Equals("feedback", StringComparison.OrdinalIgnoreCase))
-            {
-                var input = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "";
+            if (!extensionName.Equals("feedback", StringComparison.OrdinalIgnoreCase))
+                return CommandResult.Fail($"Unknown extension '{extensionName}'.");
 
-                return input switch
+            if (args.Length == 0)
+                return new CommandResult
                 {
-                    "yes" => CommandResult.Ok("Resource deleted successfully."),
-                    "no" => CommandResult.Fail("Deletion cancelled by user."),
-                    "cancel" => CommandResult.Fail("Deletion cancelled by user."),
-                    _ => new CommandResult
-                    {
-                        Message = $"Unrecognized response '{input}'. Please answer yes/no.",
-                        RequiresConfirmation = true,
-                        Feedback = new FeedbackRequest
-                        {
-                            Prompt = "Please answer: yes / no / cancel",
-                            Options = new[] { "yes", "no", "cancel" }
-                        }
-                    }
+                    Message = "No input provided for feedback.",
+                    RequiresConfirmation = true
                 };
-            }
 
-            return CommandResult.Fail($"Unknown extension '{extensionName}'.");
+            var input = args[0].Trim().ToLowerInvariant();
+
+            return input switch
+            {
+                "yes" => CommandResult.Ok("Resource deleted successfully."),
+                "no" => CommandResult.Fail("Deletion cancelled by user."),
+                "cancel" => CommandResult.Fail("Deletion cancelled by user."),
+                _ => new CommandResult
+                {
+                    Message = $"Unrecognized response '{input}'. Please answer yes/no/cancel.",
+                    RequiresConfirmation = true,
+                    Feedback = new FeedbackRequest(
+                        prompt: "Please answer: yes / no / cancel",
+                        options: new[] { "yes", "no", "cancel" },
+                        onRespond: null!)
+                }
+            };
         }
     }
 }

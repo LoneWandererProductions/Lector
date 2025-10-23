@@ -52,8 +52,19 @@ namespace Weaver.Messages
         /// <returns></returns>
         public static CommandResult Ok(string msg) => new() { Success = true, Message = msg };
 
+        /// <summary>
+        /// Fails the specified MSG.
+        /// </summary>
+        /// <param name="msg">The MSG.</param>
+        /// <returns></returns>
         public static CommandResult Fail(string msg) => new() { Success = false, Message = msg };
 
+        /// <summary>
+        /// Gets the feedback.
+        /// </summary>
+        /// <value>
+        /// The feedback.
+        /// </value>
         public FeedbackRequest? Feedback { get; init; }
     }
 }
