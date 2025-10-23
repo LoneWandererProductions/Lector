@@ -7,6 +7,7 @@ namespace Lector
     {
         public string Name => "sample";  // name of the extension
         public string Description => "A sample extension that wraps command execution.";
+        public string Namespace => "system";
 
         /// <summary>
         /// Wraps the execution of the command. Can run before/after logic or inject feedback.

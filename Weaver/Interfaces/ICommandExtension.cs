@@ -30,6 +30,12 @@ namespace Weaver.Interfaces
         string Description { get; }
 
         /// <summary>
+        /// Optional namespace, for scoping (e.g. "system", "user", etc.)
+        /// If null or empty, applies globally.
+        /// </summary>
+        string? Namespace { get; }
+
+        /// <summary>
         /// Executes the extension logic for the given command.
         /// </summary>
         /// <param name="command">The command that this extension applies to.</param>

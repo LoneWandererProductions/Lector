@@ -13,6 +13,8 @@ namespace Mediator
 
         public string Description => "Test";
 
+        public string? Namespace => "Test";
+
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
         {
             // Execute the command normally

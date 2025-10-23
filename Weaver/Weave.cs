@@ -44,6 +44,11 @@ namespace Weaver
             };
 
         /// <summary>
+        /// The mediator
+        /// </summary>
+        private readonly MessageMediator _mediator = new();
+
+        /// <summary>
         /// The pending feedback command
         /// </summary>
         private ICommand? _pendingFeedbackCommand;
@@ -191,11 +196,28 @@ namespace Weaver
             // 1️⃣ Pending feedback
             if (_pendingFeedback?.IsPending == true)
             {
-                var result = _pendingFeedback.Respond(raw);
-                if (!result.RequiresConfirmation)
+                // Verify the command using mediator
+                var associatedCommand = _mediator.Resolve(_pendingFeedback.RequestId);
+                if (associatedCommand == null)
+                {
+                    // Unexpected state
                     _pendingFeedback = null;
+                    _pendingFeedbackCommand = null;
+                    return CommandResult.Fail("Pending feedback has no associated command.");
+                }
+
+                var result = _pendingFeedback.Respond(raw);
+
+                if (!result.RequiresConfirmation)
+                {
+                    _mediator.Clear(_pendingFeedback.RequestId);
+                    _pendingFeedback = null;
+                    _pendingFeedbackCommand = null;
+                }
+
                 return result;
             }
+
 
             // 2️⃣ Parse command
             ParsedCommand parsed;
@@ -212,21 +234,31 @@ namespace Weaver
                 var ext = _extensions.FirstOrDefault(e => e.Name.Equals(parsed.Extension, StringComparison.OrdinalIgnoreCase));
                 var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute) ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
-                if (result.RequiresConfirmation)
+                if (result.RequiresConfirmation && result.Feedback != null)
+                {
                     _pendingFeedback = result.Feedback;
+                    _pendingFeedbackCommand = cmd;
+
+                    // Register feedback with mediator
+                    _mediator.Register(cmd, _pendingFeedback);
+                }
 
                 return result;
             }
 
             // 4️⃣ Normal execution
             var execResult = cmd.Execute(parsed.Args);
-            if (execResult.RequiresConfirmation)
+            if (execResult.RequiresConfirmation && execResult.Feedback != null)
+            {
                 _pendingFeedback = execResult.Feedback;
+                _pendingFeedbackCommand = cmd;
+
+                // Register feedback with mediator
+                _mediator.Register(cmd, _pendingFeedback);
+            }
 
             return execResult;
         }
-
-
 
         /// <summary>
         /// Finds the command.
@@ -257,13 +289,12 @@ namespace Weaver
             return null;
         }
 
-        /// <summary>
-        /// Clears feedback state when finished.
-        /// </summary>
-        private void ClearFeedbackState()
+        public void Reset()
         {
-            _pendingFeedbackCommand = null;
             _pendingFeedback = null;
+            _pendingFeedbackCommand = null;
+            _mediator.ClearAll();
         }
+
     }
 }

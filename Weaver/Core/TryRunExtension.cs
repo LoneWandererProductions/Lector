@@ -21,6 +21,8 @@ namespace Weaver.Core
 
         /// <inheritdoc />
         public string Description => "Provides a preview of command execution and requests user confirmation.";
+        /// <inheritdoc />
+        public string? Namespace => "global";
 
         /// <inheritdoc />
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)

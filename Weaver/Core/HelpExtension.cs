@@ -22,6 +22,9 @@ namespace Weaver.Core
         public string Description => "Provides help information for a command using the .help extension.";
 
         /// <inheritdoc />
+        public string? Namespace => "global";
+
+        /// <inheritdoc />
         public CommandResult Invoke(ICommand command, string[] args)
         {
             // Simply return the command description
