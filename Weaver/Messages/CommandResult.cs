@@ -54,7 +54,6 @@ namespace Weaver.Messages
 
         public static CommandResult Fail(string msg) => new() { Success = false, Message = msg };
 
-        public bool RequiresFeedback => Feedback != null;
         public FeedbackRequest? Feedback { get; init; }
     }
 }

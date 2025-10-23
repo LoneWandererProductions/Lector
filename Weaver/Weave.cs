@@ -54,16 +54,24 @@ namespace Weaver
         private FeedbackRequest? _pendingFeedback;
 
         /// <summary>
+        /// The extensions
+        /// </summary>
+        private readonly List<ICommandExtension> _extensions = new();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Weave"/> class.
         /// </summary>
         public Weave()
         {
             // Register internal commands
-            var list = new Core.ListCommand(() => GetCommands());
+            var list = new ListCommand(() => GetCommands());
             Register(list);
 
-            var help = new Core.HelpCommand(() => GetCommands());
+            var help = new HelpCommand(() => GetCommands());
             Register(help);
+
+            _extensions.Add(new HelpExtension());
+            _extensions.Add(new TryRunExtension());
         }
 
         /// <summary>
@@ -95,6 +103,23 @@ namespace Weaver
             // Store the command itself
             _commands[(command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount)] =
                 command;
+        }
+
+        /// <summary>
+        /// Registers an external command extension with the runtime.
+        /// These extensions are applied globally to all commands.
+        /// </summary>
+        /// <param name="extension">The extension to register.</param>
+        public void RegisterExtension(ICommandExtension extension)
+        {
+            if (extension == null)
+                throw new ArgumentNullException(nameof(extension));
+
+            // Avoid duplicate registration
+            if (_extensions.Any(e => e.Name.Equals(extension.Name, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"Extension '{extension.Name}' is already registered.");
+
+            _extensions.Add(extension);
         }
 
         /// <summary>
@@ -162,21 +187,22 @@ namespace Weaver
             if (string.IsNullOrWhiteSpace(raw))
                 return CommandResult.Fail("Empty input.");
 
-            // 1️⃣ Handle pending feedback loop
+            raw = raw.Trim();
+
+            // 1️⃣ Handle pending feedback first
             if (_pendingFeedbackCommand != null && _pendingFeedback != null)
             {
-                var input = raw.Trim();
-                var result = _pendingFeedbackCommand.InvokeExtension("feedback", input);
+                var feedbackResult = _pendingFeedbackCommand.InvokeExtension("feedback", raw);
 
-                if (result.Feedback == null)
+                if (!feedbackResult.RequiresConfirmation)
                     ClearFeedbackState();
                 else
-                    _pendingFeedback = result.Feedback;
+                    _pendingFeedback = feedbackResult.Feedback;
 
-                return result;
+                return feedbackResult;
             }
 
-            // 2️⃣ Parse command
+            // 2️⃣ Parse the command
             ParsedCommand parsed;
             try
             {
@@ -192,48 +218,42 @@ namespace Weaver
                 return CommandResult.Fail(
                     $"Unknown command '{parsed.Name}'{(string.IsNullOrEmpty(parsed.Namespace) ? "" : $" in namespace '{parsed.Namespace}'")}.");
 
-            // 3️⃣ Handle extension call
+            // 3️⃣ Handle extension if present
             if (!string.IsNullOrEmpty(parsed.Extension))
             {
-                var ext = parsed.Extension.ToLowerInvariant();
+                var extName = parsed.Extension.ToLowerInvariant();
 
-                // Global .help()
-                if (ext == "help")
-                    return CommandResult.Ok(cmd.Description);
+                CommandResult resultExec;
+                // Check registered extensions
+                var ext = _extensions.FirstOrDefault(e => e.Name.Equals(extName, StringComparison.OrdinalIgnoreCase));
+                if (ext != null)
+                    resultExec = ext.Invoke(cmd, parsed.Args, cmd.Execute); // <-- returns preview with Feedback
+                else
+                    resultExec = cmd.InvokeExtension(extName, parsed.Args);
 
-                // Global .tryrun()
-                if (ext != "tryrun") return cmd.InvokeExtension(ext, parsed.Args);
-
-                var preview = cmd.TryRun(parsed.Args) ?? cmd.Execute(parsed.Args);
-                var feedback = new FeedbackRequest
+                // Store feedback if needed
+                if (resultExec.RequiresConfirmation && resultExec.Feedback != null)
                 {
-                    Prompt = $"Preview:\n{preview.Message}\nProceed with actual execution? (yes/no)",
-                    Options = new[] { "yes", "no" }
-                };
+                    _pendingFeedbackCommand = cmd;
+                    _pendingFeedback = resultExec.Feedback;
+                }
 
-                _pendingFeedbackCommand = cmd;
-                _pendingFeedback = feedback;
-
-                return new CommandResult
-                {
-                    Message = feedback.Prompt,
-                    Feedback = feedback
-                };
-
-                // Command-specific extensions
+                return resultExec;
             }
 
             // 4️⃣ Execute normal command
-            var resultExec = cmd.Execute(parsed.Args);
+            var result = cmd.Execute(parsed.Args);
 
-            // 5️⃣ Store feedback if requested
-            if (resultExec.Feedback == null) return resultExec;
+            // 5️⃣ Store pending feedback if returned
+            if (result.RequiresConfirmation)
+            {
+                _pendingFeedbackCommand = cmd;
+                _pendingFeedback = result.Feedback;
+            }
 
-            _pendingFeedbackCommand = cmd;
-            _pendingFeedback = resultExec.Feedback;
-
-            return resultExec;
+            return result;
         }
+
 
         /// <summary>
         /// Finds the command.

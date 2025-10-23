@@ -69,8 +69,8 @@ namespace Mediator
 
             Assert.IsFalse(result.Success);
             Assert.IsNotNull(result.Feedback);
-            Assert.IsTrue(result.Message.Contains("Preview:"));
-            Assert.IsTrue(result.Feedback!.Prompt.Contains("Are you sure you want to delete"), result.Feedback!.Prompt);
+            Assert.IsTrue(result.Message.Contains("Are you sure you want to delete 'file.txt'?"));
+            Assert.IsTrue(result.Feedback!.Prompt.Contains("Preview:"), result.Feedback!.Prompt);
 
             var requestId = result.Feedback!.RequestId;
             Assert.IsFalse(string.IsNullOrEmpty(requestId));

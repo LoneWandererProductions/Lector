@@ -1,3 +1,11 @@
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver;
+ * FILE:        CommandSignature.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
 namespace Weaver;
 
 /// <summary>
