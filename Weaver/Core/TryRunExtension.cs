@@ -28,7 +28,7 @@ namespace Weaver.Core
             // Preview first
             var preview = command.TryRun(args) ?? executor(args);
 
-            FeedbackRequest feedback = null!; // declare first
+            FeedbackRequest? feedback = null; // declare first so onRespond can reference it
 
             feedback = new FeedbackRequest(
                 prompt: $"Preview:\n{preview.Message}\nProceed with execution? (yes/no)",
@@ -38,23 +38,24 @@ namespace Weaver.Core
                     input = input.Trim().ToLowerInvariant();
                     return input switch
                     {
-                        "yes" => executor(args),
+                        "yes" => executor(args), // actual execution
                         "no" => CommandResult.Fail("Execution cancelled by user."),
                         _ => new CommandResult
                         {
                             Message = "Please answer yes/no",
                             RequiresConfirmation = true,
-                            Feedback = feedback // now it works
+                            Feedback = feedback
                         }
                     };
                 });
 
-
+            // Return preview result
             return new CommandResult
             {
-                Message = feedback.Prompt,
+                Message = preview.Message, // just the preview message
                 Feedback = feedback,
-                RequiresConfirmation = true
+                RequiresConfirmation = true,
+                Success = false // preview itself is not considered success
             };
         }
     }
