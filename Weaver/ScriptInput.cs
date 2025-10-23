@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver
  * FILE:        ScriptInput.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Script input handler with feedback support.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

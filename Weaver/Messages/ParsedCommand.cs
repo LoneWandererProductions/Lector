@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Messages
  * FILE:        ParsedCommand.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Results of parsing a raw command input.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
