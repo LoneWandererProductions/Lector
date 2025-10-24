@@ -17,13 +17,13 @@ namespace Weaver.Core
     public sealed class HelpExtension : ICommandExtension
     {
         /// <inheritdoc />
-        public string Name => "help";
+        public string Name => WeaverResources.GlobalExtensionHelp;
 
         /// <inheritdoc />
         public string Description => "Provides help information for a command using the .help extension.";
 
         /// <inheritdoc />
-        public string Namespace => "global";
+        public string Namespace => WeaverResources.GlobalNamespace;
 
         /// <inheritdoc />
         public int ExtensionParameterCount => 0;

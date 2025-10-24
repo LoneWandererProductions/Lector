@@ -2,12 +2,15 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Interpreter.ScriptEngine
  * FILE:        TokenType.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Collection of all possible token types in the script engine.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
 namespace Weaver.ScriptEngine;
 
+/// <summary>
+/// Collection of all possible token types in the script engine.
+/// </summary>
 internal enum TokenType
 {
     Identifier = 0, // com, ext, Label, etc.

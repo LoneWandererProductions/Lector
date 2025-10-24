@@ -1,4 +1,12 @@
-﻿using Weaver;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator
+ * FILE:        ExtensionIntegrationTests.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver;
 
 namespace Mediator
 {

@@ -2,21 +2,47 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Interpreter.ScriptEngine
  * FILE:        Token.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Our Token representation for the script engine.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-namespace Weaver.ScriptEngine;
+using System.Diagnostics;
 
-internal sealed class Token
+namespace Weaver.ScriptEngine
 {
-    public TokenType Type { get; init; }
-    public string? Lexeme { get; init; }
-    public int Line { get; init; }
-    public int Column { get; init; }
-
-    public override string ToString()
+    /// <summary>
+    /// Represents a lexical token produced by the script engine.
+    /// </summary>
+    [DebuggerDisplay("{ToString(),nq}")]
+    internal sealed class Token
     {
-        return $"{Type}: '{Lexeme}' (Line {Line}, Col {Column})";
+        /// <summary>
+        /// Gets the type of the token.
+        /// </summary>
+        public TokenType Type { get; init; }
+
+        /// <summary>
+        /// Gets the raw lexeme of the token as found in the source.
+        /// </summary>
+        public string? Lexeme { get; init; }
+
+        /// <summary>
+        /// Gets the line number in the source where the token appears (1-based).
+        /// </summary>
+        public int Line { get; init; }
+
+        /// <summary>
+        /// Gets the column number in the source where the token starts (1-based).
+        /// </summary>
+        public int Column { get; init; }
+
+        /// <summary>
+        /// Returns a human-readable string representation of the token.
+        /// Example: Identifier: 'foo' (Line 1, Col 5)
+        /// </summary>
+        public override string ToString()
+        {
+            return $"{Type}: '{Lexeme}' (Line {Line}, Col {Column})";
+        }
     }
 }

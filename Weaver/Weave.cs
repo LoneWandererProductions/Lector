@@ -38,7 +38,7 @@ namespace Weaver
         private static readonly Dictionary<string, CommandExtension> GlobalExtensions
             = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["help"] = new CommandExtension { Name = "help", ParameterCount = 0, IsInternal = true },
+                [WeaverResources.GlobalExtensionHelp] = new CommandExtension { Name = WeaverResources.GlobalExtensionHelp, ParameterCount = 0, IsInternal = true },
                 ["tryrun"] = new CommandExtension
                     { Name = "tryrun", ParameterCount = 0, IsInternal = true, IsPreview = true }
             };

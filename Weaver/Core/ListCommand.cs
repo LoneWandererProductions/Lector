@@ -19,7 +19,7 @@ namespace Weaver.Core
     public sealed class ListCommand : ICommand
     {
         /// <inheritdoc />
-        public string Namespace => "internal";
+        public string Namespace => WeaverResources.GlobalNamespace;
 
         /// <inheritdoc />
         public string Name => "list";

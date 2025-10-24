@@ -33,10 +33,10 @@ namespace Weaver.Core
         }
 
         /// <inheritdoc />
-        public string Namespace => "internal";
+        public string Namespace => WeaverResources.GlobalNamespace;
 
         /// <inheritdoc />
-        public string Name => "help";
+        public string Name => WeaverResources.GlobalCommandHelp;
 
         /// <inheritdoc />
         public string Description => "Lists all commands or shows information about a specific command.";
@@ -53,31 +53,27 @@ namespace Weaver.Core
         /// <inheritdoc />
         public CommandResult Execute(params string[] args)
         {
-            var allCommands = _getCommands();
-
-
+            // 1️⃣ No arguments → simple static help
             if (args.Length == 0)
             {
-                var grouped = allCommands
-                    .GroupBy(c => c.Namespace)
-                    .OrderBy(g => g.Key)
-                    .Select(g =>
-                    {
-                        var entries = string.Join("\n", g.Select(c => $"  {c.Name} — {c.Description}"));
-                        return $"{g.Key}:\n{entries}";
-                    });
-
-                return CommandResult.Ok("Available commands:\n\n" + string.Join("\n\n", grouped));
+                return CommandResult.Ok("Weaver Cmd version 0.5 — made by Peter Geinitz (Wayfarer).");
             }
 
-            var cmdName = args[0];
-            var match = allCommands.FirstOrDefault(c =>
-                c.Name.Equals(cmdName, StringComparison.OrdinalIgnoreCase));
+            // 2️⃣ One argument → look up command description
+            if (args.Length == 1)
+            {
+                var cmdName = args[0];
+                var match = _getCommands().FirstOrDefault(c =>
+                    c.Name.Equals(cmdName, StringComparison.OrdinalIgnoreCase));
 
-            if (match != null)
-                return CommandResult.Ok($"{match.Namespace}:{match.Name} — {match.Description}");
+                if (match != null)
+                    return CommandResult.Ok($"{match.Namespace}:{match.Name} — {match.Description}");
 
-            return CommandResult.Fail($"Unknown command '{cmdName}'.");
+                return CommandResult.Fail($"Unknown command '{cmdName}'.");
+            }
+
+            // 3️⃣ More than one argument → optional, you could return syntax hint
+            return CommandResult.Fail("Usage: help [commandName]");
         }
 
         /// <inheritdoc />

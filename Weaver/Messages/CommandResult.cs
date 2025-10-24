@@ -6,11 +6,14 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Diagnostics;
+
 namespace Weaver.Messages
 {
     /// <summary>
     /// The Result of a command execution.
     /// </summary>
+    [DebuggerDisplay("{ToString(),nq}")]
     public sealed class CommandResult
     {
         /// <summary>
@@ -66,5 +69,19 @@ namespace Weaver.Messages
         /// The feedback.
         /// </value>
         public FeedbackRequest? Feedback { get; init; }
+
+        /// <summary>
+        /// Returns a human-readable string representation of the command result.
+        /// </summary>
+        public override string ToString()
+        {
+            var suggestionsPart = Suggestions == null || Suggestions.Length == 0
+                ? "<none>"
+                : string.Join(", ", Suggestions);
+
+            var feedbackPart = Feedback == null ? "<none>" : $"FeedbackId={Feedback.RequestId}";
+
+            return $"Success={Success}, RequiresConfirmation={RequiresConfirmation}, Message=\"{Message}\", Suggestions=[{suggestionsPart}], {feedbackPart}";
+        }
     }
 }

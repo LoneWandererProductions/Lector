@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Diagnostics;
+
 namespace Weaver.Messages
 {
     /// <summary>
@@ -14,6 +16,7 @@ namespace Weaver.Messages
     /// returns ParsedCommand:
     /// Name = "delete", Args = ["file.txt"], Extension = "saveTo", ExtensionArgs = ["backupFolder"]
     /// </summary>
+    [DebuggerDisplay("{ToString(),nq}")]
     public sealed class ParsedCommand
     {
         /// <summary>
@@ -40,5 +43,20 @@ namespace Weaver.Messages
         /// The arguments for the extension, if any.
         /// </summary>
         public string[] ExtensionArgs { get; init; } = Array.Empty<string>();
+
+        /// <summary>
+        /// Returns a human-readable string representation of the parsed command,
+        /// including namespace, main args, extension, and extension args.
+        /// </summary>
+        public override string ToString()
+        {
+            var nsPart = string.IsNullOrEmpty(Namespace) ? string.Empty : $"{Namespace}:";
+            var argsPart = Args.Length == 0 ? "()" : $"({string.Join(", ", Args)})";
+            var extPart = string.IsNullOrEmpty(Extension)
+                ? string.Empty
+                : $".{Extension}({string.Join(", ", ExtensionArgs)})";
+
+            return $"{nsPart}{Name}{argsPart}{extPart}";
+        }
     }
 }

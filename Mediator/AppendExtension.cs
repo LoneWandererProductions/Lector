@@ -1,4 +1,12 @@
-﻿using Weaver.Interfaces;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator
+ * FILE:        AppendExtension.cs
+ * PURPOSE:     Test Extenion that appends "[EXT]" to the command message
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace Mediator

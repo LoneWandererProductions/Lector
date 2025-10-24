@@ -26,7 +26,7 @@ namespace Weaver.Core
             "Provides a preview of command execution and requests user confirmation.";
 
         /// <inheritdoc />
-        public string Namespace => "global";
+        public string Namespace => WeaverResources.GlobalNamespace;
 
         /// <inheritdoc />
         /// <remarks>

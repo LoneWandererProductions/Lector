@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Diagnostics;
 using Weaver.Interfaces;
 
 namespace Weaver.Messages
@@ -13,6 +14,7 @@ namespace Weaver.Messages
     /// <summary>
     ///     Description of a feedback request message.
     /// </summary>
+    [DebuggerDisplay("{ToString(),nq}")]
     public sealed class FeedbackRequest : IFeedback
     {
         /// <summary>
@@ -79,6 +81,15 @@ namespace Weaver.Messages
                 IsPending = false;
 
             return result;
+        }
+
+        /// <summary>
+        /// Returns a human-readable string representation of the feedback request.
+        /// </summary>
+        public override string ToString()
+        {
+            var optionsPart = Options.Length == 0 ? "<none>" : string.Join(", ", Options);
+            return $"[{RequestId}] Prompt: \"{Prompt}\", Options: [{optionsPart}], IsPending: {IsPending}";
         }
     }
 }

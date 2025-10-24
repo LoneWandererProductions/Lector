@@ -1,4 +1,12 @@
-﻿using Weaver;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Lector
+ * FILE:        SampleCommand.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
