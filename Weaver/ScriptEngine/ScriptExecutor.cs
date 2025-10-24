@@ -18,7 +18,7 @@ namespace Weaver.ScriptEngine
     public sealed class ScriptExecutor
     {
         private readonly Weave _weave;
-        private readonly List<string> _statements;
+        private readonly List<string?> _statements;
         private readonly Dictionary<string, int> _labelPositions;
         private int _position;
         private FeedbackRequest? _pendingFeedback;

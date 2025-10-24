@@ -21,7 +21,7 @@ namespace Mediator
         public void TestScriptParsingAndExecution()
         {
             // Arrange: simple script
-            var script = @"
+            const string script = @"
                 label Start;
                 do {
                     command1();
