@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable MemberCanBePrivate.Global
+
 using System.Diagnostics;
 
 namespace Weaver.Messages
@@ -81,7 +83,8 @@ namespace Weaver.Messages
 
             var feedbackPart = Feedback == null ? "<none>" : $"FeedbackId={Feedback.RequestId}";
 
-            return $"Success={Success}, RequiresConfirmation={RequiresConfirmation}, Message=\"{Message}\", Suggestions=[{suggestionsPart}], {feedbackPart}";
+            return
+                $"Success={Success}, RequiresConfirmation={RequiresConfirmation}, Message=\"{Message}\", Suggestions=[{suggestionsPart}], {feedbackPart}";
         }
     }
 }

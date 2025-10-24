@@ -38,7 +38,8 @@ namespace Weaver
         private static readonly Dictionary<string, CommandExtension> GlobalExtensions
             = new(StringComparer.OrdinalIgnoreCase)
             {
-                [WeaverResources.GlobalExtensionHelp] = new CommandExtension { Name = WeaverResources.GlobalExtensionHelp, ParameterCount = 0, IsInternal = true },
+                [WeaverResources.GlobalExtensionHelp] = new CommandExtension
+                    { Name = WeaverResources.GlobalExtensionHelp, ParameterCount = 0, IsInternal = true },
                 ["tryrun"] = new CommandExtension
                     { Name = "tryrun", ParameterCount = 0, IsInternal = true, IsPreview = true }
             };
@@ -184,7 +185,7 @@ namespace Weaver
         /// </remarks>
         public CommandResult ProcessInput(string raw)
         {
-            raw = raw?.Trim() ?? "";
+            raw = raw.Trim();
             if (string.IsNullOrEmpty(raw))
                 return CommandResult.Fail("Empty input.");
 
@@ -237,7 +238,7 @@ namespace Weaver
                 // Delegate execution completely to the extension
                 // The extension may choose whether and how to invoke the command via 'executor'
                 var result = ext?.Invoke(cmd, parsed.ExtensionArgs.Length > 0 ? parsed.ExtensionArgs : parsed.Args,
-                                         cmd.Execute)
+                                 cmd.Execute)
                              ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
                 // Centralized feedback registration
@@ -327,7 +328,8 @@ namespace Weaver
                 return (variableMatches[0], null);
             }
 
-            return (null, CommandResult.Fail($"No suitable overload found for command '{name}' with {argCount} parameters."));
+            return (null,
+                CommandResult.Fail($"No suitable overload found for command '{name}' with {argCount} parameters."));
         }
 
         /// <summary>
@@ -341,7 +343,8 @@ namespace Weaver
         /// <returns>
         /// A tuple containing the matching <see cref="ICommandExtension"/>, or a failure <see cref="CommandResult"/> if not found or invalid.
         /// </returns>
-        private (ICommandExtension? Extension, CommandResult? Error) FindExtension(ICommand command, string extensionName, int argCount)
+        private (ICommandExtension? Extension, CommandResult? Error) FindExtension(ICommand command,
+            string extensionName, int argCount)
         {
             if (string.IsNullOrWhiteSpace(extensionName))
                 return (null, CommandResult.Fail("No extension name provided."));
@@ -401,6 +404,7 @@ namespace Weaver
                 _pendingFeedback = result.Feedback;
                 _mediator.Register(cmd, _pendingFeedback);
             }
+
             return result;
         }
 

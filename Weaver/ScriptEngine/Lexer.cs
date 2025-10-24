@@ -14,7 +14,8 @@ namespace Weaver.ScriptEngine
         /// </summary>
         private static readonly HashSet<string> Keywords = new(StringComparer.OrdinalIgnoreCase)
         {
-            ScriptConstants.If, ScriptConstants.Else, ScriptConstants.Label, ScriptConstants.Goto, ScriptConstants.Do, ScriptConstants.While
+            ScriptConstants.If, ScriptConstants.Else, ScriptConstants.Label, ScriptConstants.Goto, ScriptConstants.Do,
+            ScriptConstants.While
         };
 
         private readonly string _input;
@@ -196,7 +197,7 @@ namespace Weaver.ScriptEngine
                 ScriptConstants.If => TokenType.KeywordIf,
                 ScriptConstants.Else => TokenType.KeywordElse,
                 ScriptConstants.Label => TokenType.Label,
-                ScriptConstants .Goto => TokenType.KeywordGoto,
+                ScriptConstants.Goto => TokenType.KeywordGoto,
                 ScriptConstants.Do => TokenType.KeywordDo,
                 ScriptConstants.While => TokenType.KeywordWhile,
                 _ => TokenType.Keyword
@@ -256,6 +257,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.Minus, ScriptConstants.Minus, line, col));
                     }
+
                     break;
                 case '+':
                     Advance();
@@ -280,6 +282,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.Equal, ScriptConstants.Equal, line, col));
                     }
+
                     break;
                 case '!':
                     if (Peek(1) == '=')
@@ -292,6 +295,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.Bang, ScriptConstants.Bang, line, col));
                     }
+
                     break;
                 case '>':
                     if (Peek(1) == '=')
@@ -304,6 +308,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.Greater, ScriptConstants.Greater, line, col));
                     }
+
                     break;
                 case '<':
                     if (Peek(1) == '=')
@@ -316,6 +321,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.Less, ScriptConstants.Less, line, col));
                     }
+
                     break;
                 default:
                     var unknownChar = c;

@@ -22,7 +22,6 @@ namespace Mediator
         {
             // Create commands
             _deleteCommand = new DeleteCommand();
-            new List<ICommand> { _deleteCommand };
             _weaver.Register(_deleteCommand);
         }
 

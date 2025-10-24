@@ -5,6 +5,7 @@
  * PURPOSE:     Shared string Resource Class.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
+
 namespace Weaver
 {
     /// <summary>

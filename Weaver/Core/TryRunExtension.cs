@@ -45,6 +45,7 @@ namespace Weaver.Core
             FeedbackRequest? feedback = null;
 
             // Step 3: Create feedback to confirm execution
+            var cache = feedback;
             feedback = new FeedbackRequest(
                 prompt: $"Preview:\n{preview.Message}\nProceed with execution? (yes/no)",
                 options: new[] { "yes", "no" },
@@ -59,7 +60,7 @@ namespace Weaver.Core
                         {
                             Message = "Please answer yes/no",
                             RequiresConfirmation = true,
-                            Feedback = feedback // reuse same feedback for retry
+                            Feedback = cache // reuse same feedback for retry
                         }
                     };
                 });
@@ -74,5 +75,4 @@ namespace Weaver.Core
             };
         }
     }
-
 }
