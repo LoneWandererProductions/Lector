@@ -75,6 +75,7 @@ classDiagram
         + Dictionary<string, int> Extensions
         + CommandResult Execute(string[] args)
         + CommandResult InvokeExtension(string extensionName, string[] args)
+        + CommandResult? TryRun(string[] args)
     }
 
     class ICommandExtension {
@@ -83,6 +84,8 @@ classDiagram
         + string? Namespace
         + int ExtensionParameterCount
         + CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> next)
+        + void BeforeExecute(ICommand command, string[]? args = null)
+        + void AfterExecute(ICommand command, CommandResult result)
     }
 
     class CommandExtension {
@@ -96,6 +99,7 @@ classDiagram
         + bool Success
         + bool RequiresConfirmation
         + FeedbackRequest? Feedback
+        + string Message
         + static CommandResult Fail(string message)
     }
 
@@ -113,13 +117,21 @@ classDiagram
         + void ClearAll()
     }
 
+    %% Relationships
     Weave --> ICommand : manages
     Weave --> ICommandExtension : loads & invokes
     Weave --> MessageMediator : mediates feedback
     Weave --> FeedbackRequest : tracks pending
+
     ICommand --> CommandResult : returns
     ICommandExtension --> CommandResult : returns
     FeedbackRequest --> CommandResult : produces
+
+    %% Execution flow
+    Weave ..> ICommandExtension : delegates execution
+    ICommandExtension ..> ICommand : may invoke via executor
+    ICommandExtension ..> FeedbackRequest : can request confirmation
+    FeedbackRequest ..> ICommandExtension : resumes execution after user input
 ```
 
 License

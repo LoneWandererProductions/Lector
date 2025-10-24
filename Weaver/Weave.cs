@@ -229,21 +229,19 @@ namespace Weaver
             // 3️⃣ Handle extensions
             if (!string.IsNullOrEmpty(parsed.Extension))
             {
+                // Find the extension associated with this command
                 var (ext, error) = FindExtension(cmd, parsed.Extension, parsed.ExtensionArgs.Length);
                 if (error != null)
                     return error; // Namespace mismatch or not found
 
-                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute)
+                // Delegate execution completely to the extension
+                // The extension may choose whether and how to invoke the command via 'executor'
+                var result = ext?.Invoke(cmd, parsed.ExtensionArgs.Length > 0 ? parsed.ExtensionArgs : parsed.Args,
+                                         cmd.Execute)
                              ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
-                if (result.RequiresConfirmation && result.Feedback != null)
-                {
-                    _pendingFeedback = result.Feedback;
-                    //register feedback with mediator
-                    _mediator.Register(cmd, _pendingFeedback);
-                }
-
-                return result;
+                // Centralized feedback registration
+                return HandleFeedback(result, cmd);
             }
 
             // 4️⃣ Normal execution
@@ -392,6 +390,20 @@ namespace Weaver
 
             return (found, null);
         }
+
+        /// <summary>
+        /// Registers pending feedback with the mediator if required, and returns the same result.
+        /// </summary>
+        private CommandResult HandleFeedback(CommandResult result, ICommand cmd)
+        {
+            if (result.RequiresConfirmation && result.Feedback != null)
+            {
+                _pendingFeedback = result.Feedback;
+                _mediator.Register(cmd, _pendingFeedback);
+            }
+            return result;
+        }
+
 
         /// <summary>
         /// Resets this instance.

@@ -13,6 +13,8 @@ namespace Weaver.Core
 {
     /// <summary>
     /// Provides a preview of command execution and requests user confirmation.
+    /// The extension takes full control of the execution flow and may decide
+    /// whether or not to invoke the underlying command via the provided executor.
     /// </summary>
     public sealed class TryRunExtension : ICommandExtension
     {
@@ -20,21 +22,29 @@ namespace Weaver.Core
         public string Name => "tryrun";
 
         /// <inheritdoc />
-        public string Description => "Provides a preview of command execution and requests user confirmation.";
+        public string Description =>
+            "Provides a preview of command execution and requests user confirmation.";
 
         /// <inheritdoc />
         public string Namespace => "global";
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The extension:
+        /// 1. Executes a preview (via TryRun if available, otherwise via executor).
+        /// 2. Creates a feedback request to ask the user whether to proceed.
+        /// 3. Uses the provided executor to run the command if confirmed.
+        /// 4. Handles invalid feedback input by prompting the user again.
+        /// </remarks>
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
         {
-            // Preview first
+            // Step 1: Preview execution
             var preview = command.TryRun(args) ?? executor(args);
 
-            FeedbackRequest? feedback = null; // declare first so onRespond can reference it
+            // Step 2: Declare feedback reference first (required for recursion in onRespond)
+            FeedbackRequest? feedback = null;
 
-            var feedback1 = feedback;
-
+            // Step 3: Create feedback to confirm execution
             feedback = new FeedbackRequest(
                 prompt: $"Preview:\n{preview.Message}\nProceed with execution? (yes/no)",
                 options: new[] { "yes", "no" },
@@ -43,25 +53,26 @@ namespace Weaver.Core
                     input = input.Trim().ToLowerInvariant();
                     return input switch
                     {
-                        "yes" => executor(args), // actual execution
+                        "yes" => executor(args), // Execute command
                         "no" => CommandResult.Fail("Execution cancelled by user."),
                         _ => new CommandResult
                         {
                             Message = "Please answer yes/no",
                             RequiresConfirmation = true,
-                            Feedback = feedback1
+                            Feedback = feedback // reuse same feedback for retry
                         }
                     };
                 });
 
-            // Return preview result
+            // Step 4: Return preview result (not considered a final success)
             return new CommandResult
             {
-                Message = preview.Message, // just the preview message
+                Message = preview.Message,
                 Feedback = feedback,
                 RequiresConfirmation = true,
-                Success = false // preview itself is not considered success
+                Success = false // preview itself is not a final success
             };
         }
     }
+
 }
