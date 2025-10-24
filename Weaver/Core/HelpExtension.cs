@@ -26,6 +26,9 @@ namespace Weaver.Core
         public string Namespace => "global";
 
         /// <inheritdoc />
+        public int ExtensionParameterCount => 0;
+
+        /// <inheritdoc />
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
         {
             // Return description; executor not needed

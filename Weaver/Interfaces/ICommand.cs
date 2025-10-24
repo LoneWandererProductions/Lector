@@ -56,14 +56,6 @@ namespace Weaver.Interfaces
         int ParameterCount => 0; // default means variable
 
         /// <summary>
-        /// Gets the extension parameter count.
-        /// </summary>
-        /// <value>
-        /// The extension parameter count.
-        /// </value>
-        int ExtensionParameterCount => 0;
-
-        /// <summary>
         /// Executes the command with given arguments.
         /// Returns a result that can include text, status, or further options.
         /// </summary>

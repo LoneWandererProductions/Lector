@@ -36,6 +36,14 @@ namespace Weaver.Interfaces
         string? Namespace { get; }
 
         /// <summary>
+        /// Gets the extension parameter count.
+        /// </summary>
+        /// <value>
+        /// The extension parameter count.
+        /// </value>
+        int ExtensionParameterCount => 0;
+
+        /// <summary>
         /// Executes the extension logic for the given command.
         /// </summary>
         /// <param name="command">The command that this extension applies to.</param>

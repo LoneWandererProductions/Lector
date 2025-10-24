@@ -222,23 +222,24 @@ namespace Weaver
                 return CommandResult.Fail($"Syntax error: {ex.Message}");
             }
 
-            var cmd = FindCommand(parsed.Name, parsed.Args.Length, parsed.Namespace);
-            if (cmd == null)
-                return CommandResult.Fail($"Unknown command '{parsed.Name}'.");
+            var (cmd, cmdError) = FindCommand(parsed.Name, parsed.Args.Length, parsed.Namespace);
+            if (cmdError != null)
+                return cmdError;
 
             // 3️⃣ Handle extensions
             if (!string.IsNullOrEmpty(parsed.Extension))
             {
-                var ext = _extensions.FirstOrDefault(e =>
-                    e.Name.Equals(parsed.Extension, StringComparison.OrdinalIgnoreCase));
-                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute) ??
-                             cmd.InvokeExtension(parsed.Extension, parsed.Args);
+                var (ext, error) = FindExtension(cmd, parsed.Extension, parsed.ExtensionArgs.Length);
+                if (error != null)
+                    return error; // Namespace mismatch or not found
+
+                var result = ext?.Invoke(cmd, parsed.Args, cmd.Execute)
+                             ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
 
                 if (result.RequiresConfirmation && result.Feedback != null)
                 {
                     _pendingFeedback = result.Feedback;
-
-                    // Register feedback with mediator
+                    //register feedback with mediator
                     _mediator.Register(cmd, _pendingFeedback);
                 }
 
@@ -259,32 +260,137 @@ namespace Weaver
         }
 
         /// <summary>
-        /// Finds the command.
+        /// Finds the best matching command for the given name, argument count, and optional namespace.
+        /// Supports exact and variable parameter matches.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="argCount">The argument count.</param>
-        /// <param name="ns">The ns.</param>
-        /// <returns>The first available fitting command.</returns>
-        private ICommand? FindCommand(string name, int argCount, string? ns = null)
+        /// <param name="name">The command name.</param>
+        /// <param name="argCount">The number of arguments provided in the invocation.</param>
+        /// <param name="ns">The optional namespace for namespaced commands.</param>
+        /// <returns>
+        /// The best matching <see cref="ICommand"/> if found, otherwise <c>null</c>.
+        /// Returns a failed <see cref="CommandResult"/> for namespace mismatches.
+        /// </returns>
+        private (ICommand? Command, CommandResult? Error) FindCommand(string name, int argCount, string? ns = null)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return (null, CommandResult.Fail("Command name cannot be empty."));
+
+            name = name.ToLowerInvariant();
+
+            // 1️⃣ If a namespace is specified, prefer a direct lookup first
             if (!string.IsNullOrWhiteSpace(ns))
             {
-                _commands.TryGetValue((ns.ToLowerInvariant(), name.ToLowerInvariant(), argCount), out var cmd);
-                return cmd;
+                ns = ns.ToLowerInvariant();
+
+                // Try exact match first
+                if (_commands.TryGetValue((ns, name, argCount), out var exact))
+                    return (exact, null);
+
+                // Try variable-parameter match
+                if (_commands.TryGetValue((ns, name, 0), out var varargs))
+                    return (varargs, null);
+
+                return (null, CommandResult.Fail($"Command '{ns}:{name}' not found with {argCount} parameters."));
             }
 
-            var matches = _commands.Values
-                .Where(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                            && (c.ParameterCount == argCount || c.ParameterCount == 0))
+            // 2️⃣ Otherwise, search all namespaces for a match
+            var candidates = _commands.Values
+                .Where(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            if (matches.Count == 1)
-                return matches[0];
+            if (candidates.Count == 0)
+                return (null, CommandResult.Fail($"Command '{name}' not found."));
 
-            if (matches.Count > 1)
-                return matches[0]; // TODO: optionally handle ambiguity
+            // Prefer exact arg count first
+            var exactMatches = candidates
+                .Where(c => c.ParameterCount == argCount)
+                .ToList();
 
-            return null;
+            if (exactMatches.Count == 1)
+                return (exactMatches[0], null);
+
+            if (exactMatches.Count > 1)
+            {
+                // TODO: Handle ambiguous overloads (e.g., different namespaces or ambiguous signatures)
+                return (exactMatches[0], null);
+            }
+
+            // Then fallback to variable-parameter match
+            var variableMatches = candidates
+                .Where(c => c.ParameterCount == 0)
+                .ToList();
+
+            if (variableMatches.Count == 1)
+                return (variableMatches[0], null);
+
+            if (variableMatches.Count > 1)
+            {
+                // TODO: Handle ambiguous wildcard matches
+                return (variableMatches[0], null);
+            }
+
+            return (null, CommandResult.Fail($"No suitable overload found for command '{name}' with {argCount} parameters."));
+        }
+
+        /// <summary>
+        /// Finds a matching extension for a given command.
+        /// Searches global extensions first, then runtime-registered extensions.
+        /// Validates namespace and parameter compatibility.
+        /// </summary>
+        /// <param name="command">The command requesting the extension.</param>
+        /// <param name="extensionName">The name of the extension.</param>
+        /// <param name="argCount">The number of arguments passed to the extension.</param>
+        /// <returns>
+        /// A tuple containing the matching <see cref="ICommandExtension"/>, or a failure <see cref="CommandResult"/> if not found or invalid.
+        /// </returns>
+        private (ICommandExtension? Extension, CommandResult? Error) FindExtension(ICommand command, string extensionName, int argCount)
+        {
+            if (string.IsNullOrWhiteSpace(extensionName))
+                return (null, CommandResult.Fail("No extension name provided."));
+
+            // Normalize casing
+            extensionName = extensionName.ToLowerInvariant();
+
+            // 1️⃣ Check Global Extensions first
+            if (GlobalExtensions.TryGetValue(extensionName, out var globalExt))
+            {
+                // Parameter check: 0 = variable
+                if (globalExt.ParameterCount != 0 && globalExt.ParameterCount != argCount)
+                    return (null, CommandResult.Fail(
+                        $"Global extension '{extensionName}' expects {globalExt.ParameterCount} parameters, but got {argCount}."));
+
+                // Find corresponding runtime extension implementation if available
+                var wrapper = _extensions.FirstOrDefault(e =>
+                    e.Name.Equals(extensionName, StringComparison.OrdinalIgnoreCase));
+
+                // If none registered, allow global extension to be handled internally by the command
+                return (wrapper, null);
+            }
+
+            // 2️⃣ Check registered runtime extensions
+            var found = _extensions.FirstOrDefault(e =>
+                e.Name.Equals(extensionName, StringComparison.OrdinalIgnoreCase));
+
+            if (found == null)
+                return (null, CommandResult.Fail($"Extension '{extensionName}' not found."));
+
+            // 3️⃣ Namespace validation — must match if both define namespaces
+            if (!string.IsNullOrEmpty(found.Namespace) &&
+                !string.IsNullOrEmpty(command.Namespace) &&
+                !found.Namespace.Equals(command.Namespace, StringComparison.OrdinalIgnoreCase))
+            {
+                return (null, CommandResult.Fail(
+                    $"Namespace mismatch: Command '{command.Namespace}' cannot use extension '{found.Name}' from '{found.Namespace}'."));
+            }
+
+            // 4️⃣ Parameter count check (0 = variable)
+            if (found.ExtensionParameterCount != 0 && found.ExtensionParameterCount != argCount)
+            {
+                return (null, CommandResult.Fail(
+                    $"Extension '{found.Name}' expects {found.ExtensionParameterCount} parameters, but got {argCount}."));
+            }
+
+            return (found, null);
         }
 
         /// <summary>

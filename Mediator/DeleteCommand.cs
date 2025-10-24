@@ -14,7 +14,7 @@ namespace Mediator
 {
     public sealed class DeleteCommand : ICommand
     {
-        public string Namespace => "system";
+        public string Namespace => "Test";
         public string Name => "delete";
         public string Description => "Deletes a resource by name.";
         public int ParameterCount => 1;
