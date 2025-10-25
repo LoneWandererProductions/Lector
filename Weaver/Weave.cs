@@ -71,6 +71,9 @@ namespace Weaver
             var help = new HelpCommand(() => GetCommands());
             Register(help);
 
+            var print = new PrintCommand();
+            Register(print);
+
             _extensions.Add(new HelpExtension());
             _extensions.Add(new TryRunExtension());
         }

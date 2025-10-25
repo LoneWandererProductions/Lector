@@ -15,7 +15,7 @@ namespace Weaver.Messages
     /// <summary>
     /// The Result of a command execution.
     /// </summary>
-    [DebuggerDisplay("{ToString(),nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class CommandResult
     {
         /// <summary>
@@ -73,18 +73,55 @@ namespace Weaver.Messages
         public FeedbackRequest? Feedback { get; init; }
 
         /// <summary>
+        /// Gets the type.
+        /// </summary>
+        /// <value>
+        /// The type.
+        /// </value>
+        public EnumTypes Type { get; init; }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <value>
+        /// The value.
+        /// </value>
+        public object? Value { get; init; }
+
+        /// <summary>
+        /// Returns a human-readable string representation of the command result.
+        /// </summary>
+        /// <summary>
         /// Returns a human-readable string representation of the command result.
         /// </summary>
         public override string ToString()
         {
-            var suggestionsPart = Suggestions == null || Suggestions.Length == 0
+            var suggestions = (Suggestions == null || Suggestions.Length == 0)
                 ? "<none>"
                 : string.Join(", ", Suggestions);
 
-            var feedbackPart = Feedback == null ? "<none>" : $"FeedbackId={Feedback.RequestId}";
+            var feedback = Feedback == null
+                ? "<none>"
+                : $"Id={Feedback.RequestId}";
+
+            var valuePart = Value == null
+                ? "<null>"
+                : $"{Value} ({Value.GetType().Name})";
 
             return
-                $"Success={Success}, RequiresConfirmation={RequiresConfirmation}, Message=\"{Message}\", Suggestions=[{suggestionsPart}], {feedbackPart}";
+                $"[{(Success ? "OK" : "FAIL")}] " +
+                $"Msg=\"{Message}\" | Confirm={RequiresConfirmation} | " +
+                $"Type={Type} | Value={valuePart} | " +
+                $"Feedback={feedback} | Suggestions=[{suggestions}]";
+        }
+
+        /// <summary>
+        /// Shortened display for debugger visualizers.
+        /// </summary>
+        private string GetDebuggerDisplay()
+        {
+            var status = Success ? "OK" : "FAIL";
+            return $"{status}: {Message}";
         }
     }
 }

@@ -29,8 +29,7 @@ namespace Weaver
             var parser = new Parser(lexer.Tokenize());
             var blocks = parser.ParseIntoCategorizedBlocks();
             var statements = blocks
-                .Select(line => line.Statement) // get the string
-                .Where(s => s != null) // optional: skip nulls
+                .Select(line => (line.Category, line.Statement)) // preserve category
                 .ToList();
 
             _executor = new ScriptExecutor(weave, statements);

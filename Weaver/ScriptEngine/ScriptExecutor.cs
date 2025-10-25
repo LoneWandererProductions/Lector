@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Weaver.Core;
 using Weaver.Messages;
 
 namespace Weaver.ScriptEngine
@@ -18,27 +19,35 @@ namespace Weaver.ScriptEngine
     public sealed class ScriptExecutor
     {
         private readonly Weave _weave;
-        private readonly List<string?> _statements;
+        private readonly VariableRegistry _registry;
+        private readonly List<(string Category, string? Statement)> _statements;
+
         private readonly Dictionary<string, int> _labelPositions;
         private int _position;
         private FeedbackRequest? _pendingFeedback;
 
         private readonly Stack<(int loopStart, string condition)> _doWhileStack = new();
 
-        public ScriptExecutor(Weave weave, List<string?> statements)
+        public ScriptExecutor(Weave weave, List<(string Category, string? Statement)> statements)
         {
             _weave = weave;
+            _registry = new VariableRegistry();
+
+            weave.Register(new SetValue(_registry));
+            weave.Register(new GetValue(_registry));
+            weave.Register(new DeleteValue(_registry));
+            weave.Register(new Memory(_registry));
+
             _statements = statements;
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             // pre-scan labels
             for (int i = 0; i < _statements.Count; i++)
             {
-                var stmt = _statements[i];
-                if (stmt.StartsWith("label ", StringComparison.OrdinalIgnoreCase))
+                var (category, stmt) = _statements[i];
+                if (category == "Label" && !string.IsNullOrEmpty(stmt))
                 {
-                    var label = stmt.Substring(6).Trim();
-                    _labelPositions[label] = i;
+                    _labelPositions[stmt] = i;
                 }
             }
         }
@@ -71,74 +80,55 @@ namespace Weaver.ScriptEngine
             // Execute statements sequentially
             while (_position < _statements.Count)
             {
-                var stmt = _statements[_position].Trim();
+                var (category, stmt) = _statements[_position];
 
-                // Skip empty statements
                 if (string.IsNullOrWhiteSpace(stmt))
                 {
                     _position++;
                     continue;
                 }
 
-                // Handle goto
-                if (stmt.StartsWith("goto ", StringComparison.OrdinalIgnoreCase))
+                switch (category)
                 {
-                    var label = stmt.Substring(5).Trim();
-                    if (_labelPositions.TryGetValue(label, out var pos))
-                    {
-                        _position = pos + 1;
+                    case "Goto":
+                        if (_labelPositions.TryGetValue(stmt!, out var pos))
+                        {
+                            _position = pos + 1;
+                            continue;
+                        }
+                        return CommandResult.Fail($"Label '{stmt}' not found.");
+
+                    case "Label":
+                        _position++; // labels are just markers
                         continue;
-                    }
-                    else
-                    {
-                        return CommandResult.Fail($"Label '{label}' not found.");
-                    }
-                }
 
-                // Handle do { ... } while(condition)
-                if (stmt.StartsWith("do", StringComparison.OrdinalIgnoreCase))
-                {
-                    _doWhileStack.Push((_position, string.Empty));
-                    _position++;
-                    continue;
-                }
-
-                if (stmt.StartsWith("while(", StringComparison.OrdinalIgnoreCase) && _doWhileStack.Count > 0)
-                {
-                    var top = _doWhileStack.Pop();
-                    var condition = stmt.Substring(6, stmt.Length - 7).Trim(); // remove while( and )
-                    _doWhileStack.Push((top.loopStart, condition));
-
-                    // evaluate condition using Weave
-                    var condResult = _weave.ProcessInput(condition);
-                    if (!condResult.Success)
-                        return CommandResult.Fail($"Loop condition failed: {condResult.Message}");
-
-                    if (condResult.Message.Equals("true", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _position = top.loopStart + 1; // jump to first statement inside do block
-                    }
-                    else
-                    {
-                        _doWhileStack.Pop(); // loop ends
+                    case "Do_Open":
+                        _doWhileStack.Push((_position, string.Empty));
                         _position++;
-                    }
+                        continue;
 
-                    continue;
+                    case "While_Condition":
+                        var top = _doWhileStack.Pop();
+                        var condResult = _weave.ProcessInput(stmt!);
+                        if (!condResult.Success)
+                            return CommandResult.Fail($"Loop condition failed: {condResult.Message}");
+
+                        if (condResult.Message.Equals("true", StringComparison.OrdinalIgnoreCase))
+                            _position = top.loopStart + 1;
+                        else
+                            _position++; // exit loop
+                        continue;
+
+                    default: // "Command", "Assignment", etc.
+                        var result = _weave.ProcessInput(stmt!);
+                        if (result.Feedback != null)
+                        {
+                            _pendingFeedback = result.Feedback;
+                            return result;
+                        }
+                        _position++;
+                        return result;
                 }
-
-                // Normal command execution
-                var result = _weave.ProcessInput(stmt);
-
-                // If feedback is requested, pause script
-                if (result.Feedback != null)
-                {
-                    _pendingFeedback = result.Feedback;
-                    return result;
-                }
-
-                _position++;
-                return result; // return result for this statement
             }
 
             return new CommandResult

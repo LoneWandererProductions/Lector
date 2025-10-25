@@ -7,7 +7,6 @@
  */
 
 using Weaver;
-using Weaver.Interfaces;
 
 namespace Mediator
 {

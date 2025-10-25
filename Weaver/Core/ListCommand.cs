@@ -1,8 +1,8 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
- * FILE:        HelpCommand.cs
- * PURPOSE:     Lists all commands and shows information about the commands.
+ * FILE:        ListCommand.cs
+ * PURPOSE:     Basic message Print command.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -13,7 +13,7 @@ namespace Weaver.Core
 {
     /// <inheritdoc />
     /// <summary>
-    /// Internal command, lists all available commands.
+    /// Internal command, Prints a message.
     /// </summary>
     /// <seealso cref="Weaver.Interfaces.ICommand" />
     public sealed class ListCommand : ICommand

@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
  * FILE:        HelpCommand.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Basic internal help command. Works also for external commands.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

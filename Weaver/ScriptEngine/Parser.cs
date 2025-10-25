@@ -31,13 +31,28 @@ internal sealed class Parser
             switch (token.Type)
             {
                 case TokenType.Label:
-                    result.Add(new ScriptLine("Label", ReadStatementAsString()));
-                    break;
+                    {
+                        Advance(); // skip 'label' keyword
+                        var nameToken = Peek();
+                        if (nameToken.Type != TokenType.Identifier)
+                            throw new ArgumentException("Expected identifier after 'label'");
+                        result.Add(new ScriptLine("Label", nameToken.Lexeme));
+                        Advance(); // consume identifier
+                        Match(TokenType.Semicolon); // optional semicolon
+                        break;
+                    }
 
                 case TokenType.KeywordGoto:
-                    result.Add(new ScriptLine("Goto", ReadStatementAsString()));
-                    break;
-
+                    {
+                        Advance(); // skip 'goto'
+                        var nameToken = Peek();
+                        if (nameToken.Type != TokenType.Identifier)
+                            throw new ArgumentException("Expected identifier after 'goto'");
+                        result.Add(new ScriptLine("Goto", nameToken.Lexeme));
+                        Advance(); // consume identifier
+                        Match(TokenType.Semicolon);
+                        break;
+                    }
                 case TokenType.KeywordIf:
                     ParseIfBlock(result);
                     break;
@@ -51,9 +66,13 @@ internal sealed class Parser
                     break;
 
                 default:
-                    if (token.Type != TokenType.OpenBrace &&
-                        token.Type != TokenType.CloseBrace &&
-                        token.Type != TokenType.Semicolon)
+                    if (token.Type == TokenType.Identifier && LookAheadIsAssignment())
+                    {
+                        result.Add(new ScriptLine("Assignment", ReadAssignment()));
+                    }
+                    else if (token.Type != TokenType.OpenBrace &&
+                             token.Type != TokenType.CloseBrace &&
+                             token.Type != TokenType.Semicolon)
                     {
                         result.Add(new ScriptLine("Command", ReadStatementAsString()));
                     }
@@ -61,7 +80,6 @@ internal sealed class Parser
                     {
                         Advance(); // skip structural tokens
                     }
-
                     break;
             }
         }
@@ -140,9 +158,13 @@ internal sealed class Parser
                     break;
 
                 default:
-                    if (token.Type != TokenType.OpenBrace &&
-                        token.Type != TokenType.CloseBrace &&
-                        token.Type != TokenType.Semicolon)
+                    if (token.Type == TokenType.Identifier && LookAheadIsAssignment())
+                    {
+                        statements.Add(new ScriptLine("Assignment", ReadAssignment()));
+                    }
+                    else if (token.Type != TokenType.OpenBrace &&
+                             token.Type != TokenType.CloseBrace &&
+                             token.Type != TokenType.Semicolon)
                     {
                         statements.Add(new ScriptLine("Command", ReadStatementAsString()));
                     }
@@ -150,7 +172,6 @@ internal sealed class Parser
                     {
                         Advance(); // skip structural tokens
                     }
-
                     break;
             }
         }
@@ -222,6 +243,32 @@ internal sealed class Parser
 
         Advance();
         return true;
+    }
+
+    private bool LookAheadIsAssignment()
+    {
+        if (_position + 1 < _tokens.Count)
+            return _tokens[_position + 1].Type == TokenType.Equal; // not Equals!
+        return false;
+    }
+
+    private string ReadAssignment()
+    {
+        var sb = new System.Text.StringBuilder();
+
+        // variable name
+        sb.Append(Advance().Lexeme); // identifier
+        Expect(TokenType.Equal); // not Equals!
+
+        // value
+        while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
+        {
+            sb.Append(Peek().Lexeme);
+            Advance();
+        }
+
+        Match(TokenType.Semicolon);
+        return sb.ToString().Trim();
     }
 
     private Token Peek() => _tokens[_position];

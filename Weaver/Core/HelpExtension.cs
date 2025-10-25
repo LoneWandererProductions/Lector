@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
  * FILE:        HelpExtension.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Global extension to provide help information for a command, directly.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
