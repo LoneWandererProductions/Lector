@@ -13,12 +13,18 @@ using Weaver.ScriptEngine;
 
 namespace Mediator
 {
+    /// <summary>
+    /// Some script tests.
+    /// </summary>
     [TestClass]
     public class ScriptExecutorTests
     {
         private Weave _weave = null!;
         private ScriptExecutor _executor = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
@@ -37,6 +43,11 @@ namespace Mediator
             var parser = new Parser(lexer.Tokenize());
             var blocks = parser.ParseIntoCategorizedBlocks();
 
+            foreach (var line in blocks)
+            {
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+            }
+
             // Pass full (Category, Statement) tuples to ScriptExecutor
             var statements = blocks
                 .Where(line => line.Statement != null)   // skip null statements
@@ -47,23 +58,33 @@ namespace Mediator
         }
 
 
+        /// <summary>
+        /// Debugs the result.
+        /// </summary>
+        /// <param name="result">The result.</param>
+        /// <param name="step">The step.</param>
         private void DebugResult(CommandResult result, string step)
         {
             Debug.WriteLine($"[{step}] Success={result.Success}, Message='{result.Message}', Feedback={(result.Feedback != null ? result.Feedback.Prompt : "<null>")}");
         }
 
+        /// <summary>
+        /// Tests the simple registry flow.
+        /// </summary>
         [TestMethod]
-        public void Test_SimpleRegistryFlow()
+        public void TestSimpleRegistryFlow()
         {
             var result1 = _executor.ExecuteNext();
             DebugResult(result1, "setValue");
             Assert.IsTrue(result1.Success);
-            StringAssert.Contains(result1.Message, "registered");
+            StringAssert.Contains(result1.Message, "Registered");
 
             var result2 = _executor.ExecuteNext();
             DebugResult(result2, "getValue");
             Assert.IsTrue(result2.Success);
-            StringAssert.Contains(result2.Message, "100");
+
+            var str = result2.Value.ToString();
+            StringAssert.Contains(str, "100");
 
             var result3 = _executor.ExecuteNext();
             DebugResult(result3, "memory1");
@@ -94,6 +115,11 @@ namespace Mediator
             var parser = new Parser(lexer.Tokenize());
             var blocks = parser.ParseIntoCategorizedBlocks();
 
+            foreach (var line in blocks)
+            {
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+            }
+
             // Pass full (Category, Statement) tuples to ScriptExecutor
             var statements = blocks
                 .Where(line => line.Statement != null)   // skip null statements
@@ -115,19 +141,29 @@ namespace Mediator
             Assert.IsTrue(result3.Success);
         }
 
+        /// <summary>
+        /// Tests the do while loop.
+        /// </summary>
         [TestMethod]
-        public void Test_DoWhileLoop()
+        public void TestDoWhileLoop()
         {
             const string script = @"
             setValue(flag, true, Wbool);
-            do;
-            getValue(flag);
+            do
+            {
+                getValue(flag);
+            }
             while(getValue(flag))";
 
             // Tokenize and parse
             var lexer = new Lexer(script);
             var parser = new Parser(lexer.Tokenize());
             var blocks = parser.ParseIntoCategorizedBlocks();
+
+            foreach (var line in blocks)
+            {
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+            }
 
             // Pass full (Category, Statement) tuples to ScriptExecutor
             var statements = blocks

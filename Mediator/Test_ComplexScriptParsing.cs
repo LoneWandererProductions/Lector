@@ -9,14 +9,18 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Weaver.ScriptEngine;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Mediator
 {
     [TestClass]
     public class ParserTests
     {
+        /// <summary>
+        /// Tests the complex script parsing.
+        /// </summary>
         [TestMethod]
-        public void Test_ComplexScriptParsing()
+        public void TestComplexScriptParsing()
         {
             const string script = @"
                 label Start;
@@ -36,8 +40,14 @@ namespace Mediator
             var lexer = new Lexer(script);
             var tokens = lexer.Tokenize();
 
+
             var parser = new Parser(tokens);
             var lines = parser.ParseIntoCategorizedBlocks();
+
+            foreach (var line in lines)
+            {
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+            }
 
             // Check expected structure
             var categories = new List<string>();
