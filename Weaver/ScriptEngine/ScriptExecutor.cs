@@ -18,7 +18,11 @@ namespace Weaver.ScriptEngine
     /// </summary>
     public sealed class ScriptExecutor
     {
+        /// <summary>
+        /// The weave command executor.
+        /// </summary>
         private readonly Weave _weave;
+
         private readonly VariableRegistry _registry;
         private readonly List<(string Category, string? Statement)> _statements;
 
@@ -28,11 +32,17 @@ namespace Weaver.ScriptEngine
 
         private readonly Stack<(int loopStart, string condition)> _doWhileStack = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScriptExecutor"/> class.
+        /// </summary>
+        /// <param name="weave">The weave.</param>
+        /// <param name="statements">The statements.</param>
         public ScriptExecutor(Weave weave, List<(string Category, string? Statement)> statements)
         {
             _weave = weave;
             _registry = new VariableRegistry();
 
+            //add our custom commands for variable management
             weave.Register(new SetValue(_registry));
             weave.Register(new GetValue(_registry));
             weave.Register(new DeleteValue(_registry));
