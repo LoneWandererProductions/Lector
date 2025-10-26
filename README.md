@@ -30,19 +30,23 @@ Weave supports a simple, consistent syntax for commands and optional extensions.
 
 ```csharp
 // Simple command without parameters
-sayHello()
+print()
 
-// Command with parameters
+// Command with parameters, in this case script engine command to set a variable
 setValue("counter", 1, Wint)
 
-// Command with an extension
+// Command with an extension, displays help information for the setValue command
 setValue("counter", 1, Wint).help
 
 // Multiple commands can be executed sequentially
 setValue("score", 100, Wint)
+// Retrieve the value of the "score" variable
 getValue("score")
+// Display all variables in memory
 memory()
+// Delete the "score" variable from memory
 deleteValue("score")
+// memory is now empty
 memory()
 ```
 
