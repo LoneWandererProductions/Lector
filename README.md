@@ -6,7 +6,7 @@ Weave is a lightweight C# command execution engine with support for namespaces, 
 
 ## Features
 
-- **Command Registration:** Register commands with optional namespace and parameter support.  
+- **Command Registration:** Register commands with optional namespace and parameter support. Overload commands based on parameter count.
 - **Extensions:** Apply extensions globally or per command (e.g., `.help`, `.tryrun`).  
 - **Feedback Handling:** Supports interactive user prompts and confirmation flows.  
 - **Mediator Integration:** Tracks pending feedback for commands, ensuring safe resolution and cleanup.  
@@ -70,16 +70,16 @@ Console.WriteLine(result.Message);
 
 ## Handling Feedback
 
-If a command requires confirmation or additional input, Weave will handle it automatically:
+### Handling Feedback
+
+Some commands may require confirmation or additional input. Weave handles this automatically: the command execution will internally pause and repeatedly request input until the proper response is provided. You can simply call `ProcessInput` and handle the resulting message:  
 
 ```csharp
-if (result.RequiresConfirmation)
-{
-    // Next user input is routed automatically to the pending feedback
-    var followUp = Console.ReadLine();
-    var followUpResult = weave.ProcessInput(followUp);
-}
+// Execute a command with optional namespace and extension
+var result = weave.ProcessInput("namespace:myCommand(arg1, arg2).tryrun()");
 
+// The engine ensures feedback is handled internally, repeating until resolved
+Console.WriteLine(result.Message);
 ```
 
 # Weaver Script Engine
