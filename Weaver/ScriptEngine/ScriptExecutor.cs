@@ -18,12 +18,9 @@ namespace Weaver.ScriptEngine
     /// </summary>
     public sealed class ScriptExecutor
     {
-        /// <summary>
-        /// The weave command executor.
-        /// </summary>
         private readonly Weave _weave;
-
         private readonly VariableRegistry _registry;
+        private readonly ExpressionEvaluator _evaluator;
         private readonly List<(string Category, string? Statement)> _statements;
 
         private readonly Dictionary<string, int> _labelPositions;
@@ -41,14 +38,17 @@ namespace Weaver.ScriptEngine
         {
             _weave = weave;
             _registry = new VariableRegistry();
+            _evaluator = new ExpressionEvaluator(_registry);
 
-            //add our custom commands for variable management
+            // add custom commands for variable management
             weave.Register(new SetValue(_registry));
             weave.Register(new GetValue(_registry));
             weave.Register(new DeleteValue(_registry));
             weave.Register(new Memory(_registry));
 
-            _statements = statements;
+            _statements = statements ?? new List<(string, string?)>();
+            _position = 0;
+
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             // pre-scan labels
@@ -56,14 +56,12 @@ namespace Weaver.ScriptEngine
             {
                 var (category, stmt) = _statements[i];
                 if (category == "Label" && !string.IsNullOrEmpty(stmt))
-                {
                     _labelPositions[stmt] = i;
-                }
             }
         }
 
         /// <summary>
-        /// True if the script has executed all statements.
+        /// True if the script has executed all statements and no feedback is pending.
         /// </summary>
         public bool IsFinished => _position >= _statements.Count && _pendingFeedback == null;
 
@@ -72,9 +70,9 @@ namespace Weaver.ScriptEngine
         /// </summary>
         /// <param name="feedbackInput">Optional input if resuming after feedback.</param>
         /// <returns>CommandResult from Weave.</returns>
-        public CommandResult ExecuteNext(string? feedbackInput = null)
+        public CommandResult ExecuteNext(string? feedbackInput = null, int? maxIterations = null)
         {
-            // Resume feedback
+            // Resume pending feedback
             if (_pendingFeedback != null)
             {
                 if (feedbackInput == null)
@@ -82,14 +80,19 @@ namespace Weaver.ScriptEngine
 
                 var result = _weave.ProcessInput(feedbackInput);
                 if (result.Feedback == null)
-                    _pendingFeedback = null; // feedback resolved
+                    _pendingFeedback = null;
 
                 return result;
             }
 
+            int iterCount = 0;
+
             // Execute statements sequentially
             while (_position < _statements.Count)
             {
+                if (maxIterations.HasValue && iterCount++ >= maxIterations.Value)
+                    return CommandResult.Fail("Max iteration count reached.");
+
                 var (category, stmt) = _statements[_position];
 
                 if (string.IsNullOrWhiteSpace(stmt))
@@ -104,12 +107,16 @@ namespace Weaver.ScriptEngine
                         if (_labelPositions.TryGetValue(stmt!, out var pos))
                         {
                             _position = pos + 1;
-                            continue;
                         }
-                        return CommandResult.Fail($"Label '{stmt}' not found.");
+                        else
+                        {
+                            _position++;
+                            return CommandResult.Fail($"Label '{stmt}' not found.");
+                        }
+                        continue;
 
                     case "Label":
-                        _position++; // labels are just markers
+                        _position++; // labels are markers only
                         continue;
 
                     case "Do_Open":
@@ -118,13 +125,19 @@ namespace Weaver.ScriptEngine
                         continue;
 
                     case "While_Condition":
+                        if (_doWhileStack.Count == 0)
+                        {
+                            _position++;
+                            continue;
+                        }
+
                         var top = _doWhileStack.Pop();
                         var condResult = _weave.ProcessInput(stmt!);
                         if (!condResult.Success)
                             return CommandResult.Fail($"Loop condition failed: {condResult.Message}");
 
                         if (condResult.Message.Equals("true", StringComparison.OrdinalIgnoreCase))
-                            _position = top.loopStart + 1;
+                            _position = top.loopStart + 1; // loop again
                         else
                             _position++; // exit loop
                         continue;
@@ -136,6 +149,7 @@ namespace Weaver.ScriptEngine
                             _pendingFeedback = result.Feedback;
                             return result;
                         }
+
                         _position++;
                         return result;
                 }

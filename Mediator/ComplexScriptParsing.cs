@@ -1,20 +1,18 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
- * FILE:        ParserTests.cs
+ * FILE:        ComplexScriptParsing.cs
  * PURPOSE:     Tests the Parser’s correct categorization of tokens
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Weaver.ScriptEngine;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Mediator
 {
     [TestClass]
-    public class ParserTests
+    public class ComplexScriptParsing
     {
         /// <summary>
         /// Tests the complex script parsing.
@@ -42,16 +40,19 @@ namespace Mediator
 
 
             var parser = new Parser(tokens);
-            var lines = parser.ParseIntoCategorizedBlocks();
+            var lines = parser.ParseIntoNodes();
 
-            foreach (var line in lines)
+            var blocks = DebugHelpers.FlattenNodes(lines).ToList();
+
+            foreach (var line in blocks)
             {
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
             }
 
+
             // Check expected structure
             var categories = new List<string>();
-            foreach (var line in lines)
+            foreach (var line in blocks)
                 categories.Add(line.Category);
 
             // Verify key blocks
@@ -65,12 +66,12 @@ namespace Mediator
             CollectionAssert.Contains(categories, "Assignment");
 
             // Verify ordering (rough check)
-            Assert.AreEqual("Label", lines[0].Category);
-            Assert.AreEqual("Assignment", lines[3].Category);
-            Assert.AreEqual("While_Condition", lines[5].Category);
+            Assert.AreEqual("Label", blocks[0].Category);
+            Assert.AreEqual("Assignment", blocks[3].Category);
+            Assert.AreEqual("While_Condition", blocks[5].Category);
 
             // Verify condition text
-            var ifCond = lines.Find(l => l.Category == "If_Condition");
+            var ifCond = blocks.Find(l => l.Category == "If_Condition");
             Assert.AreEqual("x>0", ifCond.Statement);
         }
     }

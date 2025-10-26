@@ -2,276 +2,263 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine;
  * FILE:        Parser.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Parser for script tokens into ScriptNode tree
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-namespace Weaver.ScriptEngine;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-internal sealed class Parser
+namespace Weaver.ScriptEngine
 {
-    internal record ScriptLine(string Category, string? Statement);
-
-    private readonly List<Token> _tokens;
-    private int _position;
-
-    public Parser(List<Token> tokens)
+    internal sealed class Parser
     {
-        _tokens = tokens;
-    }
+        private readonly List<Token> _tokens;
+        private int _position;
 
-    public List<ScriptLine> ParseIntoCategorizedBlocks()
-    {
-        var result = new List<ScriptLine>();
-
-        while (!IsAtEnd())
+        public Parser(List<Token> tokens)
         {
-            var token = Peek();
+            _tokens = tokens;
+        }
 
-            switch (token.Type)
+        /// <summary>
+        /// Parses all tokens into a list of ScriptNodes (tree structure for If/DoWhile blocks).
+        /// </summary>
+        /// <returns>List of ScriptNode</returns>
+        public List<ScriptNode> ParseIntoNodes()
+        {
+            var nodes = new List<ScriptNode>();
+
+            while (!IsAtEnd())
             {
-                case TokenType.Label:
-                    {
-                        Advance(); // skip 'label' keyword
-                        var nameToken = Peek();
-                        if (nameToken.Type != TokenType.Identifier)
-                            throw new ArgumentException("Expected identifier after 'label'");
-                        result.Add(new ScriptLine("Label", nameToken.Lexeme));
-                        Advance(); // consume identifier
-                        Match(TokenType.Semicolon); // optional semicolon
+                var token = Peek();
+                switch (token.Type)
+                {
+                    case TokenType.Label:
+                        nodes.Add(ParseLabelNode());
                         break;
-                    }
-
-                case TokenType.KeywordGoto:
-                    {
-                        Advance(); // skip 'goto'
-                        var nameToken = Peek();
-                        if (nameToken.Type != TokenType.Identifier)
-                            throw new ArgumentException("Expected identifier after 'goto'");
-                        result.Add(new ScriptLine("Goto", nameToken.Lexeme));
-                        Advance(); // consume identifier
-                        Match(TokenType.Semicolon);
+                    case TokenType.KeywordGoto:
+                        nodes.Add(ParseGotoNode());
                         break;
-                    }
-                case TokenType.KeywordIf:
-                    ParseIfBlock(result);
-                    break;
-
-                case TokenType.KeywordDo:
-                    ParseDoWhileBlock(result);
-                    break;
-
-                case TokenType.Comment:
-                    Advance(); // skip
-                    break;
-
-                default:
-                    if (token.Type == TokenType.Identifier && LookAheadIsAssignment())
-                    {
-                        result.Add(new ScriptLine("Assignment", ReadAssignment()));
-                    }
-                    else if (token.Type != TokenType.OpenBrace &&
-                             token.Type != TokenType.CloseBrace &&
-                             token.Type != TokenType.Semicolon)
-                    {
-                        result.Add(new ScriptLine("Command", ReadStatementAsString()));
-                    }
-                    else
-                    {
-                        Advance(); // skip structural tokens
-                    }
-                    break;
+                    case TokenType.Identifier when LookAheadIsAssignment():
+                        nodes.Add(ParseAssignmentNode());
+                        break;
+                    case TokenType.KeywordIf:
+                        nodes.Add(ParseIfNode());
+                        break;
+                    case TokenType.KeywordDo:
+                        nodes.Add(ParseDoWhileNode());
+                        break;
+                    case TokenType.Comment:
+                        Advance(); // skip comments
+                        break;
+                    default:
+                        if (token.Type != TokenType.OpenBrace &&
+                            token.Type != TokenType.CloseBrace &&
+                            token.Type != TokenType.Semicolon)
+                        {
+                            nodes.Add(ParseCommandNode());
+                        }
+                        else
+                        {
+                            Advance(); // skip structural tokens
+                        }
+                        break;
+                }
             }
+
+            return nodes;
         }
 
-        return result;
-    }
+        // --- Node Parsers ---
 
-    private void ParseIfBlock(List<ScriptLine> output)
-    {
-        Advance(); // consume 'if'
-        var condition = ReadCondition();
-        output.Add(new ScriptLine("If_Condition", condition));
-
-        Expect(TokenType.OpenBrace);
-        output.Add(new ScriptLine("If_Open", null));
-        output.AddRange(ParseBlockStatements());
-        output.Add(new ScriptLine("If_End", null));
-
-        if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
-            ParseElseBlock(output);
-    }
-
-    private void ParseElseBlock(List<ScriptLine> output)
-    {
-        Advance(); // consume 'else'
-        Expect(TokenType.OpenBrace);
-        output.Add(new ScriptLine("Else_Open", null));
-        output.AddRange(ParseBlockStatements());
-        output.Add(new ScriptLine("Else_End", null));
-    }
-
-    private void ParseDoWhileBlock(List<ScriptLine> output)
-    {
-        Advance(); // consume 'do'
-        Expect(TokenType.OpenBrace);
-        output.Add(new ScriptLine("Do_Open", null));
-        output.AddRange(ParseBlockStatements());
-        output.Add(new ScriptLine("Do_End", null));
-
-        if (IsAtEnd() || Peek().Type != TokenType.KeywordWhile) return;
-
-        Advance(); // consume 'while'
-        var condition = ReadCondition();
-        output.Add(new ScriptLine("While_Condition", condition));
-        Match(TokenType.Semicolon); // optional semicolon
-    }
-
-    private List<ScriptLine> ParseBlockStatements()
-    {
-        var statements = new List<ScriptLine>();
-
-        while (!IsAtEnd() && Peek().Type != TokenType.CloseBrace)
+        private LabelNode ParseLabelNode()
         {
-            var token = Peek();
+            var pos = _position;
+            Advance(); // consume 'label'
+            var nameToken = Peek();
+            if (nameToken.Type != TokenType.Identifier)
+                throw new ArgumentException("Expected identifier after 'label'");
+            Advance(); // consume identifier
+            Match(TokenType.Semicolon);
+            return new LabelNode(pos, nameToken.Lexeme);
+        }
 
-            switch (token.Type)
+        private GotoNode ParseGotoNode()
+        {
+            var pos = _position;
+            Advance(); // consume 'goto'
+            var targetToken = Peek();
+            if (targetToken.Type != TokenType.Identifier)
+                throw new ArgumentException("Expected identifier after 'goto'");
+            Advance(); // consume identifier
+            Match(TokenType.Semicolon);
+            return new GotoNode(pos, targetToken.Lexeme);
+        }
+
+        private AssignmentNode ParseAssignmentNode()
+        {
+            var pos = _position;
+            var variable = Advance().Lexeme; // consume identifier
+            Expect(TokenType.Equal);
+            var expr = ReadStatementAsString(); // consume until semicolon
+            return new AssignmentNode(pos, variable, expr);
+        }
+
+        private CommandNode ParseCommandNode()
+        {
+            var pos = _position;
+            var command = ReadStatementAsString();
+            return new CommandNode(pos, command);
+        }
+
+        private IfNode ParseIfNode()
+        {
+            var pos = _position;
+            Advance(); // consume 'if'
+
+            var condition = ReadCondition();
+            Expect(TokenType.OpenBrace);
+            var trueBranch = ParseBlockStatements();
+
+            List<ScriptNode>? falseBranch = null;
+            if (!IsAtEnd() && Peek().Type == TokenType.KeywordElse)
             {
-                case TokenType.KeywordIf:
-                    ParseIfBlock(statements);
-                    break;
-
-                case TokenType.KeywordDo:
-                    ParseDoWhileBlock(statements);
-                    break;
-
-                case TokenType.Label:
-                    statements.Add(new ScriptLine("Label", ReadStatementAsString()));
-                    break;
-
-                case TokenType.KeywordGoto:
-                    statements.Add(new ScriptLine("Goto", ReadStatementAsString()));
-                    break;
-
-                case TokenType.Comment:
-                    Advance();
-                    break;
-
-                default:
-                    if (token.Type == TokenType.Identifier && LookAheadIsAssignment())
-                    {
-                        statements.Add(new ScriptLine("Assignment", ReadAssignment()));
-                    }
-                    else if (token.Type != TokenType.OpenBrace &&
-                             token.Type != TokenType.CloseBrace &&
-                             token.Type != TokenType.Semicolon)
-                    {
-                        statements.Add(new ScriptLine("Command", ReadStatementAsString()));
-                    }
-                    else
-                    {
-                        Advance(); // skip structural tokens
-                    }
-                    break;
+                Advance(); // consume 'else'
+                Expect(TokenType.OpenBrace);
+                falseBranch = ParseBlockStatements();
             }
+
+            return new IfNode(pos, condition, trueBranch, falseBranch);
         }
 
-        Expect(TokenType.CloseBrace); // close block
-        return statements;
-    }
-
-    private string ReadStatementAsString()
-    {
-        var sb = new System.Text.StringBuilder();
-        Token? previous = null;
-        bool insideParens = false;
-
-        while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
+        private DoWhileNode ParseDoWhileNode()
         {
-            var token = Advance();
+            var pos = _position;
+            Advance(); // consume 'do'
+            Expect(TokenType.OpenBrace);
+            var body = ParseBlockStatements();
 
-            if (insideParens && previous != null && IsAlphanumeric(previous.Type) && IsAlphanumeric(token.Type))
-                sb.Append(' ');
+            if (IsAtEnd() || Peek().Type != TokenType.KeywordWhile)
+                throw new ArgumentException("Expected 'while' after 'do' block");
 
-            sb.Append(token.Lexeme);
+            Advance(); // consume 'while'
+            var condition = ReadCondition();
+            Match(TokenType.Semicolon);
 
-            if (token.Type == TokenType.OpenParen)
-                insideParens = true;
-            else if (token.Type == TokenType.CloseParen)
-                insideParens = false;
-
-            previous = token;
+            return new DoWhileNode(pos, body, condition);
         }
 
-        Match(TokenType.Semicolon); // consume semicolon if present
-        return sb.ToString().Trim();
-    }
-
-    private string ReadCondition()
-    {
-        Expect(TokenType.OpenParen);
-        var sb = new System.Text.StringBuilder();
-        int depth = 1;
-
-        while (!IsAtEnd() && depth > 0)
+        private List<ScriptNode> ParseBlockStatements()
         {
-            var t = Advance();
-            if (t.Type == TokenType.OpenParen) depth++;
-            if (t.Type == TokenType.CloseParen) depth--;
-            if (depth > 0) sb.Append(t.Lexeme);
+            var statements = new List<ScriptNode>();
+
+            while (!IsAtEnd() && Peek().Type != TokenType.CloseBrace)
+            {
+                var token = Peek();
+                switch (token.Type)
+                {
+                    case TokenType.KeywordIf:
+                        statements.Add(ParseIfNode());
+                        break;
+                    case TokenType.KeywordDo:
+                        statements.Add(ParseDoWhileNode());
+                        break;
+                    case TokenType.Label:
+                        statements.Add(ParseLabelNode());
+                        break;
+                    case TokenType.KeywordGoto:
+                        statements.Add(ParseGotoNode());
+                        break;
+                    case TokenType.Comment:
+                        Advance();
+                        break;
+                    default:
+                        if (token.Type == TokenType.Identifier && LookAheadIsAssignment())
+                            statements.Add(ParseAssignmentNode());
+                        else if (token.Type != TokenType.OpenBrace &&
+                                 token.Type != TokenType.CloseBrace &&
+                                 token.Type != TokenType.Semicolon)
+                            statements.Add(ParseCommandNode());
+                        else
+                            Advance();
+                        break;
+                }
+            }
+
+            Expect(TokenType.CloseBrace);
+            return statements;
         }
 
-        return sb.ToString().Trim();
-    }
+        // --- Helpers ---
 
-    private bool IsAlphanumeric(TokenType type) =>
-        type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf ||
-        type == TokenType.KeywordElse;
-
-    private void Expect(TokenType expected)
-    {
-        if (IsAtEnd() || Peek().Type != expected)
-            throw new ArgumentException(
-                $"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'");
-
-        Advance();
-    }
-
-    private bool Match(TokenType type)
-    {
-        if (IsAtEnd() || Peek().Type != type) return false;
-
-        Advance();
-        return true;
-    }
-
-    private bool LookAheadIsAssignment()
-    {
-        if (_position + 1 < _tokens.Count)
-            return _tokens[_position + 1].Type == TokenType.Equal; // not Equals!
-        return false;
-    }
-
-    private string ReadAssignment()
-    {
-        var sb = new System.Text.StringBuilder();
-
-        // variable name
-        sb.Append(Advance().Lexeme); // identifier
-        Expect(TokenType.Equal); // not Equals!
-
-        // value
-        while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
+        private string ReadStatementAsString()
         {
-            sb.Append(Peek().Lexeme);
+            var sb = new StringBuilder();
+            Token? previous = null;
+            bool insideParens = false;
+
+            while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
+            {
+                var token = Advance();
+
+                if (insideParens && previous != null && IsAlphanumeric(previous.Type) && IsAlphanumeric(token.Type))
+                    sb.Append(' ');
+
+                sb.Append(token.Lexeme);
+
+                if (token.Type == TokenType.OpenParen) insideParens = true;
+                else if (token.Type == TokenType.CloseParen) insideParens = false;
+
+                previous = token;
+            }
+
+            Match(TokenType.Semicolon); // consume semicolon
+            return sb.ToString().Trim();
+        }
+
+        private string ReadCondition()
+        {
+            Expect(TokenType.OpenParen);
+            var sb = new StringBuilder();
+            int depth = 1;
+
+            while (!IsAtEnd() && depth > 0)
+            {
+                var t = Advance();
+                if (t.Type == TokenType.OpenParen) depth++;
+                if (t.Type == TokenType.CloseParen) depth--;
+                if (depth > 0) sb.Append(t.Lexeme);
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        private bool LookAheadIsAssignment() =>
+            _position + 1 < _tokens.Count && _tokens[_position + 1].Type == TokenType.Equal;
+
+        private void Expect(TokenType expected)
+        {
+            if (IsAtEnd() || Peek().Type != expected)
+                throw new ArgumentException(
+                    $"Expected token '{expected}' but found '{(IsAtEnd() ? "EOF" : Peek().Type.ToString())}'");
+
             Advance();
         }
 
-        Match(TokenType.Semicolon);
-        return sb.ToString().Trim();
-    }
+        private bool Match(TokenType type)
+        {
+            if (IsAtEnd() || Peek().Type != type) return false;
+            Advance();
+            return true;
+        }
 
-    private Token Peek() => _tokens[_position];
-    private Token Advance() => _tokens[_position++];
-    private bool IsAtEnd() => _position >= _tokens.Count;
+        private bool IsAlphanumeric(TokenType type) =>
+            type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf || type == TokenType.KeywordElse;
+
+        private Token Peek() => _tokens[_position];
+        private Token Advance() => _tokens[_position++];
+        private bool IsAtEnd() => _position >= _tokens.Count;
+    }
 }

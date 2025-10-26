@@ -24,13 +24,13 @@ namespace Weaver
         {
             _io = io ?? new ConsoleScriptIo();
 
-            // Tokenize and parse
+            // Tokenize and parse into ScriptNodes
             var lexer = new Lexer(script);
             var parser = new Parser(lexer.Tokenize());
-            var blocks = parser.ParseIntoCategorizedBlocks();
-            var statements = blocks
-                .Select(line => (line.Category, line.Statement)) // preserve category
-                .ToList();
+            var nodes = parser.ParseIntoNodes(); // <-- new method that returns List<ScriptNode>
+
+            // Flatten ScriptNodes to simple (Category, Statement) tuples
+            var statements = FlattenNodes(nodes).ToList();
 
             _executor = new ScriptExecutor(weave, statements);
         }
@@ -74,6 +74,41 @@ namespace Weaver
             }
 
             return result;
+        }
+
+        private static IEnumerable<(string Category, string Statement)> FlattenNodes(List<ScriptNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                switch (node)
+                {
+                    case LabelNode ln:
+                        yield return ("Label", ln.Name);
+                        break;
+                    case GotoNode gn:
+                        yield return ("Goto", gn.Target);
+                        break;
+                    case CommandNode cn:
+                        yield return ("Command", cn.Command);
+                        break;
+                    case AssignmentNode an:
+                        yield return ("Assignment", $"{an.Variable} = {an.Expression}");
+                        break;
+                    case IfNode ifn:
+                        yield return ("If_Condition", ifn.Condition);
+                        foreach (var child in FlattenNodes(ifn.TrueBranch))
+                            yield return child;
+                        if (ifn.FalseBranch != null)
+                            foreach (var child in FlattenNodes(ifn.FalseBranch))
+                                yield return child;
+                        break;
+                    case DoWhileNode dw:
+                        foreach (var child in FlattenNodes(dw.Body))
+                            yield return child;
+                        yield return ("While_Condition", dw.Condition);
+                        break;
+                }
+            }
         }
     }
 
