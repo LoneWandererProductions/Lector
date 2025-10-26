@@ -58,7 +58,7 @@ namespace Weaver.ParseEngine
             // Handle namespace:command
             var mainPart = segments[0];
             string? ns = null;
-            string cmdPart = mainPart;
+            var cmdPart = mainPart;
 
             var nsSplit = mainPart.Split(':', 2);
             if (nsSplit.Length == 2)
@@ -77,8 +77,8 @@ namespace Weaver.ParseEngine
             var args = ParseArgs(argString);
 
             // Parse optional extension
-            string ext = string.Empty;
-            string[] extArgs = Array.Empty<string>();
+            var ext = string.Empty;
+            var extArgs = Array.Empty<string>();
 
             if (segments.Count > 1)
             {
@@ -109,12 +109,12 @@ namespace Weaver.ParseEngine
         private static List<string> SplitOutsideParentheses(string input, char separator)
         {
             var parts = new List<string>();
-            int depth = 0;
-            int start = 0;
+            var depth = 0;
+            var start = 0;
 
-            for (int i = 0; i < input.Length; i++)
+            for (var i = 0; i < input.Length; i++)
             {
-                char c = input[i];
+                var c = input[i];
                 if (c == '(') depth++;
                 else if (c == ')') depth--;
                 else if (c == separator && depth == 0)

@@ -82,6 +82,7 @@ namespace Weaver.Core
                 case "wint":
                     if (!int.TryParse(valueString, out var i))
                         return CommandResult.Fail($"Invalid int value: {valueString}");
+
                     value = i;
                     type = EnumTypes.Wint;
                     break;
@@ -90,6 +91,7 @@ namespace Weaver.Core
                 case "wdouble":
                     if (!double.TryParse(valueString, out var d))
                         return CommandResult.Fail($"Invalid double value: {valueString}");
+
                     value = d;
                     type = EnumTypes.Wdouble;
                     break;
@@ -98,6 +100,7 @@ namespace Weaver.Core
                 case "wbool":
                     if (!bool.TryParse(valueString, out var b))
                         return CommandResult.Fail($"Invalid bool value: {valueString}");
+
                     value = b;
                     type = EnumTypes.Wbool;
                     break;

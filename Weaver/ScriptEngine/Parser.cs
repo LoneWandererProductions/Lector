@@ -79,6 +79,7 @@ namespace Weaver.ScriptEngine
             var nameToken = Peek();
             if (nameToken.Type != TokenType.Identifier)
                 throw new ArgumentException("Expected identifier after 'label'");
+
             Advance(); // consume identifier
             Match(TokenType.Semicolon);
             return new LabelNode(pos, nameToken.Lexeme);
@@ -91,6 +92,7 @@ namespace Weaver.ScriptEngine
             var targetToken = Peek();
             if (targetToken.Type != TokenType.Identifier)
                 throw new ArgumentException("Expected identifier after 'goto'");
+
             Advance(); // consume identifier
             Match(TokenType.Semicolon);
             return new GotoNode(pos, targetToken.Lexeme);
@@ -196,7 +198,7 @@ namespace Weaver.ScriptEngine
         {
             var sb = new StringBuilder();
             Token? previous = null;
-            bool insideParens = false;
+            var insideParens = false;
 
             while (!IsAtEnd() && Peek().Type != TokenType.Semicolon)
             {
@@ -207,8 +209,12 @@ namespace Weaver.ScriptEngine
 
                 sb.Append(token.Lexeme);
 
-                if (token.Type == TokenType.OpenParen) insideParens = true;
-                else if (token.Type == TokenType.CloseParen) insideParens = false;
+                insideParens = token.Type switch
+                {
+                    TokenType.OpenParen => true,
+                    TokenType.CloseParen => false,
+                    _ => insideParens
+                };
 
                 previous = token;
             }
@@ -221,13 +227,21 @@ namespace Weaver.ScriptEngine
         {
             Expect(TokenType.OpenParen);
             var sb = new StringBuilder();
-            int depth = 1;
+            var depth = 1;
 
             while (!IsAtEnd() && depth > 0)
             {
                 var t = Advance();
-                if (t.Type == TokenType.OpenParen) depth++;
-                if (t.Type == TokenType.CloseParen) depth--;
+                switch (t.Type)
+                {
+                    case TokenType.OpenParen:
+                        depth++;
+                        break;
+                    case TokenType.CloseParen:
+                        depth--;
+                        break;
+                }
+
                 if (depth > 0) sb.Append(t.Lexeme);
             }
 
@@ -249,13 +263,13 @@ namespace Weaver.ScriptEngine
         private bool Match(TokenType type)
         {
             if (IsAtEnd() || Peek().Type != type) return false;
+
             Advance();
             return true;
         }
 
-        private bool IsAlphanumeric(TokenType type) =>
-            type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf ||
-            type == TokenType.KeywordElse;
+        private static bool IsAlphanumeric(TokenType type) =>
+            type is TokenType.Identifier or TokenType.Number or TokenType.KeywordIf or TokenType.KeywordElse;
 
         private Token Peek() => _tokens[_position];
         private Token Advance() => _tokens[_position++];

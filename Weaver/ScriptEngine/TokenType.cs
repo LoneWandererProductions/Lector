@@ -15,7 +15,7 @@ internal enum TokenType
 {
     Identifier = 0, // com, ext, Label, etc.
     Number = 1, // 123, 45.6 (optional)
-    StringLiteral = 2, // "text" (if you add it later)
+    StringLiteral = 2, // "text" (if you add it later), TODO check if used
     OpenParen = 3, // (
     CloseParen = 4, // )
     OpenBrace = 5, // {
@@ -27,7 +27,7 @@ internal enum TokenType
     KeywordElse = 11, // else
     Comment = 12, // --
     Label = 13, // Label(...)
-    Command = 14, //Command
+    Command = 14, //Command, TODO check if used
     Unknown = 15,
     Keyword = 16,
     KeywordGoto = 17,

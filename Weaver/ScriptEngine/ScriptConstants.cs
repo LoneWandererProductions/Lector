@@ -21,14 +21,6 @@ internal static class ScriptConstants
     internal const string Do = "do";
     internal const string While = "while";
 
-    /// <summary>
-    /// Set of all keywords for fast lookup.
-    /// </summary>
-    internal static readonly HashSet<string> Keywords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        If, Else, Label, Goto, Do, While
-    };
-
     // Operators / punctuation
     internal const string Semicolon = ";";
     internal const string Dot = ".";
@@ -49,7 +41,4 @@ internal static class ScriptConstants
     internal const string GreaterEqual = ">=";
     internal const string Less = "<";
     internal const string LessEqual = "<=";
-
-    // Special identifiers
-    internal const string Unknown = "unknown";
 }

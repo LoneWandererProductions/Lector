@@ -48,7 +48,7 @@ namespace Weaver.ScriptEngine
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             // Pre-scan labels
-            for (int i = 0; i < _statements.Count; i++)
+            for (var i = 0; i < _statements.Count; i++)
             {
                 var (category, stmt) = _statements[i];
                 if (category == "Label" && !string.IsNullOrEmpty(stmt))
@@ -82,7 +82,7 @@ namespace Weaver.ScriptEngine
                 return result;
             }
 
-            int iterCount = 0;
+            var iterCount = 0;
 
             while (_position < _statements.Count)
             {
@@ -126,7 +126,7 @@ namespace Weaver.ScriptEngine
                         }
 
                         var loopStart = _doWhileStack.Pop();
-                        bool condResult = _evaluator.Evaluate(stmt!);
+                        var condResult = _evaluator.Evaluate(stmt!);
 
                         if (condResult)
                             _position = loopStart + 1; // loop again
@@ -135,18 +135,13 @@ namespace Weaver.ScriptEngine
                         continue;
 
                     case "If_Condition":
-                        bool cond = _evaluator.Evaluate(stmt!);
+                        var cond = _evaluator.Evaluate(stmt!);
                         _position++; // move past the condition node
 
-                        if (cond)
-                        {
-                            // Execute the "true" branch next (it's already in the statement list)
-                            continue;
-                        }
-                        else
+                        if (!cond)
                         {
                             // Skip the "true" branch to the "Else_Open" if present, otherwise skip to next after If block
-                            int depth = 0;
+                            var depth = 0;
                             while (_position < _statements.Count)
                             {
                                 var (cat, _) = _statements[_position];
@@ -156,9 +151,11 @@ namespace Weaver.ScriptEngine
                                     break;
                                 else if (cat == "CloseBrace" && depth > 0)
                                     depth--;
+
                                 _position++;
                             }
                         }
+
                         continue;
 
 
@@ -169,6 +166,7 @@ namespace Weaver.ScriptEngine
                             _pendingFeedback = result.Feedback;
                             return result;
                         }
+
                         _position++;
                         return result;
                 }

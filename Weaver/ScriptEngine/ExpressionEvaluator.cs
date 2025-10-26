@@ -30,12 +30,12 @@ namespace Weaver.ScriptEngine
 
             return op switch
             {
-                "==" => Equals(left, right),
-                "!=" => !Equals(left, right),
-                ">" => Compare(left, right) > 0,
-                "<" => Compare(left, right) < 0,
-                ">=" => Compare(left, right) >= 0,
-                "<=" => Compare(left, right) <= 0,
+                ScriptConstants.EqualEqual => Equals(left, right),
+                ScriptConstants.BangEqual => !Equals(left, right),
+                ScriptConstants.Greater => Compare(left, right) > 0,
+                ScriptConstants.Less => Compare(left, right) < 0,
+                ScriptConstants.GreaterEqual => Compare(left, right) >= 0,
+                ScriptConstants.LessEqual => Compare(left, right) <= 0,
                 _ => throw new ArgumentException($"Unsupported operator: {op}")
             };
         }
@@ -44,10 +44,17 @@ namespace Weaver.ScriptEngine
         {
             if (double.TryParse(token, out var num)) return num;
             if (_registry.TryGet(token, out var val, out _)) return val!;
+
             return token; // treat as literal string
         }
 
-        private int Compare(object a, object b)
+        /// <summary>
+        /// Compares the specified a.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>If both values are equal</returns>
+        private static int Compare(object a, object b)
         {
             var da = Convert.ToDouble(a);
             var db = Convert.ToDouble(b);

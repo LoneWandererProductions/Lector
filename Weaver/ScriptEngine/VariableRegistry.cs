@@ -56,10 +56,11 @@ namespace Weaver.ScriptEngine
         /// <inheritdoc />
         public void Clear() => _registry.Clear();
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IVariableRegistry" />
         public override string ToString()
         {
             if (_registry.Count == 0) return "Registry is empty.";
+
             var sb = new StringBuilder();
             foreach (var kvp in _registry)
             {
