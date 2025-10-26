@@ -1,4 +1,12 @@
-﻿namespace Weaver.ScriptEngine
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.ScriptEngine
+ * FILE:        ExpressionEvaluator.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+namespace Weaver.ScriptEngine
 {
     internal sealed class ExpressionEvaluator
     {

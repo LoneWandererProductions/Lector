@@ -1,4 +1,12 @@
-﻿using System.Globalization;
+/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.ScriptEngine
+ * FILE:        Lexer.cs
+ * PURPOSE:     Your file purpose here
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using System.Globalization;
 using System.Text;
 
 namespace Weaver.ScriptEngine
