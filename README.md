@@ -16,6 +16,36 @@ Weave is a lightweight C# command execution engine with support for namespaces, 
 
 ## Usage
 
+## Weave Script Syntax
+
+Weave supports a simple, consistent syntax for commands and optional extensions. Commands can take zero or more parameters, and extensions can be chained after the command.  
+
+### Basic Syntax
+
+- `CommandName` – The name of a registered command (required).  
+- `param1 ... paramN` – Command parameters (optional, depending on the command).  
+- `.ExtensionName(...)` – Optional extension for the command. Extensions modify or enhance command behavior.  
+
+### Examples
+
+```csharp
+// Simple command without parameters
+sayHello()
+
+// Command with parameters
+setValue("counter", 1, Wint)
+
+// Command with an extension
+setValue("counter", 1, Wint).help
+
+// Multiple commands can be executed sequentially
+setValue("score", 100, Wint)
+getValue("score")
+memory()
+deleteValue("score")
+memory()
+```
+
 ### Registering Commands
 
 ```csharp
