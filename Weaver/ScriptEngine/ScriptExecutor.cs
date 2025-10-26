@@ -42,7 +42,7 @@ namespace Weaver.ScriptEngine
             weave.Register(new DeleteValue(_registry));
             weave.Register(new Memory(_registry));
 
-            _statements = statements;
+            _statements = statements ?? new List<(string, string?)>();
             _position = 0;
 
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -107,7 +107,6 @@ namespace Weaver.ScriptEngine
                             _position++;
                             return CommandResult.Fail($"Label '{stmt}' not found.");
                         }
-
                         continue;
 
                     case "Label":
@@ -136,14 +135,32 @@ namespace Weaver.ScriptEngine
                         continue;
 
                     case "If_Condition":
-                        bool ifCond = _evaluator.Evaluate(stmt!);
-                        _position++;
-                        return new CommandResult
+                        bool cond = _evaluator.Evaluate(stmt!);
+                        _position++; // move past the condition node
+
+                        if (cond)
                         {
-                            Success = true,
-                            Message = stmt!,
-                            Feedback = null
-                        };
+                            // Execute the "true" branch next (it's already in the statement list)
+                            continue;
+                        }
+                        else
+                        {
+                            // Skip the "true" branch to the "Else_Open" if present, otherwise skip to next after If block
+                            int depth = 0;
+                            while (_position < _statements.Count)
+                            {
+                                var (cat, _) = _statements[_position];
+                                if (cat == "If_Condition" || cat == "Do_Condition")
+                                    depth++;
+                                else if (cat == "Else_Open" && depth == 0)
+                                    break;
+                                else if (cat == "CloseBrace" && depth > 0)
+                                    depth--;
+                                _position++;
+                            }
+                        }
+                        continue;
+
 
                     default: // "Command", "Assignment", etc.
                         var result = _weave.ProcessInput(stmt!);
@@ -152,7 +169,6 @@ namespace Weaver.ScriptEngine
                             _pendingFeedback = result.Feedback;
                             return result;
                         }
-
                         _position++;
                         return result;
                 }
