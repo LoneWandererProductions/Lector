@@ -46,6 +46,52 @@ if (result.RequiresConfirmation)
 
 ```
 
+# Weaver Script Engine
+
+Weaver Script Engine is a lightweight C# script execution engine built on top of the **Weave** command framework.  
+It supports parsing structured scripts, variable management, conditional execution, loops, labels, and interactive feedback handling.
+
+---
+
+## Features
+
+- **Script Parsing:** Supports labels, commands, assignments, `if` conditions, `do...while` loops, and `goto`.
+- **Variable Management:** Built-in type-safe variable registry for `Wint`, `Wdouble`, `Wbool`, and `Wstring`.
+- **Conditional Execution:** Simple expression evaluator for `if` statements and loop conditions.
+- **Looping:** Supports `do { ... } while(condition)` with proper loop handling.
+- **Goto Labels:** Jump between script labels for flexible execution flow.
+- **Feedback Handling:** Scripts can pause for user input, confirmation, or interactive prompts.
+- **Debugger-Friendly:** Includes a `DebugHelpers` utility to flatten nodes and inspect scripts.
+
+---
+
+## Installation
+
+Add the Script Engine project to your solution and reference it in your application.
+
+```csharp
+using Weaver.ScriptEngine;
+```
+
+## Script Syntax Reference
+
+| Syntax                     | Description |
+|-----------------------------|-------------|
+| `label <Name>;`             | Defines a label to jump to using `goto`. |
+| `goto <Label>;`             | Jumps execution to the specified label. |
+| `<Command>(arg1, arg2, ...);` | Executes a registered command with optional arguments. |
+| `do { ... } while(<condition>);` | Executes a loop; runs the block at least once and repeats while condition evaluates to true. |
+| `if (<condition>) { ... } else { ... }` | Conditional execution based on the evaluation of a simple expression. |
+| `setValue(<key>, <value>, <type>);` | Assigns a value to a variable (`Wint`, `Wdouble`, `Wbool`, `Wstring`). |
+| `getValue(<key>);`          | Retrieves a variable value. |
+| `deleteValue(<key>);`       | Deletes a variable from the registry. |
+| `memory();`                  | Lists all current variables in the registry (debug). |
+
+**Notes:**  
+- `<condition>` currently supports simple expressions like `score > 100`, `flag == true`, etc.  
+- Commands must be registered in the `Weave` instance before use.  
+- Loops and conditionals are evaluated with the `ExpressionEvaluator` and `VariableRegistry`.  
+
 ## UML
 
 ```mermaid
