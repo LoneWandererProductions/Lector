@@ -6,8 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Weaver.ScriptEngine
@@ -64,6 +62,7 @@ namespace Weaver.ScriptEngine
                         {
                             Advance(); // skip structural tokens
                         }
+
                         break;
                 }
             }
@@ -255,7 +254,8 @@ namespace Weaver.ScriptEngine
         }
 
         private bool IsAlphanumeric(TokenType type) =>
-            type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf || type == TokenType.KeywordElse;
+            type == TokenType.Identifier || type == TokenType.Number || type == TokenType.KeywordIf ||
+            type == TokenType.KeywordElse;
 
         private Token Peek() => _tokens[_position];
         private Token Advance() => _tokens[_position++];

@@ -42,7 +42,7 @@ namespace Weaver.ScriptEngine
             weave.Register(new DeleteValue(_registry));
             weave.Register(new Memory(_registry));
 
-            _statements = statements ?? new List<(string, string?)>();
+            _statements = statements;
             _position = 0;
 
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -107,6 +107,7 @@ namespace Weaver.ScriptEngine
                             _position++;
                             return CommandResult.Fail($"Label '{stmt}' not found.");
                         }
+
                         continue;
 
                     case "Label":
@@ -151,6 +152,7 @@ namespace Weaver.ScriptEngine
                             _pendingFeedback = result.Feedback;
                             return result;
                         }
+
                         _position++;
                         return result;
                 }

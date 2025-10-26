@@ -89,6 +89,7 @@ namespace Mediator
             Assert.IsTrue(result5.Success);
             StringAssert.Contains(result5.Message.ToLowerInvariant(), "empty");
         }
+
         [TestMethod]
         public void Test_LabelAndGoto()
         {
@@ -120,6 +121,7 @@ namespace Mediator
                 executor.ExecuteNext();
                 safety++;
             }
+
             Assert.IsTrue(safety < 11, "Goto loop should not be infinite.");
         }
 

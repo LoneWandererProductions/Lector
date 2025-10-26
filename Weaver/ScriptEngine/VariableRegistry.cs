@@ -65,6 +65,7 @@ namespace Weaver.ScriptEngine
             {
                 sb.AppendLine($"{kvp.Key} = {kvp.Value.Value} ({kvp.Value.Type})");
             }
+
             return sb.ToString();
         }
     }

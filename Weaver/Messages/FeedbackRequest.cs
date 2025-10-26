@@ -23,7 +23,7 @@ namespace Weaver.Messages
         /// <value>
         /// The request identifier.
         /// </value>
-        public string RequestId { get; init; } = Guid.NewGuid().ToString();
+        public string RequestId { get; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Gets the prompt.

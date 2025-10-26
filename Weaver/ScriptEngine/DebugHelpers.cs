@@ -6,9 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using Weaver.ScriptEngine;
-
 namespace Weaver.ScriptEngine
 {
     internal static class DebugHelpers
@@ -41,10 +38,10 @@ namespace Weaver.ScriptEngine
 
                     case IfNode ifn:
                         yield return ("If_Condition", ifn.Condition);
-                        yield return ("If_Open", null);  // debug open
+                        yield return ("If_Open", null); // debug open
                         foreach (var child in FlattenNodes(ifn.TrueBranch))
                             yield return child;
-                        yield return ("If_End", null);   // debug end
+                        yield return ("If_End", null); // debug end
                         if (ifn.FalseBranch != null)
                         {
                             yield return ("Else_Open", null);
@@ -52,6 +49,7 @@ namespace Weaver.ScriptEngine
                                 yield return child;
                             yield return ("Else_End", null);
                         }
+
                         break;
 
                     case DoWhileNode dw:
