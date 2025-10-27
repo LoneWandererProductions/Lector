@@ -31,7 +31,7 @@ namespace Weaver.ScriptEngine
         // Only store the start index of do-while loops
         private readonly Stack<int> _doWhileStack = new();
 
-        public ScriptExecutor(Weave weave, List<(string Category, string? Statement)> statements)
+        public ScriptExecutor(Weave weave, List<(string Category, string)> statements)
         {
             _weave = weave;
             _registry = new VariableRegistry();
@@ -110,6 +110,7 @@ namespace Weaver.ScriptEngine
                             _position++;
                             return CommandResult.Fail($"Label '{stmt}' not found.");
                         }
+
                         continue;
 
                     case "Label":

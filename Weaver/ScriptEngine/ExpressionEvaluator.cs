@@ -50,8 +50,8 @@ namespace Weaver.ScriptEngine
                 // Convert to bool if logical operator
                 if (op == ScriptConstants.LogicalAnd || op == ScriptConstants.LogicalOr)
                 {
-                    bool leftBool = Convert.ToBoolean(left);
-                    bool rightBool = Convert.ToBoolean(right);
+                    var leftBool = Convert.ToBoolean(left);
+                    var rightBool = Convert.ToBoolean(right);
 
                     return op switch
                     {
@@ -126,19 +126,19 @@ namespace Weaver.ScriptEngine
             var db = Convert.ToDouble(b);
             return da.CompareTo(db);
         }
-        
+
         /// <inheritdoc />
         public bool IsBooleanExpression(string expression)
         {
             return expression.Contains(ScriptConstants.LogicalAnd, StringComparison.OrdinalIgnoreCase)
-                || expression.Contains(ScriptConstants.LogicalOr, StringComparison.OrdinalIgnoreCase)
-                || expression.Contains(ScriptConstants.LogicalNot, StringComparison.OrdinalIgnoreCase)
-                || expression.Contains(ScriptConstants.EqualEqual)
-                || expression.Contains(ScriptConstants.BangEqual)
-                || expression.Contains(ScriptConstants.GreaterEqual)
-                || expression.Contains(ScriptConstants.LessEqual)
-                || expression.Contains(ScriptConstants.Greater)
-                || expression.Contains(ScriptConstants.Less);
+                   || expression.Contains(ScriptConstants.LogicalOr, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalNot, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.EqualEqual)
+                   || expression.Contains(ScriptConstants.BangEqual)
+                   || expression.Contains(ScriptConstants.GreaterEqual)
+                   || expression.Contains(ScriptConstants.LessEqual)
+                   || expression.Contains(ScriptConstants.Greater)
+                   || expression.Contains(ScriptConstants.Less);
         }
     }
 }

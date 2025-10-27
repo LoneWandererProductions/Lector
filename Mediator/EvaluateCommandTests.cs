@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Weaver.Core;
 using Weaver.Messages;
 using Weaver.ScriptEngine;

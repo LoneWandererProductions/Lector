@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Globalization;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -21,7 +22,8 @@ namespace Weaver.Core
         public string Name => "Evaluate";
 
         /// <inheritdoc />
-        public string Description => "In the Scriptengine this command provides an easier way to evaluate expressions or do simple calculation and expression evaluation.";
+        public string Description =>
+            "In the Scriptengine this command provides an easier way to evaluate expressions or do simple calculation and expression evaluation.";
 
         /// <inheritdoc />
         public string Namespace => WeaverResources.GlobalNamespace;
@@ -59,8 +61,8 @@ namespace Weaver.Core
             if (args.Length < 1)
                 return CommandResult.Fail("evaluate() requires at least 1 argument: the expression to evaluate.");
 
-            string expression = args[0];
-            string? targetVar = args.Length > 1 ? args[1] : null;
+            var expression = args[0];
+            var targetVar = args.Length > 1 ? args[1] : null;
 
             // Resolve variables from registry
             if (_registry != null)
@@ -70,8 +72,8 @@ namespace Weaver.Core
                     if (variable.Value.Value == null)
                         continue;
 
-                    string key = variable.Key;
-                    string val = variable.Value.Value.ToString() ?? "0";
+                    var key = variable.Key;
+                    var val = variable.Value.Value.ToString() ?? "0";
                     expression = expression.Replace(key, val, StringComparison.OrdinalIgnoreCase);
                 }
             }
@@ -80,7 +82,7 @@ namespace Weaver.Core
             EnumTypes type;
 
             // Detect if expression looks like boolean
-            bool isBooleanExpr = _evaluator.IsBooleanExpression(expression);
+            var isBooleanExpr = _evaluator.IsBooleanExpression(expression);
 
             try
             {
@@ -109,7 +111,7 @@ namespace Weaver.Core
                 if (_registry == null)
                 {
                     return CommandResult.Fail(
-                        $"Cannot store result: registry not provided. " +
+                        "Cannot store result: registry not provided. " +
                         "Usage: evaluate(<expression>, <targetVar>) requires registry in constructor."
                     );
                 }
@@ -125,10 +127,10 @@ namespace Weaver.Core
             }
 
             // Return result
-            string message = type switch
+            var message = type switch
             {
                 EnumTypes.Wbool => result?.ToString() ?? "false",
-                EnumTypes.Wdouble => Convert.ToDouble(result).ToString(),
+                EnumTypes.Wdouble => Convert.ToDouble(result).ToString(CultureInfo.InvariantCulture),
                 _ => result?.ToString() ?? "null"
             };
 

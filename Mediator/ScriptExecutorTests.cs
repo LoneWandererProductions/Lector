@@ -115,7 +115,7 @@ namespace Mediator
 
             var executor = new ScriptExecutor(_weave, statements);
 
-            int safety = 0;
+            var safety = 0;
             while (!executor.IsFinished && safety < 10)
             {
                 executor.ExecuteNext();
@@ -174,7 +174,7 @@ namespace Mediator
         [TestMethod]
         public void Test_ScriptFinish()
         {
-            int step = 0;
+            var step = 0;
             while (!_executor.IsFinished)
             {
                 var result = _executor.ExecuteNext();

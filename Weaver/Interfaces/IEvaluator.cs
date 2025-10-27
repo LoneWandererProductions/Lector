@@ -27,6 +27,7 @@ namespace Weaver.Interfaces
         /// <param name="expression">The expression.</param>
         /// <returns>Value as double.</returns>
         double EvaluateNumeric(string expression);
+
         /// <summary>
         /// Determines whether [is boolean expression] [the specified expression].
         /// </summary>

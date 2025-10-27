@@ -15,21 +15,35 @@ namespace Weaver.Interfaces
     /// </summary>
     public interface IFeedback
     {
-        /// <summary> The prompt shown to the user. </summary>
+        /// <summary>
+        /// The prompt shown to the user.
+        /// </summary>
+        /// <value>
+        /// The prompt.
+        /// </value>
         string Prompt { get; }
 
-        /// <summary> Possible valid options. </summary>
+        /// <summary>
+        /// Possible valid options.
+        /// </summary>
+        /// <value>
+        /// The options.
+        /// </value>
         IReadOnlyList<string> Options { get; }
 
         /// <summary>
         /// Indicates if feedback is still pending.
         /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is pending; otherwise, <c>false</c>.
+        /// </value>
         bool IsPending { get; }
 
         /// <summary>
         /// Handles a user response and returns a CommandResult.
         /// </summary>
         /// <param name="input">User input</param>
+        /// <returns>The Command result object.</returns>
         CommandResult Respond(string input);
     }
 }

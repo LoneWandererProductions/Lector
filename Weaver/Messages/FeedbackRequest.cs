@@ -39,7 +39,7 @@ namespace Weaver.Messages
         /// <value>
         /// The options.
         /// </value>
-        public string[] Options { get; init; } = Array.Empty<string>();
+        public string[] Options { get; init; }
 
         /// <summary>
         /// Indicates if feedback is still pending.
