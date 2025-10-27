@@ -16,6 +16,12 @@ namespace Weaver.Interfaces
     public interface IVariableRegistry
     {
         /// <summary>
+        /// Gets all.
+        /// </summary>
+        /// <returns>The registry itself</returns>
+        IReadOnlyDictionary<string, (object Value, EnumTypes Type)> GetAll();
+
+        /// <summary>
         /// Sets a value in the registry.
         /// </summary>
         /// <param name="key">Variable key.</param>

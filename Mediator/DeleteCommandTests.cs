@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        DeleteCommandTests.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Basic Weaver test with custom command.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

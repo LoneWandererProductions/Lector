@@ -128,6 +128,56 @@ using Weaver.ScriptEngine;
 - Commands must be registered in the `Weave` instance before use.  
 - Loops and conditionals are evaluated with the `ExpressionEvaluator` and `VariableRegistry`.  
 
+### Evaluate Command
+
+The `evaluate` command is a versatile utility in **Weave** and the **Weaver Script Engine**.  
+It can be used both as a simple calculator and as a registry-aware expression evaluator.
+
+#### Features
+
+- Evaluates **arithmetic expressions**: `1+2-3*4/2`  
+- Evaluates **logical expressions**: `score1 > score2 && flag == true`  
+- Supports **registry variables** when a registry is provided:
+
+```csharp
+setValue("score1", 10, Wint);
+setValue("score2", 5, Wint);
+evaluate("score1 + score2"); // returns 15
+```
+
+- Optionally stores the result in a registry variable:
+
+```csharp
+evaluate("1 + 2 + 3", "total"); // stores 6 in variable 'total'
+```
+
+- Supports boolean evaluation (true/false) and numeric evaluation (double).
+- Fallback evaluation ensures arithmetic expressions are processed if logical evaluation fails.
+
+### Usage Examples
+```csharp
+// Simple arithmetic calculation
+evaluate("1 + 2 + 3");           // returns 6
+
+// Store result in registry
+evaluate("1 + 2 + 3", "score");  // stores 6 in 'score'
+
+// Using registry variables
+setValue("a", 4, Wint);
+setValue("b", 6, Wint);
+evaluate("a + b");                // returns 10
+
+// Logical expressions
+setValue("flag1", true, Wbool);
+setValue("flag2", false, Wbool);
+evaluate("flag1 && flag2");       // returns false
+
+// Complex mixed expressions
+setValue("score1", 10, Wint);
+setValue("score2", 5, Wint);
+evaluate("score1 > score2 && score2 > 0"); // returns true
+```
+
 ## UML
 
 ```mermaid

@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Interfaces
  * FILE:        ICommandExtension.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Interface for external command extensions.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

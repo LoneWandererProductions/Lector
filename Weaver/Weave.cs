@@ -10,6 +10,7 @@ using Weaver.Core;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ParseEngine;
+using Weaver.ScriptEngine;
 
 namespace Weaver
 {
@@ -55,6 +56,11 @@ namespace Weaver
         private FeedbackRequest? _pendingFeedback;
 
         /// <summary>
+        /// The evaluator
+        /// </summary>
+        private IEvaluator _evaluator;
+
+        /// <summary>
         /// The extensions
         /// </summary>
         private readonly List<ICommandExtension> _extensions = new();
@@ -73,6 +79,11 @@ namespace Weaver
 
             var print = new PrintCommand();
             Register(print);
+
+            //our custom calculator command, needs the evaluator.
+            _evaluator = new ExpressionEvaluator();
+            var evaluate = new EvaluateCommand(_evaluator);
+            Register(evaluate);
 
             _extensions.Add(new HelpExtension());
             _extensions.Add(new TryRunExtension());

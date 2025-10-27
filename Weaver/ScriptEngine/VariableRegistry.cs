@@ -18,10 +18,7 @@ namespace Weaver.ScriptEngine
     /// </summary>
     public sealed class VariableRegistry : IVariableRegistry
     {
-        /// <summary>
-        /// Gets all.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />>
         public IReadOnlyDictionary<string, (object Value, EnumTypes Type)> GetAll() => _registry;
 
         /// <summary>

@@ -41,4 +41,7 @@ internal static class ScriptConstants
     internal const string GreaterEqual = ">=";
     internal const string Less = "<";
     internal const string LessEqual = "<=";
+    public const string LogicalAnd = "and";
+    public const string LogicalOr = "or";
+    public const string LogicalNot = "not";
 }

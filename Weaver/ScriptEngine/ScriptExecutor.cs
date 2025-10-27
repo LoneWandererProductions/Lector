@@ -7,6 +7,7 @@
  */
 
 using Weaver.Core;
+using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace Weaver.ScriptEngine
@@ -20,7 +21,7 @@ namespace Weaver.ScriptEngine
     {
         private readonly Weave _weave;
         private readonly VariableRegistry _registry;
-        private readonly ExpressionEvaluator _evaluator;
+        private readonly IEvaluator _evaluator;
         private readonly List<(string Category, string? Statement)> _statements;
 
         private readonly Dictionary<string, int> _labelPositions;
@@ -41,6 +42,8 @@ namespace Weaver.ScriptEngine
             weave.Register(new GetValue(_registry));
             weave.Register(new DeleteValue(_registry));
             weave.Register(new Memory(_registry));
+            //the evaluate command needs the evaluator and registry
+            weave.Register(new EvaluateCommand(_evaluator, _registry));
 
             _statements = statements ?? new List<(string, string?)>();
             _position = 0;
