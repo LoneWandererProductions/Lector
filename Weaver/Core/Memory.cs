@@ -56,6 +56,8 @@ namespace Weaver.Core
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)
-            => CommandResult.Fail("'memory' has no extensions.");
+        {
+            return CommandResult.Fail($"'{Name}' has no extensions.");
+        }
     }
 }

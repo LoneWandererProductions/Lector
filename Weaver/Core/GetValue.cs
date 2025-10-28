@@ -59,28 +59,24 @@ namespace Weaver.Core
 
             if (!_registry.TryGet(key, out var value, out var type))
             {
-                return new CommandResult
-                {
-                    Success = false,
-                    Message = $"Key '{key}' not found.",
-                    Type = EnumTypes.Wstring,
-                    Value = null
-                };
+                return CommandResult.Fail(
+                    $"Key '{key}' not found.",
+                    null,
+                    EnumTypes.Wstring
+                );
             }
 
-            return new CommandResult
-            {
-                Success = true,
-                Message = $"Retrieved key '{key}' of type {type}.",
-                Type = type,
-                Value = value
-            };
+            return CommandResult.Ok(
+                $"Retrieved key '{key}' of type {type}.",
+                value,
+                type
+            );
         }
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            return CommandResult.Fail("'getValue' has no extensions.");
+            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

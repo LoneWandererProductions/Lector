@@ -117,13 +117,11 @@ namespace Weaver.Core
                 }
 
                 _registry.Set(targetVar, result!, type);
-                return new CommandResult
-                {
-                    Success = true,
-                    Message = $"Stored '{result}' in '{targetVar}'.",
-                    Type = type,
-                    Value = result
-                };
+                return CommandResult.Ok(
+                    $"Stored '{result}' in '{targetVar}'.",
+                    result,
+                    type
+                );
             }
 
             // Return result
@@ -134,19 +132,13 @@ namespace Weaver.Core
                 _ => result?.ToString() ?? "null"
             };
 
-            return new CommandResult
-            {
-                Success = true,
-                Message = message,
-                Type = type,
-                Value = result
-            };
+            return CommandResult.Ok(message, result, type);
         }
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, string[] args)
         {
-            return CommandResult.Fail("No extensions available for evaluate.");
+            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

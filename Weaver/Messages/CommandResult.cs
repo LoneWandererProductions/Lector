@@ -65,6 +65,28 @@ namespace Weaver.Messages
         public static CommandResult Fail(string msg) => new() { Success = false, Message = msg };
 
         /// <summary>
+        /// Success variant.
+        /// Oks the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="type">The type.</param>
+        /// <returns></returns>
+        public static CommandResult Ok(string message, object? value = null, EnumTypes type = EnumTypes.Result)
+            => new() { Success = true, Message = message, Value = value, Type = type };
+
+        /// <summary>
+        /// Failure variant.
+        /// Fails the specified message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="type">The type.</param>
+        /// <returns></returns>
+        public static CommandResult Fail(string message, object? value = null, EnumTypes type = EnumTypes.Error)
+            => new() { Success = false, Message = message, Value = value, Type = type };
+
+        /// <summary>
         /// Gets the feedback.
         /// </summary>
         /// <value>

@@ -79,7 +79,7 @@ namespace Weaver.Core
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            return CommandResult.Fail("'help' has no extensions.");
+            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

@@ -112,19 +112,17 @@ namespace Weaver.Core
             // Store in registry
             _registry.Set(key, value, type);
 
-            return new CommandResult
-            {
-                Success = true,
-                Message = $"Registered key '{key}' with type {type} and value '{value}'.",
-                Type = type,
-                Value = value
-            };
+            return CommandResult.Ok(
+                $"Registered key '{key}' with type {type} and value '{value}'.",
+                value,
+                type
+            );
         }
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            return CommandResult.Fail("'setValue' has no extensions.");
+            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }
