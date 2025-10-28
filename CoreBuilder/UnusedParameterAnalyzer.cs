@@ -8,14 +8,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that finds unused method parameters.
 /// </summary>
@@ -64,12 +65,11 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer
                     .Where(id =>
                         SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, paramSymbol));
 
-                if (!references.Any())
-                {
-                    var line = parameter.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                    yield return new Diagnostic(Name, DiagnosticSeverity.Warning, filePath, line,
-                        $"Unused parameter '{parameter.Identifier.Text}' in method '{methodDecl.Identifier.Text}'.");
-                }
+                if (references.Any()) continue;
+
+                var line = parameter.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                yield return new Diagnostic(Name, DiagnosticSeverity.Warning, filePath, line,
+                    $"Unused parameter '{parameter.Identifier.Text}' in method '{methodDecl.Identifier.Text}'.");
             }
         }
     }

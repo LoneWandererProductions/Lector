@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CoreBuilder;
 
-/// <inheritdoc />
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that detects allocations in hot paths.
 /// </summary>

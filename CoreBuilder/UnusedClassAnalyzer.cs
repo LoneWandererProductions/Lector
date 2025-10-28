@@ -14,6 +14,7 @@ using CoreBuilder.Interface;
 
 namespace CoreBuilder
 {
+    /// <inheritdoc cref="ICodeAnalyzer" />
     /// <summary>
     /// Analyzer that detects unused classes across a project.
     /// Works by scanning all files for class declarations and then checking

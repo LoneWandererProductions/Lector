@@ -1,12 +1,12 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
- * FILE:        CoreBuilder/IHeaderExtractor.cs
+ * PROJECT:     CoreBuilder.Interface
+ * FILE:        IHeaderExtractor.cs
  * PURPOSE:     Interface for HeaderExtractor
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-namespace CoreBuilder;
+namespace CoreBuilder.Interface;
 
 /// <summary>
 ///     Interface for HeaderExtractor

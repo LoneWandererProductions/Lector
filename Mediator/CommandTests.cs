@@ -14,7 +14,7 @@ namespace Mediator
     public class CommandTests
     {
         private DeleteCommand _deleteCommand = null!;
-        private readonly Weave _weaver = new Weave();
+        private readonly Weave _weaver = new();
 
         [TestInitialize]
         public void Setup()

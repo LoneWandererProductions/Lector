@@ -9,6 +9,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using CoreBuilder.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -89,7 +90,8 @@ internal static class CoreHelper
     /// <returns>LoopContext.ConstantBounded or VariableBounded.</returns>
     private static LoopContext AnalyzeForLoop(ForStatementSyntax loop)
     {
-        if (loop.Condition is BinaryExpressionSyntax { Right: LiteralExpressionSyntax literal } && literal.IsKind(SyntaxKind.NumericLiteralExpression))
+        if (loop.Condition is BinaryExpressionSyntax { Right: LiteralExpressionSyntax literal } &&
+            literal.IsKind(SyntaxKind.NumericLiteralExpression))
         {
             return LoopContext.ConstantBounded;
         }

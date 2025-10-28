@@ -14,6 +14,7 @@ using CoreBuilder.Interface;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that detects unused constants and static readonly fields.
 /// Works by scanning all files for declarations and then checking
@@ -49,7 +50,8 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
 
         // Regex to find constant or static readonly declarations
         // Matches e.g.: public const int Foo = 1; or private static readonly string Bar = "X";
-        var declRegex = new Regex(@"\b(?:const|static\s+readonly)\s+\w[\w<>,\s]*\s+(?<name>\w+)\s*=", RegexOptions.Compiled);
+        var declRegex = new Regex(@"\b(?:const|static\s+readonly)\s+\w[\w<>,\s]*\s+(?<name>\w+)\s*=",
+            RegexOptions.Compiled);
 
         // Collect all declarations
         var declarations = new List<(string FilePath, int Line, string Name)>();

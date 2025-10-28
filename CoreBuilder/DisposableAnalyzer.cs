@@ -22,16 +22,17 @@ using Weaver.Messages;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that detects undisposed IDisposable objects.
 /// </summary>
 /// <seealso cref="CoreBuilder.Interface.ICodeAnalyzer" />
 public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "DisposableLeak";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that detects undisposed IDisposable objects.";
 
     /// <inheritdoc />
@@ -41,7 +42,7 @@ public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
     public int ParameterCount => 1;
 
     /// <inheritdoc />
-    public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
@@ -141,7 +142,7 @@ public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
             sb.AppendLine(new string('-', 80));
             sb.AppendLine($"{diagnostics.Count} potential disposable leaks found.");
 
-            return CommandResult.Ok(sb.ToString(), diagnostics, EnumTypes.Wstring);
+            return CommandResult.Ok(sb.ToString(), diagnostics);
         }
         catch (Exception ex)
         {

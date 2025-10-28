@@ -6,7 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-namespace CoreBuilder;
+namespace CoreBuilder.Enums;
 
 /// <summary>
 /// The loop types.

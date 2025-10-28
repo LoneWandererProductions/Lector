@@ -71,8 +71,8 @@ namespace Weaver.Messages
         /// <param name="message">The message.</param>
         /// <param name="value">The value.</param>
         /// <param name="type">The type.</param>
-        /// <returns></returns>
-        public static CommandResult Ok(string message, object? value = null, EnumTypes type = EnumTypes.Result)
+        /// <returns>Drop in ready Command.</returns>
+        public static CommandResult Ok(string message, object? value = null, EnumTypes type = EnumTypes.Wstring)
             => new() { Success = true, Message = message, Value = value, Type = type };
 
         /// <summary>
@@ -82,8 +82,8 @@ namespace Weaver.Messages
         /// <param name="message">The message.</param>
         /// <param name="value">The value.</param>
         /// <param name="type">The type.</param>
-        /// <returns></returns>
-        public static CommandResult Fail(string message, object? value = null, EnumTypes type = EnumTypes.Error)
+        /// <returns>Drop in ready Command.</returns>
+        public static CommandResult Fail(string message, object? value = null, EnumTypes type = EnumTypes.Wstring)
             => new() { Success = false, Message = message, Value = value, Type = type };
 
         /// <summary>

@@ -13,9 +13,11 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Check if Event is unsubscribed.
 /// </summary>
@@ -53,27 +55,26 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer
 
         foreach (var sub in subscriptions)
         {
-            if (sub.Left is IdentifierNameSyntax eventName)
-            {
-                var key = eventName.Identifier.Text;
-                if (!_eventStats.TryGetValue(key, out var stats))
-                    stats = (0, new HashSet<string>());
+            if (sub.Left is not IdentifierNameSyntax eventName) continue;
 
-                stats.Count++;
-                stats.Files.Add(filePath);
-                _eventStats[key] = stats;
+            var key = eventName.Identifier.Text;
+            if (!_eventStats.TryGetValue(key, out var stats))
+                stats = (0, new HashSet<string>());
 
-                var line = sub.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            stats.Count++;
+            stats.Files.Add(filePath);
+            _eventStats[key] = stats;
 
-                yield return new Diagnostic(
-                    Name,
-                    DiagnosticSeverity.Warning,
-                    filePath,
-                    line,
-                    $"Event '{key}' subscribed {stats.Count} times so far. Check for corresponding unsubscribes.",
-                    DiagnosticImpact.IoBound
-                );
-            }
+            var line = sub.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            yield return new Diagnostic(
+                Name,
+                DiagnosticSeverity.Warning,
+                filePath,
+                line,
+                $"Event '{key}' subscribed {stats.Count} times so far. Check for corresponding unsubscribes.",
+                DiagnosticImpact.IoBound
+            );
         }
     }
 }

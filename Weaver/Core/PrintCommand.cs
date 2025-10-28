@@ -38,7 +38,7 @@ namespace Weaver.Core
         public int ParameterCount => 1; // we’ll allow 0 or 1 dynamically
 
         /// <inheritdoc />
-        public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null;

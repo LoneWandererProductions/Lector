@@ -33,7 +33,7 @@ namespace Weaver.Core
         private readonly Func<IEnumerable<ICommand>> _getCommands;
 
         /// <inheritdoc />
-        public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null;

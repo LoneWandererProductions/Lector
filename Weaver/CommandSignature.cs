@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver;
  * FILE:        CommandSignature.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Record for all my command signatures.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

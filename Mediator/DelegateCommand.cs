@@ -6,8 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.ScriptEngine;
-
 namespace Mediator
 {
     /// <summary>

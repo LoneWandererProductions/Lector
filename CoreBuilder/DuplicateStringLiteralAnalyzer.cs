@@ -9,15 +9,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
 
-/// <inheritdoc />
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 ///     Analyzer that identifies duplicate string literals across a project.
 ///     Useful for detecting hardcoded strings that should be centralized

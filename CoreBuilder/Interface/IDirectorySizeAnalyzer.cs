@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
- * FILE:        CoreBuilder/IDirectorySizeAnalyzer.cs
+ * PROJECT:     CoreBuilder.Interface
+ * FILE:        IDirectorySizeAnalyzer.cs
  * PURPOSE:     Interface for Directory Size Analyzer Tool
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */

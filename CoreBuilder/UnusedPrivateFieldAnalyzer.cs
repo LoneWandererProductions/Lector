@@ -9,14 +9,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that finds unused private fields.
 /// </summary>
@@ -54,20 +55,18 @@ public sealed class UnusedPrivateFieldAnalyzer : ICodeAnalyzer
             foreach (var variable in fieldDecl.Declaration.Variables)
             {
                 var symbol = model.GetDeclaredSymbol(variable);
-                if (symbol is IFieldSymbol fieldSymbol)
-                {
-                    var references = root.DescendantNodes()
-                        .OfType<IdentifierNameSyntax>()
-                        .Where(id =>
-                            SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, fieldSymbol));
+                if (symbol is not IFieldSymbol fieldSymbol) continue;
 
-                    if (!references.Any())
-                    {
-                        var line = variable.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                        yield return new Diagnostic(Name, DiagnosticSeverity.Info, filePath, line,
-                            $"Unused private field '{variable.Identifier.Text}'.");
-                    }
-                }
+                var references = root.DescendantNodes()
+                    .OfType<IdentifierNameSyntax>()
+                    .Where(id =>
+                        SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, fieldSymbol));
+
+                if (references.Any()) continue;
+
+                var line = variable.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                yield return new Diagnostic(Name, DiagnosticSeverity.Info, filePath, line,
+                    $"Unused private field '{variable.Identifier.Text}'.");
             }
         }
     }

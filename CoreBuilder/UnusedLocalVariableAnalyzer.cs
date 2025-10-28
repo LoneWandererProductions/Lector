@@ -8,14 +8,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
 
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that finds unused local variables.
 /// </summary>
@@ -53,20 +54,18 @@ public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer
 
                 var symbol = model.GetDeclaredSymbol(variable);
 
-                if (symbol is ILocalSymbol localSymbol)
-                {
-                    var references = root.DescendantNodes()
-                        .OfType<IdentifierNameSyntax>()
-                        .Where(id =>
-                            SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, localSymbol));
+                if (symbol is not ILocalSymbol localSymbol) continue;
 
-                    if (!references.Any())
-                    {
-                        var line = variable.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                        yield return new Diagnostic(Name, DiagnosticSeverity.Info, filePath, line,
-                            $"Unused local variable '{variable.Identifier.Text}'.");
-                    }
-                }
+                var references = root.DescendantNodes()
+                    .OfType<IdentifierNameSyntax>()
+                    .Where(id =>
+                        SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, localSymbol));
+
+                if (references.Any()) continue;
+
+                var line = variable.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                yield return new Diagnostic(Name, DiagnosticSeverity.Info, filePath, line,
+                    $"Unused local variable '{variable.Identifier.Text}'.");
             }
         }
     }

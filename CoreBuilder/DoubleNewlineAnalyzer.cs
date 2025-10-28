@@ -18,17 +18,17 @@ using Weaver.Messages;
 
 namespace CoreBuilder;
 
-/// <inheritdoc />
+/// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 ///     Finds double line breaks.
 /// </summary>
 /// <seealso cref="T:CoreBuilder.ICodeAnalyzer" />
 public sealed class DoubleNewlineAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "DoubleNewline";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Simple Double Newline Analyzer.";
 
     /// <inheritdoc />
@@ -38,7 +38,7 @@ public sealed class DoubleNewlineAnalyzer : ICodeAnalyzer, ICommand
     public int ParameterCount => 1;
 
     /// <inheritdoc />
-    public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)

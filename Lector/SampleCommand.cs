@@ -23,7 +23,7 @@ namespace Lector
         public string Description => "A sample command demonstrating feedback and preview usage.";
         public int ParameterCount => 1;
         public IReadOnlyDictionary<string, int>? Extensions => null; // no manual feedback extension needed
-        public CommandSignature Signature => new CommandSignature(Namespace, Name, ParameterCount);
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <summary>
         /// Normal execution of the command.
