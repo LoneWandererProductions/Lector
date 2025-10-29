@@ -11,17 +11,22 @@ using Weaver.Messages;
 
 namespace Mediator
 {
+    /// <inheritdoc />
     /// <summary>
     /// Test extension that appends "[EXT]" to the command message
     /// </summary>
     public sealed class AppendExtension : ICommandExtension
     {
+        /// <inheritdoc />
         public string Name => "append";
 
+        /// <inheritdoc />
         public string Description => "Test";
 
+        /// <inheritdoc />
         public string Namespace => "Test";
 
+        /// <inheritdoc />
         public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
         {
             // Execute the command normally

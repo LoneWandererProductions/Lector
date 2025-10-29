@@ -6,14 +6,19 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -24,13 +29,22 @@ namespace CoreBuilder;
 ///     in constants, resources, or configuration.
 /// </summary>
 /// <seealso cref="ICodeAnalyzer" />
-public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer
+public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
     public string Name => "DuplicateStringLiteral";
 
     /// <inheritdoc />
     public string Description => "Analyzer that finds duplicate string literals across a project.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
     /// <remarks>
@@ -88,9 +102,50 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer
         {
             foreach (var (file, line) in kvp.Value)
             {
-                yield return new Diagnostic(Name, DiagnosticSeverity.Info, file, line,
+                yield return new Diagnostic(Name, Enums.DiagnosticSeverity.Info, file, line,
                     $"String literal \"{kvp.Key}\" occurs {kvp.Value.Count} times across the project. Consider centralizing it.");
             }
         }
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (args.Length < 1)
+            return CommandResult.Fail("Usage: DuplicateStringLiteral([directoryPath])");
+
+        var directory = args[0];
+        if (!Directory.Exists(directory))
+            return CommandResult.Fail($"Directory not found: {directory}");
+
+        try
+        {
+            var diagnostics = AnalyzeDirectory(directory).ToList();
+
+            if (diagnostics.Count == 0)
+                return CommandResult.Ok($"No duplicate string literals found in {directory}.", EnumTypes.Wstring);
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Duplicate string literal analysis for: {directory}");
+            sb.AppendLine(new string('-', 80));
+
+            foreach (var d in diagnostics)
+                sb.AppendLine(d.ToString());
+
+            sb.AppendLine(new string('-', 80));
+            sb.AppendLine($"{diagnostics.Count} duplicate string occurrences detected.");
+
+            return CommandResult.Ok(sb.ToString(), diagnostics, EnumTypes.Wstring);
+        }
+        catch (Exception ex)
+        {
+            return CommandResult.Fail($"DuplicateStringLiteral execution failed: {ex.Message}", ex, EnumTypes.Wstring);
+        }
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }

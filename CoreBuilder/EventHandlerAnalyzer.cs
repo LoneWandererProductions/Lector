@@ -6,14 +6,17 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -22,7 +25,7 @@ namespace CoreBuilder;
 /// Check if Event is unsubscribed.
 /// </summary>
 /// <seealso cref="CoreBuilder.Interface.ICodeAnalyzer" />
-public sealed class EventHandlerAnalyzer : ICodeAnalyzer
+public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
 
 {
     /// <inheritdoc />
@@ -30,6 +33,15 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer
 
     /// <inheritdoc />
     public string Description => "Analyzer that detects potential event handler leaks.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <summary>
     /// The event stats
@@ -69,12 +81,38 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer
 
             yield return new Diagnostic(
                 Name,
-                DiagnosticSeverity.Warning,
+                Enums.DiagnosticSeverity.Warning,
                 filePath,
                 line,
                 $"Event '{key}' subscribed {stats.Count} times so far. Check for corresponding unsubscribes.",
                 DiagnosticImpact.IoBound
             );
         }
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (args.Length < ParameterCount)
+            return CommandResult.Fail($"Usage: {Namespace}.{Name} <path>");
+
+        var path = args[0];
+        if (!File.Exists(path))
+            return CommandResult.Fail($"File not found: {path}");
+
+        var content = File.ReadAllText(path);
+        var diagnostics = Analyze(path, content).ToList();
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("No potential event handler leaks detected.");
+
+        var message = string.Join("\n", diagnostics.Select(d => d.ToString()));
+        return CommandResult.Ok(message, diagnostics);
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }

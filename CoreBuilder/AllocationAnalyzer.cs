@@ -6,12 +6,15 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -20,13 +23,22 @@ namespace CoreBuilder;
 /// Analyzer that detects allocations in hot paths.
 /// </summary>
 /// <seealso cref="T:CoreBuilder.Interface.ICodeAnalyzer" />
-public sealed class AllocationAnalyzer : ICodeAnalyzer
+public sealed class AllocationAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
     public string Name => "Allocation";
 
     /// <inheritdoc />
     public string Description => "Analyzer that detects allocations in hot paths.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <summary>
     /// The aggregate stats
@@ -90,5 +102,15 @@ public sealed class AllocationAnalyzer : ICodeAnalyzer
                 DiagnosticImpact.CpuBound
             );
         }
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+        => CoreHelper.Run(args, Analyze, Name);
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }

@@ -6,12 +6,16 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using CoreBuilder.Enums;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -19,7 +23,7 @@ namespace CoreBuilder;
 /// <summary>
 /// Analyzer that detects method calls in hot paths (loops) and aggregates statistics.
 /// </summary>
-public sealed class HotPathAnalyzer : ICodeAnalyzer
+public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
     public string Name => "HotPath";
@@ -27,27 +31,23 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer
     /// <inheritdoc />
     public string Description => "Analyzer that detects frequently called methods and flags hot paths.";
 
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
+
     /// <summary>
     /// Project-wide aggregation: method FQN -> (call count, total risk, files seen)
     /// </summary>
-    private readonly Dictionary<string, (int Count, int TotalRisk, HashSet<string> Files)> _aggregateStats =
-        new();
+    private readonly Dictionary<string, (int Count, int TotalRisk, HashSet<string> Files)> _aggregateStats = new();
 
     // Thresholds / weights
-
-    /// <summary>
-    /// The constant loop weight
-    /// </summary>
     private const int ConstantLoopWeight = 10;
-
-    /// <summary>
-    /// The variable loop weight
-    /// </summary>
     private const int VariableLoopWeight = 20;
-
-    /// <summary>
-    /// The nested loop weight
-    /// </summary>
     private const int NestedLoopWeight = 50;
 
     /// <inheritdoc />
@@ -88,11 +88,8 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer
                 _ => 1
             };
 
-            // Update aggregation
             if (!_aggregateStats.TryGetValue(symbolName, out var stats))
-            {
                 stats = (0, 0, new HashSet<string>());
-            }
 
             stats.Count++;
             stats.TotalRisk += risk;
@@ -120,12 +117,41 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer
         }
     }
 
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (_aggregateStats.Count == 0)
+            return CommandResult.Fail("No hot paths detected. Run analysis first.");
+
+        var sb = new StringBuilder();
+        sb.AppendLine("🔥 Hot Path Summary:");
+        sb.AppendLine(new string('-', 50));
+
+        foreach (var kvp in _aggregateStats.OrderByDescending(k => k.Value.TotalRisk))
+        {
+            var (method, data) = (kvp.Key, kvp.Value);
+            sb.AppendLine($"{method}: {data.Count} calls, total risk {data.TotalRisk}, files [{string.Join(", ", data.Files)}]");
+        }
+
+        return CommandResult.Ok(
+            message: $"Hot path analysis complete. {_aggregateStats.Count} unique methods detected.",
+            value: sb.ToString(),
+            type: EnumTypes.Wstring
+        );
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
+    }
+
     /// <summary>
     /// Builds the message.
     /// </summary>
     /// <param name="method">The method.</param>
     /// <param name="ctx">The CTX.</param>
-    /// <returns>Message string.</returns>
+    /// <returns>Concated message.</returns>
     private static string BuildMessage(string method, LoopContext ctx)
     {
         return ctx switch

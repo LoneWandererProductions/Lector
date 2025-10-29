@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        ExtensionIntegrationTests.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Test Extension integration with commands.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -13,6 +13,9 @@ namespace Mediator
     [TestClass]
     public class ExtensionIntegrationTests
     {
+        /// <summary>
+        /// The weaver
+        /// </summary>
         private Weave _weaver = null!;
 
         [TestInitialize]
@@ -27,8 +30,11 @@ namespace Mediator
             _weaver.RegisterExtension(new AppendExtension());
         }
 
+        /// <summary>
+        /// Deletes the command with append extension works.
+        /// </summary>
         [TestMethod]
-        public void DeleteCommand_WithAppendExtension_Works()
+        public void DeleteCommandWithAppendExtensionWorks()
         {
             // Execute command with extension
             var result = _weaver.ProcessInput("delete(file.txt).append()");

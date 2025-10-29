@@ -11,11 +11,8 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -118,37 +115,7 @@ public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
 
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
-    {
-        if (args.Length < 1)
-            return CommandResult.Fail("Missing argument: file path.");
-
-        var filePath = args[0];
-        if (!File.Exists(filePath))
-            return CommandResult.Fail($"File not found: {filePath}");
-
-        try
-        {
-            var fileContent = File.ReadAllText(filePath);
-            var diagnostics = Analyze(filePath, fileContent).ToList();
-
-            if (!diagnostics.Any())
-                return CommandResult.Ok("No disposable leaks detected.");
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Disposable leak analysis for: {filePath}");
-            sb.AppendLine(new string('-', 80));
-            foreach (var diag in diagnostics)
-                sb.AppendLine(diag.ToString());
-            sb.AppendLine(new string('-', 80));
-            sb.AppendLine($"{diagnostics.Count} potential disposable leaks found.");
-
-            return CommandResult.Ok(sb.ToString(), diagnostics);
-        }
-        catch (Exception ex)
-        {
-            return CommandResult.Fail($"Analyzer execution failed: {ex.Message}", ex);
-        }
-    }
+        => CoreHelper.Run(args, Analyze, Name);
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     UnknownNamespace
  * FILE:        DeleteCommand.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Test command that deletes a resource with confirmation via feedback.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -12,14 +12,28 @@ using Weaver.Messages;
 
 namespace Mediator
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Test command that deletes a resource with confirmation via feedback.
+    /// </summary>
+    /// <seealso cref="Weaver.Interfaces.ICommand" />
     public sealed class DeleteCommand : ICommand
     {
+        /// <inheritdoc />
         public string Namespace => "Test";
+        /// <inheritdoc />
         public string Name => "delete";
+
+        /// <inheritdoc />
         public string Description => "Deletes a resource by name.";
+
+        /// <inheritdoc />
         public int ParameterCount => 1;
+
+        /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null; // No need for 'feedback' extension now
 
         /// <summary>
@@ -67,10 +81,10 @@ namespace Mediator
             };
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// No longer needed: all feedback is handled via IFeedback.
         /// </summary>
-        // In DeleteCommand
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
             if (!extensionName.Equals("feedback", StringComparison.OrdinalIgnoreCase))

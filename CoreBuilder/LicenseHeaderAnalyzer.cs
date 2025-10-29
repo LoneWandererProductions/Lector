@@ -2,31 +2,42 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     CoreBuilder
  * FILE:        LicenseHeaderAnalyzer.cs
- * PURPOSE:     Just a simple License Header Analyzer. Checks if the file starts with a license header.
+ * PURPOSE:     Analyzer to detect missing license headers in C# files.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using CoreBuilder.Enums;
+using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CoreBuilder.Enums;
-using CoreBuilder.Interface;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
-///     Find missing License Header.
+/// Detects missing license headers at the start of C# files.
+/// Implements ICommand for Weaver integration.
 /// </summary>
-/// <seealso cref="T:CoreBuilder.ICodeAnalyzer" />
-public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer
+public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
     public string Name => "LicenseHeader";
 
     /// <inheritdoc />
-    public string Description =>
-        " Just a simple License Header Analyzer. Checks if the file starts with a license header.";
+    public string Description => "Simple analyzer that checks if a file starts with a license header.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
@@ -37,7 +48,7 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer
         // Trim leading whitespace
         var trimmed = fileContent.TrimStart();
 
-        // Quick exit if no comment at all
+        // Quick exit if there is no comment at all
         if (!(trimmed.StartsWith("/*") || trimmed.StartsWith("//")))
         {
             yield return new Diagnostic(
@@ -46,7 +57,6 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer
                 filePath,
                 1,
                 "Missing license header.");
-
             yield break;
         }
 
@@ -54,21 +64,21 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer
         string firstChunk;
         if (trimmed.StartsWith("/*"))
         {
-            // Find the end of block comment
             var endIdx = trimmed.IndexOf("*/", StringComparison.Ordinal);
             firstChunk = endIdx > 0 ? trimmed[..(endIdx + 2)] : trimmed;
         }
         else
         {
-            // Line comments at start
-            var lines = trimmed.Split('\n').TakeWhile(l => l.TrimStart().StartsWith("//"));
+            var lines = trimmed
+                .Split('\n')
+                .TakeWhile(line => line.TrimStart().StartsWith("//"));
             firstChunk = string.Join("\n", lines);
         }
 
-        // Normalize
+        // Normalize for simple keyword check
         var header = firstChunk.ToUpperInvariant();
 
-        // Acceptable keywords
+        // Acceptable keywords to consider it a valid license header
         if (!(header.Contains("COPYRIGHT") || header.Contains("LICENSE")))
         {
             yield return new Diagnostic(
@@ -78,5 +88,24 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer
                 1,
                 "Missing license header.");
         }
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    /// Executes the analyzer on a single file path.
+    /// </summary>
+    public CommandResult Execute(params string[] args)
+    {
+        return CoreHelper.Run(
+            args,
+            (filePath, content) => Analyze(filePath, content),
+            Name
+        );
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }
