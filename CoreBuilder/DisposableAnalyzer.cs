@@ -7,6 +7,7 @@
  */
 
 using CoreBuilder.Enums;
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

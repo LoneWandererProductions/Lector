@@ -6,11 +6,15 @@
  * PROGRAMER:   Peter Geinitz (Wayfarer)
  */
 
+using CoreBuilder.Enums;
+using CoreBuilder.Helper;
+using CoreBuilder.Interface;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CoreBuilder.Enums;
-using CoreBuilder.Interface;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -32,6 +36,12 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
 
     /// <inheritdoc />
     public string Description => "Analyzer to detect unused constants and static readonly fields across a project.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
 
     /// <summary>
     /// Runs a per-file analysis (not used in this analyzer).
@@ -102,5 +112,52 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
         }
 
         return results;
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (args.Length == 0)
+            return CommandResult.Fail("Missing argument: <path>\nUsage: unusedclass <folder>");
+
+        var path = args[0];
+        if (!Directory.Exists(path))
+            return CommandResult.Fail($"Directory does not exist: {path}");
+
+        var files = new Dictionary<string, string>();
+
+        foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+        {
+            if (CoreHelper.ShouldIgnoreFile(file))
+                continue;
+
+            try
+            {
+                files[file] = File.ReadAllText(file);
+            }
+            catch
+            {
+                // unreadable file — skip silently
+            }
+        }
+
+        if (files.Count == 0)
+            return CommandResult.Fail("No valid .cs files found (or all ignored).");
+
+        var results = AnalyzeProject(files).ToList();
+
+        if (results.Count == 0)
+            return CommandResult.Ok("✅ No unused classes detected.");
+
+        var report = string.Join(Environment.NewLine,
+            results.Select(r => $"{r.FilePath}:{r.LineNumber} -> {r.Message}"));
+
+        return CommandResult.Ok(report);
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"No extension '{extensionName}' exists for {Name}.");
     }
 }

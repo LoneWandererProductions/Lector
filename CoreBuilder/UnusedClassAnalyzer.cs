@@ -6,11 +6,16 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using CoreBuilder.Enums;
 using CoreBuilder.Interface;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder
 {
@@ -25,13 +30,22 @@ namespace CoreBuilder
     /// - May flag false positives if a class is used via reflection or dynamically.
     /// - Project-wide scope is achieved by cross-file matching.
     /// </summary>
-    public sealed class UnusedClassAnalyzer : ICodeAnalyzer
+    public sealed class UnusedClassAnalyzer : ICodeAnalyzer, ICommand
     {
         /// <inheritdoc />
         public string Name => "UnusedClassAnalyzer";
 
         /// <inheritdoc />
         public string Description => "Analyzer to detect unused classes across a project.";
+
+        /// <inheritdoc />
+        public string Namespace => "Analyzer";
+
+        /// <inheritdoc />
+        public int ParameterCount => 1;
+
+        /// <inheritdoc />
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
         public IEnumerable<Diagnostic> Analyze(string filePath, string content)
@@ -44,7 +58,7 @@ namespace CoreBuilder
         /// Analyze all files together.
         /// Override this only if your analyzer requires project-wide context.
         /// </summary>
-        /// <param name="allFiles"></param>
+        /// <param name="allFiles">List of files</param>
         /// <returns>Unused classes and results of the diagnosis.</returns>
         public IEnumerable<Diagnostic> AnalyzeProject(Dictionary<string, string> allFiles)
         {
@@ -95,6 +109,37 @@ namespace CoreBuilder
             }
 
             return results;
+        }
+
+        /// <inheritdoc />
+        public CommandResult Execute(params string[] args)
+        {
+            if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
+                return CommandResult.Fail("Usage: UnusedClassAnalyzer <projectPath>");
+
+            var projectPath = args[0];
+            if (!Directory.Exists(projectPath))
+                return CommandResult.Fail($"Directory '{projectPath}' does not exist.");
+
+            var allFiles = Directory.EnumerateFiles(projectPath, "*.cs", SearchOption.AllDirectories)
+                .ToDictionary(f => f, f => File.ReadAllText(f));
+
+            var diagnostics = AnalyzeProject(allFiles).ToList();
+
+            if (diagnostics.Count == 0)
+                return CommandResult.Ok("No unused classes found.");
+
+            var report = string.Join(Environment.NewLine,
+                diagnostics.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}"));
+
+            return CommandResult.Ok($"Unused Classes Report:\n{report}");
+        }
+
+
+        /// <inheritdoc />
+        public CommandResult InvokeExtension(string extensionName, params string[] args)
+        {
+            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

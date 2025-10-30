@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Helper
  * FILE:        CoreHelper.cs
  * PURPOSE:     Helper File that shares logic in the Project
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -24,7 +24,7 @@ using System.Linq;
 using System.Text;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Helper;
 
 /// <summary>
 /// Provides shared static helper methods for file handling,

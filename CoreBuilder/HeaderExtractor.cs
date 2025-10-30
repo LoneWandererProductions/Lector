@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
 using System.IO;
