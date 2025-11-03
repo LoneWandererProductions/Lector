@@ -21,6 +21,7 @@ namespace Mediator
     {
         /// <inheritdoc />
         public string Namespace => "Test";
+
         /// <inheritdoc />
         public string Name => "delete";
 

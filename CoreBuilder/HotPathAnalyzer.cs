@@ -130,7 +130,8 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
         foreach (var kvp in _aggregateStats.OrderByDescending(k => k.Value.TotalRisk))
         {
             var (method, data) = (kvp.Key, kvp.Value);
-            sb.AppendLine($"{method}: {data.Count} calls, total risk {data.TotalRisk}, files [{string.Join(", ", data.Files)}]");
+            sb.AppendLine(
+                $"{method}: {data.Count} calls, total risk {data.TotalRisk}, files [{string.Join(", ", data.Files)}]");
         }
 
         return CommandResult.Ok(

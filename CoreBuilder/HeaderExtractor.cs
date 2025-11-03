@@ -107,10 +107,10 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
 
         var needingHeaders =
             (from file in csFiles
-             where !CoreHelper.ShouldIgnoreFile(file)
-             let content = File.ReadAllText(file)
-             where !ContainsHeader(content)
-             select Path.GetFullPath(file)).ToList();
+                where !CoreHelper.ShouldIgnoreFile(file)
+                let content = File.ReadAllText(file)
+                where !ContainsHeader(content)
+                select Path.GetFullPath(file)).ToList();
 
         return needingHeaders.Count > 0
             ? string.Join(Environment.NewLine, needingHeaders)
@@ -155,7 +155,8 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
         var cache = feedback;
 
         feedback = new FeedbackRequest(
-            prompt: $"The following files are missing headers:\n\n{previewList}\n\nProceed with header insertion? (yes/no)",
+            prompt:
+            $"The following files are missing headers:\n\n{previewList}\n\nProceed with header insertion? (yes/no)",
             options: new[] { "yes", "no" },
             onRespond: input =>
             {
@@ -203,10 +204,10 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
     private static string ExtractNamespace(string content)
     {
         foreach (var parts in from line in content.Split('\n')
-                              select line.Trim()
+                 select line.Trim()
                  into trimmed
-                              where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
-                              select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
+                 where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
+                 select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
         {
             return parts.Length > 1 ? parts[1] : "UnknownNamespace";
         }
@@ -228,5 +229,4 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
         var header = string.Format(HeaderTemplate, namespaceName, fileName, purpose, programmerName);
         return string.Concat(header, Environment.NewLine, fileContent);
     }
-
 }
