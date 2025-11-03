@@ -7,6 +7,7 @@
  */
 
 using CoreBuilder.Enums;
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -46,8 +47,20 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
     private readonly Dictionary<string, (int Count, int TotalRisk, HashSet<string> Files)> _aggregateStats = new();
 
     // Thresholds / weights
+
+    /// <summary>
+    /// The constant loop weight
+    /// </summary>
     private const int ConstantLoopWeight = 10;
+
+    /// <summary>
+    /// The variable loop weight
+    /// </summary>
     private const int VariableLoopWeight = 20;
+
+    /// <summary>
+    /// The nested loop weight
+    /// </summary>
     private const int NestedLoopWeight = 50;
 
     /// <inheritdoc />

@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Helper
  * FILE:        StringLiteralRewrite.cs
  * PURPOSE:     Replace string literals in C# code with resource references.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Helper;
 
 /// <inheritdoc />
 /// <summary>

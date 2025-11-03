@@ -10,10 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace CoreBuilder;
 
@@ -22,7 +26,7 @@ namespace CoreBuilder;
 ///     Our Code resource refactor tool. In this case strings.
 /// </summary>
 /// <seealso cref="T:CoreBuilder.IResourceExtractor" />
-public sealed class ResXtract : IResourceExtractor
+public sealed class ResXtract : IResourceExtractor, ICommand
 {
     /// <summary>
     ///     The ignore list
@@ -33,6 +37,21 @@ public sealed class ResXtract : IResourceExtractor
     ///     The ignore patterns
     /// </summary>
     private readonly List<string> _ignorePatterns;
+
+    /// <inheritdoc />
+    public string Name => "ResXtract";
+
+    /// <inheritdoc />
+    public string Description => throw new NotImplementedException();
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ResXtract" /> class.
@@ -309,5 +328,88 @@ public sealed class ResXtract : IResourceExtractor
                         !f.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) &&
                         !f.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) &&
                         !f.Contains(@"\.vs\", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (args.Length == 0)
+            return CommandResult.Fail("Usage:\n  ResXtract <projectPath>\n  ResXtract --detect <projectPath>");
+
+        // detect mode
+        if (args[0].Equals("--detect", StringComparison.OrdinalIgnoreCase))
+        {
+            if (args.Length < 2)
+                return CommandResult.Fail("Usage: ResXtract --detect <projectPath>");
+
+            var projectPath = args[1];
+            var result = DetectAffectedFiles(projectPath);
+
+            if (string.IsNullOrWhiteSpace(result))
+                return CommandResult.Ok("No files would be changed.");
+
+            return new CommandResult
+            {
+                Success = true,
+                Message = "Files that would be affected:\n" + result
+            };
+        }
+
+        // standard mode: extract + rewrite + generate resources
+        var changed = ProcessProject(args[0], replace: true);
+        var msg = changed.Count == 0
+            ? "No files changed."
+            : $"Updated {changed.Count} files:\n" + string.Join(Environment.NewLine, changed);
+
+        return new CommandResult
+        {
+            Success = true,
+            Message = msg
+        };
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        if (!string.Equals(extensionName, "tryrun", StringComparison.OrdinalIgnoreCase))
+            return CommandResult.Fail($"Extension '{extensionName}' not supported by '{Name}'.");
+
+        if (args.Length == 0)
+            return CommandResult.Fail("Missing argument: project path.");
+
+        var projectPath = args[0];
+        var preview = DetectAffectedFiles(projectPath);
+        if (string.IsNullOrWhiteSpace(preview))
+            return CommandResult.Ok("No files would be changed.");
+
+        FeedbackRequest? feedback = null;
+        var cache = feedback;
+
+        feedback = new FeedbackRequest(
+            $"The following files would be updated:\n\n{preview}\n\nProceed? (yes/no)",
+            new[] { "yes", "no" },
+            input =>
+            {
+                input = input.Trim().ToLowerInvariant();
+                return input switch
+                {
+                    "yes" => Execute(projectPath),
+                    "no" => CommandResult.Fail("Operation cancelled by user."),
+                    _ => new CommandResult
+                    {
+                        Message = "Please answer yes/no.",
+                        RequiresConfirmation = true,
+                        Feedback = cache
+                    }
+                };
+            });
+
+        return new CommandResult
+        {
+            Message = "Preview complete. Awaiting user confirmation.",
+            Feedback = feedback,
+            RequiresConfirmation = true,
+            Success = false
+        };
     }
 }

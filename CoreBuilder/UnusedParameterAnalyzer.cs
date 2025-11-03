@@ -6,12 +6,17 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using System.Linq;
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Weaver;
+using Weaver.Interfaces;
+using Weaver.Messages;
 using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
 namespace CoreBuilder;
@@ -20,13 +25,21 @@ namespace CoreBuilder;
 /// <summary>
 /// Analyzer that finds unused method parameters.
 /// </summary>
-public sealed class UnusedParameterAnalyzer : ICodeAnalyzer
+public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
     public string Name => "UnusedParameter";
 
     /// <inheritdoc />
     public string Description => "Analyzer that finds unused method parameters.";
+
+    /// <inheritdoc />
+    public string Namespace => "Analyzer";
+
+    /// <inheritdoc />
+    public int ParameterCount => 1;
+
+    public CommandSignature Signature => throw new System.NotImplementedException();
 
     /// <inheritdoc />
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
@@ -72,5 +85,44 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer
                     $"Unused parameter '{parameter.Identifier.Text}' in method '{methodDecl.Identifier.Text}'.");
             }
         }
+    }
+
+    /// <inheritdoc />
+    public CommandResult Execute(params string[] args)
+    {
+        if (args.Length < 1)
+            return CommandResult.Fail("Missing argument: path");
+
+        var path = args[0];
+        if (!Directory.Exists(path))
+            return CommandResult.Fail($"Directory not found: {path}");
+
+        var files = Directory
+            .EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !CoreHelper.ShouldIgnoreFile(f))
+            .ToList();
+
+        var diagnostics = new List<Diagnostic>();
+
+        foreach (var file in files)
+        {
+            var content = File.ReadAllText(file);
+            diagnostics.AddRange(Analyze(file, content));
+        }
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("No unused parameters found.");
+
+        var output = string.Join("\n", diagnostics.Select(d =>
+            $"{d.FilePath}({d.LineNumber}): {d.Message}"))
+        + $"\nTotal: {diagnostics.Count} unused parameters.";
+
+        return CommandResult.Ok(output);
+    }
+
+    /// <inheritdoc />
+    public CommandResult InvokeExtension(string extensionName, params string[] args)
+    {
+        return CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }
