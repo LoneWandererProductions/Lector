@@ -26,7 +26,7 @@ internal static class Program
     /// <summary>
     ///     The prompt
     /// </summary>
-    private static Prompt? _prompt;
+    private static Prompt? _prompt; f
 
     /// <summary>
     ///     The console lock
