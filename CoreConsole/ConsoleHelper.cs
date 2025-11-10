@@ -11,8 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CoreBuilder;
+using CoreBuilder.Enums;
 using CoreBuilder.Interface;
-using Interpreter;
 
 namespace CoreConsole;
 
@@ -51,9 +51,9 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="package">The command package with parameters.</param>
     /// <returns>Status message indicating result.</returns>
-    internal static string HandleHeader(OutCommand package)
+    internal static string HandleHeader(string package)
     {
-        var directoryPath = CleanPath(package.Parameter[0]);
+        var directoryPath = CleanPath(package);
         if (!Directory.Exists(directoryPath))
         {
             return string.Format(ConResources.ErrorDirectory, directoryPath);
@@ -93,10 +93,10 @@ internal static class ConsoleHelper
     /// <param name="projectPath">Extracted project path.</param>
     /// <param name="error">Error message if invalid.</param>
     /// <returns>True if valid; otherwise false.</returns>
-    private static bool TryGetValidProjectPath(OutCommand command, out string? projectPath, out string error)
+    private static bool TryGetValidProjectPath(string command, out string? projectPath, out string error)
     {
         error = string.Empty;
-        projectPath = command.Parameter.Count > 0 ? CleanPath(command.Parameter[0]) : null;
+        projectPath = command;
 
         if (string.IsNullOrWhiteSpace(projectPath))
         {
@@ -160,14 +160,10 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="package">The command containing project and output path.</param>
     /// <returns>Result message.</returns>
-    internal static string HandleResxtract(OutCommand package)
+    internal static string HandleResxtract(string package)
     {
-        if (!TryGetValidProjectPath(package, out var projectPath, out var error))
-        {
-            return error;
-        }
-
-        var outputResourceFile = package.Parameter.Count >= 2 ? CleanPath(package.Parameter[1]) : null;
+        var outputResourceFile = package;
+        string projectPath ="";
 
         if (!string.IsNullOrWhiteSpace(outputResourceFile) &&
             !TryValidateOutputFilePath(outputResourceFile, out var outputError))
@@ -196,9 +192,9 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="package">The command containing the directory path.</param>
     /// <returns>Diagnostics result from analyzers.</returns>
-    internal static (IReadOnlyList<Diagnostic> Diagnostics, string Output) RunAnalyzers(OutCommand package)
+    internal static (IReadOnlyList<Diagnostic> Diagnostics, string Output) RunAnalyzers(string package)
     {
-        var path = CleanPath(package.Parameter[0]);
+        var path = "CleanPath(package.Parameter[0])";
         var diagnostics = new List<Diagnostic>();
 
         if (!Directory.Exists(path))
@@ -226,9 +222,9 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="outCommand">The command containing the directory path.</param>
     /// <returns>Preview of changes.</returns>
-    internal static string HandleHeaderTryrun(OutCommand outCommand)
+    internal static string HandleHeaderTryrun(string outCommand)
     {
-        var directoryPath = CleanPath(outCommand.Parameter[0]);
+        var directoryPath = CleanPath(outCommand);
         if (string.IsNullOrWhiteSpace(directoryPath))
         {
             return ConResources.InformationDirectoryMissing;
@@ -252,7 +248,7 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="outCommand">The command containing the project path.</param>
     /// <returns>Preview of changes.</returns>
-    internal static string HandleResxtractTryrun(OutCommand outCommand)
+    internal static string HandleResxtractTryrun(string outCommand)
     {
         if (!TryGetValidProjectPath(outCommand, out var projectPath, out var error))
         {
@@ -272,9 +268,9 @@ internal static class ConsoleHelper
     /// </summary>
     /// <param name="package">The command containing the directory path.</param>
     /// <returns>Formatted result string with file sizes and their percentages.</returns>
-    internal static string HandleDirAnalyzer(OutCommand package)
+    internal static string HandleDirAnalyzer(string package)
     {
-        var directoryPath = CleanPath(package.Parameter[0]);
+        var directoryPath = CleanPath(package);
         if (string.IsNullOrWhiteSpace(directoryPath))
         {
             return ConResources.InformationDirectoryMissing;

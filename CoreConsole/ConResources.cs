@@ -6,10 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Collections.Generic;
-using Interpreter;
-using Interpreter.Resources;
-
 namespace CoreConsole;
 
 /// <summary>
@@ -119,87 +115,4 @@ internal static class ConResources
     internal const string HeaderTryrunWouldAffect = "Header try run would affect: ";
 
     internal const string ResxtractTryrunWouldAffect = "Resxtract try run, would affect: ";
-
-    /// <summary>
-    ///     The available commands
-    /// </summary>
-    internal static readonly Dictionary<int, InCommand> CodeCommands = new()
-    {
-        {
-            Header, new InCommand
-            {
-                Command = "header",
-                ParameterCount = 1,
-                Description =
-                    "Inserts standard headers into all C# source files in the specified project directory. (1 parameter: <projectPath>)"
-            }
-        },
-        {
-            Resxtract, new InCommand
-            {
-                Command = "resxtract",
-                ParameterCount = 2,
-                Description =
-                    "Extracts string literals from project files and writes them to the specified resource file. (2 parameters: <projectPath> <outputResxFile>)"
-            }
-        },
-        {
-            ResXtractOverload, new InCommand
-            {
-                Command = "resxtract",
-                ParameterCount = 1,
-                Description =
-                    "Extracts string literals and generates a .resx file with an automatically determined name and location. (1 parameter: <projectPath>)"
-            }
-        },
-        {
-            Analyzer, new InCommand
-            {
-                Command = "analyzer",
-                ParameterCount = 1,
-                Description =
-                    "Performs basic static analysis on all C# files in the specified directory. (1 parameter: <directoryPath>)"
-            }
-        },
-        {
-            DirAnalyzer, new InCommand
-            {
-                Command = "dir",
-                ParameterCount = 1,
-                Description =
-                    "Lists all files in the given directory with size and percentage of total. (1 parameter: <directoryPath>)"
-            }
-        }
-    };
-
-    /// <summary>
-    ///     The extension commands
-    /// </summary>
-    internal static readonly Dictionary<int, InCommand> ExtensionCommands = new()
-    {
-        {
-            Header, new InCommand
-            {
-                Command = "tryrun",
-                ParameterCount = 0,
-                FeedbackId = 1,
-                Description =
-                    "Show results and optional run commands"
-            }
-        }
-    };
-
-    /// <summary>
-    ///     The replace feedback
-    /// </summary>
-    private static readonly UserFeedback ReplaceFeedback = new()
-    {
-        Before = true,
-        Message = "Do you want to commit the following changes?",
-        Options = new Dictionary<AvailableFeedback, string>
-        {
-            { AvailableFeedback.Yes, "If you want to execute the Command type yes" },
-            { AvailableFeedback.No, " If you want to stop executing the Command type no." }
-        }
-    };
 }
