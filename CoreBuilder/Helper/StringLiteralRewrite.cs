@@ -47,6 +47,7 @@ internal sealed class StringLiteralRewrite : CSharpSyntaxRewriter
         return newRoot.NormalizeWhitespace().ToFullString();
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///     Visits the literal expression.
     /// </summary>
@@ -75,6 +76,7 @@ internal sealed class StringLiteralRewrite : CSharpSyntaxRewriter
             .WithTriviaFrom(node);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///     Visits the interpolated string expression.
     /// </summary>
