@@ -12,6 +12,7 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Weaver;
@@ -68,16 +69,12 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
     {
         // 🔹 Ignore generated code and compiler artifacts
         if (CoreHelper.ShouldIgnoreFile(filePath))
-        {
             yield break;
-        }
 
         var tree = CSharpSyntaxTree.ParseText(fileContent);
         var root = tree.GetRoot();
 
-        var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
-
-        foreach (var invocation in invocations)
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             var symbolName = invocation.Expression.ToString();
 
@@ -113,9 +110,7 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 
             DiagnosticImpact impact = loopContext switch
             {
-                LoopContext.ConstantBounded => DiagnosticImpact.CpuBound,
-                LoopContext.VariableBounded => DiagnosticImpact.CpuBound,
-                LoopContext.Nested => DiagnosticImpact.CpuBound,
+                LoopContext.ConstantBounded or LoopContext.VariableBounded or LoopContext.Nested => DiagnosticImpact.CpuBound,
                 _ => DiagnosticImpact.Other
             };
 
@@ -133,9 +128,36 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (_aggregateStats.Count == 0)
-            return CommandResult.Fail("No hot paths detected. Run analysis first.");
+        if (args.Length < ParameterCount)
+            return CommandResult.Fail($"Usage: {Namespace}.{Name} <file-or-directory>");
 
+        var path = args[0];
+
+        // 🔹 Collect diagnostics for either file or directory
+        var diagnostics = new List<Diagnostic>();
+
+        if (File.Exists(path))
+        {
+            var content = File.ReadAllText(path);
+            diagnostics.AddRange(Analyze(path, content));
+        }
+        else if (Directory.Exists(path))
+        {
+            foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+            {
+                var content = File.ReadAllText(file);
+                diagnostics.AddRange(Analyze(file, content));
+            }
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
+        }
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("No hot paths detected.");
+
+        // 🔹 Aggregate and display summary
         var sb = new StringBuilder();
         sb.AppendLine("🔥 Hot Path Summary:");
         sb.AppendLine(new string('-', 50));
@@ -156,9 +178,7 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)
-    {
-        return CommandResult.Fail($"'{Name}' has no extensions.");
-    }
+        => CommandResult.Fail($"'{Name}' has no extensions.");
 
     /// <summary>
     /// Builds the message.
@@ -166,14 +186,12 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
     /// <param name="method">The method.</param>
     /// <param name="ctx">The CTX.</param>
     /// <returns>Concated message.</returns>
-    private static string BuildMessage(string method, LoopContext ctx)
-    {
-        return ctx switch
+    private static string BuildMessage(string method, LoopContext ctx) =>
+        ctx switch
         {
             LoopContext.ConstantBounded => $"Method '{method}' inside constant-bounded loop.",
             LoopContext.VariableBounded => $"Method '{method}' inside variable-bounded loop.",
             LoopContext.Nested => $"Method '{method}' inside nested loops.",
             _ => $"Method '{method}' inside loop."
         };
-    }
 }

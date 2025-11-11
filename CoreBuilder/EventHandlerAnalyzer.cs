@@ -27,7 +27,6 @@ namespace CoreBuilder;
 /// </summary>
 /// <seealso cref="CoreBuilder.Interface.ICodeAnalyzer" />
 public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
-
 {
     /// <inheritdoc />
     public string Name => "EventHandler";
@@ -54,21 +53,17 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
     {
         // 🔹 Ignore generated code and compiler artifacts
         if (CoreHelper.ShouldIgnoreFile(filePath))
-        {
             yield break;
-        }
 
         var tree = CSharpSyntaxTree.ParseText(fileContent);
         var root = tree.GetRoot();
 
-        // Find event subscriptions (+=)
-        var subscriptions = root.DescendantNodes()
-            .OfType<AssignmentExpressionSyntax>()
-            .Where(a => a.IsKind(SyntaxKind.AddAssignmentExpression));
-
-        foreach (var sub in subscriptions)
+        foreach (var sub in root.DescendantNodes()
+                                .OfType<AssignmentExpressionSyntax>()
+                                .Where(a => a.IsKind(SyntaxKind.AddAssignmentExpression)))
         {
-            if (sub.Left is not IdentifierNameSyntax eventName) continue;
+            if (sub.Left is not IdentifierNameSyntax eventName)
+                continue;
 
             var key = eventName.Identifier.Text;
             if (!_eventStats.TryGetValue(key, out var stats))
@@ -98,22 +93,23 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
             return CommandResult.Fail($"Usage: {Namespace}.{Name} <path>");
 
         var path = args[0];
+
         if (!File.Exists(path))
             return CommandResult.Fail($"File not found: {path}");
 
+        // 🔹 Reuse Analyze() instead of redoing logic
         var content = File.ReadAllText(path);
         var diagnostics = Analyze(path, content).ToList();
 
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("No potential event handler leaks detected.");
-
-        var message = string.Join("\n", diagnostics.Select(d => d.ToString()));
-        return CommandResult.Ok(message, diagnostics);
+        return diagnostics.Count == 0
+            ? CommandResult.Ok("No potential event handler leaks detected.")
+            : CommandResult.Ok(
+                string.Join("\n", diagnostics.Select(d => d.ToString())),
+                diagnostics
+              );
     }
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)
-    {
-        return CommandResult.Fail($"'{Name}' has no extensions.");
-    }
+        => CommandResult.Fail($"'{Name}' has no extensions.");
 }

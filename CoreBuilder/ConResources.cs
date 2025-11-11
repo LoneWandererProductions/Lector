@@ -1,12 +1,12 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreConsole
+ * PROJECT:     CoreBuilder
  * FILE:        ConResources.cs
  * PURPOSE:     Namespaces and Commands for my command line Tool
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-namespace CoreConsole;
+namespace CoreBuilder;
 
 /// <summary>
 ///     Resource File
@@ -53,6 +53,9 @@ internal static class ConResources
     /// </summary>
     internal const string ResourceEventProcessing = "Event processing completed.";
 
+    /// <summary>
+    /// The resource cs extension
+    /// </summary>
     internal const string ResourceCsExtension = "*.cs";
 
     /// <summary>

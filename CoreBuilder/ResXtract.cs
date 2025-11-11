@@ -42,7 +42,7 @@ public sealed class ResXtract : IResourceExtractor, ICommand
     public string Name => "ResXtract";
 
     /// <inheritdoc />
-    public string Description => throw new NotImplementedException();
+    public string Description => "Extracts hardcoded strings into a resource file and optionally rewrites code.";
 
     /// <inheritdoc />
     public string Namespace => "Analyzer";
@@ -77,257 +77,24 @@ public sealed class ResXtract : IResourceExtractor, ICommand
     public List<string> ProcessProject(string? projectPath, string? outputResourceFile = null,
         bool appendToExisting = false, bool replace = false)
     {
-        var files = GetFiles(projectPath);
-
-        var allExtractedStrings = new HashSet<string>();
-        var changedFiles = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(outputResourceFile))
-        {
-            var defaultName = Path.Combine(projectPath, "Resources.cs");
-            outputResourceFile = Path.Combine(projectPath, defaultName);
-        }
-
-        // 1️⃣ Extract all strings first
-        foreach (var file in files)
-        {
-            if (ShouldIgnoreFile(file))
-            {
-                continue;
-            }
-
-            var code = File.ReadAllText(file);
-            var strings = ExtractStrings(code);
-
-            foreach (var str in strings)
-            {
-                allExtractedStrings.Add(str);
-            }
-        }
-
-        // 2️⃣ Generate string-to-resource map
-        var stringToResourceMap =
-            GenerateResourceMap(allExtractedStrings, appendToExisting ? outputResourceFile : null);
-
-        if (replace)
-        {
-            // 3️⃣ Rewrite source files
-            foreach (var file in files)
-            {
-                if (ShouldIgnoreFile(file))
-                {
-                    continue;
-                }
-
-                var code = File.ReadAllText(file);
-                var rewrite = new StringLiteralRewrite(stringToResourceMap);
-                var rewrittenCode = rewrite.Rewrite(code);
-
-                if (code == rewrittenCode)
-                {
-                    continue;
-                }
-
-                File.WriteAllText(file, rewrittenCode);
-                changedFiles.Add(Path.GetFullPath(file));
-            }
-        }
-
-        // 4️⃣ Generate the resource file
-        GenerateResourceFile(stringToResourceMap, outputResourceFile, appendToExisting);
-        changedFiles.Add(Path.GetFullPath(outputResourceFile));
-
-        return changedFiles;
+        return RunExtraction(projectPath, outputResourceFile, appendToExisting, replace).ChangedFiles;
     }
 
     /// <inheritdoc />
-    /// <summary>
-    ///     Simulates a dry-run of the resource extraction process, showing which files would be affected.
-    /// </summary>
-    /// <param name="projectPath">The root directory of the C# project.</param>
-    /// <returns>A formatted string of files that would be changed.</returns>
     public string? DetectAffectedFiles(string? projectPath)
     {
-        var files = GetFiles(projectPath);
+        var files = CoreHelper.GetSourceFiles(projectPath);
 
         var affectedFiles =
             (from file in files
-                where !ShouldIgnoreFile(file)
-                let code = File.ReadAllText(file)
-                let strings = ExtractStrings(code)
-                where strings.Any()
-                select Path.GetFullPath(file)).ToList();
+             let code = File.ReadAllText(file)
+             let strings = ExtractStrings(code)
+             where strings.Any()
+             select Path.GetFullPath(file)).ToList();
 
         return affectedFiles.Count == 0
             ? null
             : string.Join(Environment.NewLine, affectedFiles);
-    }
-
-    /// <summary>
-    ///     Determines whether the specified file should be ignored.
-    /// </summary>
-    /// <param name="filePath">The file path.</param>
-    /// <returns><c>true</c> if the file should be ignored; otherwise, <c>false</c>.</returns>
-    private bool ShouldIgnoreFile(string filePath)
-    {
-        // Check if it's on the ignore list or matches known patterns
-        if (_ignoreList.Contains(filePath) || _ignorePatterns.Any(pattern =>
-                filePath.Contains(pattern, StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        return CoreHelper.ShouldIgnoreFile(filePath);
-    }
-
-    /// <summary>
-    ///     Extracts the strings.
-    /// </summary>
-    /// <param name="code">The code.</param>
-    /// <returns>Extracted strings.</returns>
-    public static IEnumerable<string> ExtractStrings(string code)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var root = syntaxTree.GetRoot();
-
-        var stringLiterals = new List<string>();
-
-        // Extract regular string literals
-        stringLiterals.AddRange(root.DescendantNodes()
-            .OfType<LiteralExpressionSyntax>()
-            .Where(l => l.IsKind(SyntaxKind.StringLiteralExpression))
-            .Select(l => l.Token.ValueText));
-
-        // Extract interpolated strings and convert them to format strings
-        var interpolatedStrings = root.DescendantNodes()
-            .OfType<InterpolatedStringExpressionSyntax>();
-
-        foreach (var interpolated in interpolatedStrings)
-        {
-            var placeholderIndex = 0;
-            var formatString = "";
-
-            foreach (var content in interpolated.Contents)
-            {
-                switch (content)
-                {
-                    case InterpolatedStringTextSyntax textPart:
-                        formatString += textPart.TextToken.ValueText;
-                        break;
-                    case InterpolationSyntax interpolationPart:
-                        formatString += "{" + placeholderIndex + "}";
-                        placeholderIndex++;
-                        break;
-                }
-            }
-
-            stringLiterals.Add(formatString);
-        }
-
-        return stringLiterals;
-    }
-
-    /// <summary>
-    ///     Generates the resource map.
-    ///     Generates a mapping of string to Resource key
-    /// </summary>
-    /// <param name="strings">The strings.</param>
-    /// <param name="existingFile">The existing file.</param>
-    /// <returns>Extracted strings.</returns>
-    private static Dictionary<string, string> GenerateResourceMap(IEnumerable<string> strings,
-        string? existingFile = null)
-    {
-        var map = new Dictionary<string, string>();
-        var counter = 1;
-
-        if (!string.IsNullOrEmpty(existingFile) && File.Exists(existingFile))
-        {
-            // Parse existing keys if appending
-            foreach (var line in File.ReadAllLines(existingFile))
-            {
-                var trimmed = line.Trim();
-
-                if (!(trimmed.StartsWith("public static readonly string Resource") ||
-                      trimmed.StartsWith("internal static readonly string Resource") ||
-                      trimmed.StartsWith("internal const string Resource")))
-                {
-                    continue;
-                }
-
-                var name = trimmed.Split('=')[0].Split(' ').Last();
-                var value = trimmed.Split('=')[1].Trim().Trim('"', ';');
-                map[value] = name;
-            }
-
-            counter = map.Count + 1;
-        }
-
-        foreach (var str in strings.Distinct())
-        {
-            if (!map.ContainsKey(str))
-            {
-                map[str] = $"Resource{counter++}";
-            }
-        }
-
-        return map;
-    }
-
-    /// <summary>
-    ///     Generates the resource file.
-    /// </summary>
-    /// <param name="resourceMap">The extracted strings.</param>
-    /// <param name="outputFilePath">The output file path.</param>
-    /// <param name="appendToExisting">If true, appends to the existing file, otherwise overwrites it.</param>
-    private static void GenerateResourceFile(Dictionary<string, string> resourceMap, string? outputFilePath,
-        bool appendToExisting)
-    {
-        var resourceEntries = resourceMap.OrderBy(kvp => kvp.Value)
-            .Select(kvp => $"internal const string {kvp.Value} = \"{kvp.Key.Replace("\"", "\\\"")}\";")
-            .ToList();
-
-        if (appendToExisting && File.Exists(outputFilePath))
-        {
-            var existingCode = File.ReadAllText(outputFilePath);
-
-            if (!existingCode.Contains("public static class Resource"))
-            {
-                existingCode = existingCode.TrimEnd() + "\npublic static class Resource {\n" +
-                               string.Join("\n", resourceEntries) + "\n}\n";
-            }
-            else
-            {
-                var classEndIndex = existingCode.LastIndexOf('}');
-                var updated = existingCode.Substring(0, classEndIndex) +
-                              "\n" + string.Join("\n", resourceEntries) + "\n" +
-                              existingCode.Substring(classEndIndex);
-                existingCode = updated;
-            }
-
-            File.WriteAllText(outputFilePath, existingCode);
-        }
-        else
-        {
-            var classDef = "public static class Resource {\n" +
-                           string.Join("\n", resourceEntries) + "\n}";
-            File.WriteAllText(outputFilePath, classDef);
-        }
-    }
-
-    /// <summary>
-    ///     Gets the files.
-    /// </summary>
-    /// <param name="projectPath">The project path.</param>
-    /// <returns>List of allowed files</returns>
-    private static IEnumerable<string> GetFiles(string? projectPath)
-    {
-        return Directory.EnumerateFiles(projectPath, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) &&
-                        !f.Contains("resource", StringComparison.OrdinalIgnoreCase) &&
-                        !f.Contains("const", StringComparison.OrdinalIgnoreCase) &&
-                        !f.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) &&
-                        !f.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) &&
-                        !f.Contains(@"\.vs\", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <inheritdoc />
@@ -355,8 +122,8 @@ public sealed class ResXtract : IResourceExtractor, ICommand
             };
         }
 
-        // standard mode: extract + rewrite + generate resources
-        var changed = ProcessProject(args[0], replace: true);
+        // standard mode
+        var changed = RunExtraction(args[0], null, appendToExisting: false, replace: true).ChangedFiles;
         var msg = changed.Count == 0
             ? "No files changed."
             : $"Updated {changed.Count} files:\n" + string.Join(Environment.NewLine, changed);
@@ -411,5 +178,195 @@ public sealed class ResXtract : IResourceExtractor, ICommand
             RequiresConfirmation = true,
             Success = false
         };
+    }
+
+    /// <summary>
+    /// Represents the result of an extraction run.
+    /// </summary>
+    private sealed record ExtractionResult(List<string> ChangedFiles, Dictionary<string, string> Map);
+
+    /// <summary>
+    /// Extracts the strings.
+    /// </summary>
+    /// <param name="code">The code.</param>
+    /// <returns>Strings to extract.</returns>
+    private static IEnumerable<string> ExtractStrings(string code)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+        var root = syntaxTree.GetRoot();
+
+        var stringLiterals = new List<string>();
+
+        // Extract regular string literals
+        stringLiterals.AddRange(root.DescendantNodes()
+            .OfType<LiteralExpressionSyntax>()
+            .Where(l => l.IsKind(SyntaxKind.StringLiteralExpression))
+            .Select(l => l.Token.ValueText));
+
+        // Extract interpolated strings and convert them to format strings
+        var interpolatedStrings = root.DescendantNodes()
+            .OfType<InterpolatedStringExpressionSyntax>();
+
+        foreach (var interpolated in interpolatedStrings)
+        {
+            var placeholderIndex = 0;
+            var formatString = "";
+
+            foreach (var content in interpolated.Contents)
+            {
+                switch (content)
+                {
+                    case InterpolatedStringTextSyntax textPart:
+                        formatString += textPart.TextToken.ValueText;
+                        break;
+                    case InterpolationSyntax:
+                        formatString += $"{{{placeholderIndex++}}}";
+                        break;
+                }
+            }
+
+            stringLiterals.Add(formatString);
+        }
+
+        return stringLiterals;
+    }
+
+    /// <summary>
+    ///     Centralized logic for executing the full extraction pipeline.
+    /// </summary>
+    /// <param name="projectPath">The project root.</param>
+    /// <param name="outputResourceFile">Optional target resource file path.</param>
+    /// <param name="appendToExisting">Append to existing file.</param>
+    /// <param name="replace">Rewrite code references.</param>
+    /// <returns>ExtractionResult with changed files and messages.</returns>
+    private static ExtractionResult RunExtraction(string? projectPath, string? outputResourceFile,
+        bool appendToExisting, bool replace)
+    {
+        if (string.IsNullOrWhiteSpace(projectPath))
+            throw new ArgumentException("Project path must not be null or empty.", nameof(projectPath));
+
+        var files = CoreHelper.GetSourceFiles(projectPath);
+
+        var allExtractedStrings = new HashSet<string>();
+        var changedFiles = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(outputResourceFile))
+        {
+            outputResourceFile = Path.Combine(projectPath, "Resources.cs");
+        }
+
+        // 1️⃣ Extract all strings first
+        foreach (var file in files)
+        {
+            var code = File.ReadAllText(file);
+            var strings = ExtractStrings(code);
+
+            foreach (var str in strings)
+                allExtractedStrings.Add(str);
+        }
+
+        // 2️⃣ Generate string-to-resource map
+        var stringToResourceMap =
+            GenerateResourceMap(allExtractedStrings, appendToExisting ? outputResourceFile : null);
+
+        // 3️⃣ Optionally rewrite source files
+        if (replace)
+        {
+            foreach (var file in files)
+            {
+                var code = File.ReadAllText(file);
+                var rewrite = new StringLiteralRewrite(stringToResourceMap);
+                var rewrittenCode = rewrite.Rewrite(code);
+
+                if (code == rewrittenCode) continue;
+
+                File.WriteAllText(file, rewrittenCode);
+                changedFiles.Add(Path.GetFullPath(file));
+            }
+        }
+
+        // 4️⃣ Generate the resource file
+        GenerateResourceFile(stringToResourceMap, outputResourceFile, appendToExisting);
+        changedFiles.Add(Path.GetFullPath(outputResourceFile));
+
+        return new ExtractionResult(changedFiles, stringToResourceMap);
+    }
+
+    /// <summary>
+    /// Generates the resource map.
+    /// </summary>
+    /// <param name="strings">The strings.</param>
+    /// <param name="existingFile">The existing file.</param>
+    /// <returns>Resource Map</returns>
+    private static Dictionary<string, string> GenerateResourceMap(IEnumerable<string> strings,
+        string? existingFile = null)
+    {
+        var map = new Dictionary<string, string>();
+        var counter = 1;
+
+        if (!string.IsNullOrEmpty(existingFile) && File.Exists(existingFile))
+        {
+            foreach (var line in File.ReadAllLines(existingFile))
+            {
+                var trimmed = line.Trim();
+                if (!(trimmed.StartsWith("public static") || trimmed.StartsWith("internal static")))
+                    continue;
+
+                var name = trimmed.Split('=')[0].Split(' ').Last();
+                var value = trimmed.Split('=')[1].Trim().Trim('"', ';');
+                map[value] = name;
+            }
+
+            counter = map.Count + 1;
+        }
+
+        foreach (var str in strings.Distinct())
+        {
+            if (!map.ContainsKey(str))
+                map[str] = $"Resource{counter++}";
+        }
+
+        return map;
+    }
+
+    /// <summary>
+    /// Generates the resource file.
+    /// </summary>
+    /// <param name="resourceMap">The resource map.</param>
+    /// <param name="outputFilePath">The output file path.</param>
+    /// <param name="appendToExisting">if set to <c>true</c> [append to existing].</param>
+    private static void GenerateResourceFile(Dictionary<string, string> resourceMap, string? outputFilePath,
+        bool appendToExisting)
+    {
+        var resourceEntries = resourceMap.OrderBy(kvp => kvp.Value)
+            .Select(kvp => $"internal const string {kvp.Value} = \"{kvp.Key.Replace("\"", "\\\"")}\";")
+            .ToList();
+
+        if (appendToExisting && File.Exists(outputFilePath))
+        {
+            var existingCode = File.ReadAllText(outputFilePath);
+
+            if (!existingCode.Contains("public static class Resource"))
+            {
+                existingCode = existingCode.TrimEnd() + "\npublic static class Resource {\n" +
+                               string.Join("\n", resourceEntries) + "\n}\n";
+            }
+            else
+            {
+                var classEndIndex = existingCode.LastIndexOf('}');
+                var updated = existingCode.Substring(0, classEndIndex) +
+                              "\n" + string.Join("\n", resourceEntries) + "\n" +
+                              existingCode.Substring(classEndIndex);
+                existingCode = updated;
+            }
+
+            File.WriteAllText(outputFilePath, existingCode);
+        }
+        else
+        {
+            var classDef = "public static class Resource {\n" +
+                           string.Join("\n", resourceEntries) + "\n}";
+            File.WriteAllText(outputFilePath, classDef);
+        }
     }
 }

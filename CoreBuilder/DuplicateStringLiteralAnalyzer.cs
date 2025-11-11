@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
@@ -47,21 +46,38 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
+    /// <summary>
+    /// The cached literals, keyed by string literal and storing file+line lists.
+    /// </summary>
+    private static Dictionary<string, List<(string file, int line)>>? _cachedLiterals;
+
     /// <inheritdoc />
     /// <remarks>
-    ///     This method intentionally yields no results, since duplicate
-    ///     string detection requires project-wide context. Use
-    ///     <see cref="AnalyzeDirectory"/> instead.
+    ///     This method intentionally yields no results per-file until project-wide analysis is performed.
+    ///     Uses lazy-loading of project-wide string literals to avoid repeated scans.
     /// </remarks>
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
     {
-        // 🔹 Ignore generated code and compiler artifacts
         if (CoreHelper.ShouldIgnoreFile(filePath))
-        {
             yield break;
+
+        // Lazy-load project-wide string literals once
+        if (_cachedLiterals == null)
+        {
+            var rootDir = CoreHelper.FindProjectRoot(filePath);
+            _cachedLiterals = BuildProjectLiterals(rootDir);
         }
 
-        // Per-file analysis not supported here
+        // Only return diagnostics relevant to this file
+        foreach (var kvp in _cachedLiterals)
+        {
+            foreach (var (file, line) in kvp.Value)
+            {
+                if (file == filePath)
+                    yield return new Diagnostic(Name, Enums.DiagnosticSeverity.Info, file, line,
+                        kvp.Key); // kvp.Key = the message with literal
+            }
+        }
     }
 
     /// <summary>
@@ -74,40 +90,17 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     /// </returns>
     public IEnumerable<Diagnostic> AnalyzeDirectory(string directory)
     {
-        var literalOccurrences = new Dictionary<string, List<(string file, int line)>>();
+        if (_cachedLiterals == null)
+            _cachedLiterals = BuildProjectLiterals(directory);
 
-        var files = Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories);
-        foreach (var file in files)
-        {
-            var content = File.ReadAllText(file);
-            var tree = CSharpSyntaxTree.ParseText(content);
-            var root = tree.GetRoot();
-            var literals = root.DescendantNodes()
-                .OfType<LiteralExpressionSyntax>()
-                .Where(lit => lit.IsKind(SyntaxKind.StringLiteralExpression));
-
-            foreach (var lit in literals)
-            {
-                var text = lit.Token.ValueText.Trim();
-                if (string.IsNullOrEmpty(text)) continue;
-
-                var line = lit.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                if (!literalOccurrences.ContainsKey(text))
-                    literalOccurrences[text] = new List<(string, int)>();
-
-                literalOccurrences[text].Add((file, line));
-            }
-        }
-
-        foreach (var kvp in literalOccurrences.Where(k => k.Value.Count > 1))
+        foreach (var kvp in _cachedLiterals)
         {
             foreach (var (file, line) in kvp.Value)
-            {
                 yield return new Diagnostic(Name, Enums.DiagnosticSeverity.Info, file, line,
                     $"String literal \"{kvp.Key}\" occurs {kvp.Value.Count} times across the project. Consider centralizing it.");
-            }
         }
     }
+
 
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
@@ -148,5 +141,60 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     public CommandResult InvokeExtension(string extensionName, params string[] args)
     {
         return CommandResult.Fail($"'{Name}' has no extensions.");
+    }
+
+    /// <summary>
+    /// Builds a dictionary of all duplicate string literals in the project.
+    /// </summary>
+    /// <param name="directory">The root directory to scan.</param>
+    /// <returns>
+    /// A dictionary keyed by literal string containing file+line lists.
+    /// </returns>
+    private static Dictionary<string, List<(string file, int line)>> BuildProjectLiterals(string directory)
+    {
+        var occurrences = new Dictionary<string, List<(string file, int line)>>();
+
+        foreach (var file in Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories))
+        {
+            if (CoreHelper.ShouldIgnoreFile(file))
+                continue;
+
+            foreach (var (literal, line) in ExtractLiteralsFromFile(file))
+            {
+                if (!occurrences.ContainsKey(literal))
+                    occurrences[literal] = new List<(string, int)>();
+
+                occurrences[literal].Add((file, line));
+            }
+        }
+
+        // Keep only duplicates
+        return occurrences
+            .Where(k => k.Value.Count > 1)
+            .ToDictionary(k => k.Key, k => k.Value);
+    }
+
+    /// <summary>
+    /// Extracts all string literals from a single file.
+    /// </summary>
+    /// <param name="filePath">The C# file path.</param>
+    /// <returns>Pairs of string literal and line number.</returns>
+    private static IEnumerable<(string literal, int line)> ExtractLiteralsFromFile(string filePath)
+    {
+        var content = File.ReadAllText(filePath);
+        var root = CSharpSyntaxTree.ParseText(content).GetRoot();
+
+        var literals = root.DescendantNodes()
+            .OfType<LiteralExpressionSyntax>()
+            .Where(l => l.IsKind(SyntaxKind.StringLiteralExpression));
+
+        foreach (var lit in literals)
+        {
+            var text = lit.Token.ValueText.Trim();
+            if (string.IsNullOrEmpty(text)) continue;
+
+            var line = lit.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            yield return (text, line);
+        }
     }
 }

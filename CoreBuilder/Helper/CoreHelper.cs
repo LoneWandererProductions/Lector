@@ -1,15 +1,8 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder.Helper
- * FILE:        CoreHelper.cs
- * PURPOSE:     Helper File that shares logic in the Project
- * PROGRAMMER:  Peter Geinitz (Wayfarer)
- */
-/*
- * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     CoreBuilder
- * FILE:        CoreHelper.cs
- * PURPOSE:     Shared static helper methods for common logic.
+ * FILE:        Helper/CoreHelper.cs
+ * PURPOSE:     Common helper methods shared by analyzers, extractors, and console tools.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -27,10 +20,9 @@ using Weaver.Messages;
 namespace CoreBuilder.Helper;
 
 /// <summary>
-/// Provides shared static helper methods for file handling,
-/// syntax analysis, and analyzer execution.
+/// Provides reusable utility methods for CoreBuilder tools.
 /// </summary>
-internal static class CoreHelper
+public static class CoreHelper
 {
     /// <summary>
     /// Determines whether a given file should be ignored during analysis.
@@ -48,6 +40,10 @@ internal static class CoreHelper
         if (fileName.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase) ||
             fileName.EndsWith(".designer.cs", StringComparison.OrdinalIgnoreCase) ||
             fileName.EndsWith("AssemblyAttributes.cs", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) ||
             fileName.Equals("AssemblyInfo.cs", StringComparison.OrdinalIgnoreCase))
         {
             return true;
@@ -168,5 +164,68 @@ internal static class CoreHelper
         }
 
         return LoopContext.VariableBounded;
+    }
+
+    /// <summary>
+    /// Attempts to validate that a directory path exists.
+    /// </summary>
+    /// <param name="projectPath">The input project path.</param>
+    /// <param name="error">Error message if invalid.</param>
+    /// <returns>True if valid; otherwise false.</returns>
+    public static bool TryGetValidProjectPath(string? projectPath, out string error)
+    {
+        error = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(projectPath))
+        {
+            error = "Project path is missing or empty.";
+            return false;
+        }
+
+        if (!Directory.Exists(projectPath))
+        {
+            error = $"Project path not found: {projectPath}";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the root of a project by locating the nearest .csproj or directory with source files.
+    /// </summary>
+    /// <param name="startPath">The path to start searching from.</param>
+    /// <returns>The project root directory.</returns>
+    public static string FindProjectRoot(string startPath)
+    {
+        var dir = new DirectoryInfo(startPath);
+        if (dir.Exists && dir.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+            return dir.Name!;
+
+        while (dir != null)
+        {
+            if (dir.GetFiles("*.csproj").Any())
+                return dir.FullName;
+
+            dir = dir.Parent;
+        }
+
+        return Path.GetDirectoryName(startPath)!;
+    }
+
+    /// <summary>
+    /// Enumerates all relevant C# source files in a project directory.
+    /// </summary>
+    /// <param name="projectPath">The root project directory.</param>
+    /// <returns>Enumerable of file paths.</returns>
+    public static IEnumerable<string> GetSourceFiles(string projectPath)
+    {
+        return Directory.EnumerateFiles(projectPath, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\.vs\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains("resource", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains("const", StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -9,6 +9,7 @@
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,38 +55,33 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
     public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
-    /// <summary>
-    ///     Scans a directory and inserts headers where missing.
-    /// </summary>
     public string ProcessFiles(string? directoryPath, bool includeSubdirectories)
     {
         if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             return "Invalid or missing directory path.";
 
+        var files = GetCandidateFiles(directoryPath, includeSubdirectories);
         var log = new StringBuilder();
-        var searchOption = includeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-        foreach (var file in Directory.GetFiles(directoryPath, "*.cs", searchOption))
+        foreach (var file in files)
         {
             try
             {
-                if (CoreHelper.ShouldIgnoreFile(file))
-                {
-                    log.AppendLine($"Skipping {file} (auto-generated or excluded).");
-                    continue;
-                }
+                var content = File.ReadAllText(file);
 
-                var fileContent = File.ReadAllText(file);
-                if (ContainsHeader(fileContent))
+                if (ContainsHeader(content))
                 {
                     log.AppendLine($"Header already exists in {file}.");
                     continue;
                 }
 
-                var updatedContent = InsertHeader(fileContent, Path.GetFileName(file), "Your file purpose here",
-                    "Peter Geinitz (Wayfarer)");
-                File.WriteAllText(file, updatedContent);
+                var updatedContent = InsertHeader(
+                    fileContent: content,
+                    fileName: Path.GetFileName(file),
+                    purpose: "Your file purpose here",
+                    programmerName: "Peter Geinitz (Wayfarer)");
 
+                File.WriteAllText(file, updatedContent);
                 log.AppendLine($"Header inserted in {file}");
             }
             catch (Exception ex)
@@ -94,24 +90,19 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
             }
         }
 
-        return log.ToString();
+        return log.Length > 0 ? log.ToString() : "No files required header insertion.";
     }
 
     /// <inheritdoc />
     public string DetectFilesNeedingHeaders(string? directoryPath, bool includeSubdirectories)
     {
-        if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
-            return string.Empty;
+        if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
+            return "Invalid directory path.";
 
-        var searchOption = includeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        var csFiles = Directory.GetFiles(directoryPath, "*.cs", searchOption);
-
-        var needingHeaders =
-            (from file in csFiles
-                where !CoreHelper.ShouldIgnoreFile(file)
-                let content = File.ReadAllText(file)
-                where !ContainsHeader(content)
-                select Path.GetFullPath(file)).ToList();
+        var files = GetCandidateFiles(directoryPath, includeSubdirectories);
+        var needingHeaders = files
+            .Where(file => !ContainsHeader(File.ReadAllText(file)))
+            .ToList();
 
         return needingHeaders.Count > 0
             ? string.Join(Environment.NewLine, needingHeaders)
@@ -148,10 +139,10 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
         var includeSubdirs = args.Length > 1 && bool.TryParse(args[1], out var result) && result;
 
         var previewList = DetectFilesNeedingHeaders(directoryPath, includeSubdirs);
-        if (string.IsNullOrWhiteSpace(previewList))
+        if (string.IsNullOrWhiteSpace(previewList) || previewList.StartsWith("All files"))
             return CommandResult.Ok("All files already contain headers. Nothing to insert.");
 
-        // Create feedback request for confirmation
+        // 🔹 Create feedback request for confirmation
         FeedbackRequest? feedback = null;
         var cache = feedback;
 
@@ -164,13 +155,13 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
                 input = input.Trim().ToLowerInvariant();
                 return input switch
                 {
-                    "yes" => Execute(args), // Run the actual insertion
+                    "yes" => Execute(args),
                     "no" => CommandResult.Fail("Operation cancelled by user."),
                     _ => new CommandResult
                     {
                         Message = "Please answer yes/no.",
                         RequiresConfirmation = true,
-                        Feedback = cache // Reuse feedback for retry
+                        Feedback = cache
                     }
                 };
             });
@@ -185,6 +176,16 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
     }
 
     /// <summary>
+    /// Gets candidate C# files in a directory, excluding generated or ignored files.
+    /// </summary>
+    private static IEnumerable<string> GetCandidateFiles(string directoryPath, bool includeSubdirectories)
+    {
+        var searchOption = includeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        return Directory.GetFiles(directoryPath, "*.cs", searchOption)
+            .Where(file => !CoreHelper.ShouldIgnoreFile(file));
+    }
+
+    /// <summary>
     /// Determines whether the specified content contains header.
     /// </summary>
     /// <param name="content">The content.</param>
@@ -193,22 +194,23 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
     /// </returns>
     private static bool ContainsHeader(string content)
     {
-        return content.Split('\n').Select(line => line.Trim().ToLowerInvariant()).Any(trimmed =>
-            trimmed.Contains("copyright", StringComparison.InvariantCultureIgnoreCase));
+        return content.Split('\n')
+            .Select(line => line.Trim().ToLowerInvariant())
+            .Any(trimmed => trimmed.Contains("copyright", StringComparison.InvariantCultureIgnoreCase));
     }
 
     /// <summary>
-    /// Extracts the namespace.
+    /// Extracts the namespace from a C# source file.
     /// </summary>
     /// <param name="content">The content.</param>
-    /// <returns>The namepsace in use.</returns>
+    /// <returns>Used namespace.</returns>
     private static string ExtractNamespace(string content)
     {
         foreach (var parts in from line in content.Split('\n')
-                 select line.Trim()
+                              select line.Trim()
                  into trimmed
-                 where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
-                 select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
+                              where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
+                              select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
         {
             return parts.Length > 1 ? parts[1] : "UnknownNamespace";
         }
@@ -223,7 +225,7 @@ public sealed class HeaderExtractor : IHeaderExtractor, ICommand
     /// <param name="fileName">Name of the file.</param>
     /// <param name="purpose">The purpose.</param>
     /// <param name="programmerName">Name of the programmer.</param>
-    /// <returns>Add the new Header to the file</returns>
+    /// <returns>The source file with inserted header</returns>
     private static string InsertHeader(string fileContent, string fileName, string purpose, string programmerName)
     {
         var namespaceName = ExtractNamespace(fileContent);
