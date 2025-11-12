@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +22,7 @@ namespace CoreBuilder;
 /// Provides functionality to analyze directory size and 
 /// display file contributions as percentages of total size.
 /// </summary>
-public sealed class DirectorySizeAnalyzer : IDirectorySizeAnalyzer, ICommand
+public sealed class DirectorySizeAnalyzer : ICommand
 {
     /// <inheritdoc />
     public string Name => "DirectorySize";

@@ -7,7 +7,6 @@
  */
 
 using CoreBuilder.Helper;
-using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +24,7 @@ namespace CoreBuilder;
 ///     into C# source files. Integrates with Weaver’s command and
 ///     extension infrastructure.
 /// </summary>
-public sealed class HeaderExtractor : IHeaderExtractor, ICommand
+public sealed class HeaderExtractor : ICommand
 {
     /// <summary>
     ///     Defines the header template with placeholders for file info.

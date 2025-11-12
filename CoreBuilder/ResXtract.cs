@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CoreBuilder.Helper;
-using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,7 +25,7 @@ namespace CoreBuilder;
 ///     Our Code resource refactor tool. In this case strings.
 /// </summary>
 /// <seealso cref="T:CoreBuilder.IResourceExtractor" />
-public sealed class ResXtract : IResourceExtractor, ICommand
+public sealed class ResXtract : ICommand
 {
     /// <summary>
     ///     The ignore list
