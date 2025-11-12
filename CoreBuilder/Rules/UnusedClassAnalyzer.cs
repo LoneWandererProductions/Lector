@@ -1,12 +1,13 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        UnusedClassAnalyzer.cs
  * PURPOSE:     Analyzer that detects unused classes across a project.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
 using CoreBuilder.Enums;
+using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder
+namespace CoreBuilder.Rules
 {
     /// <inheritdoc cref="ICodeAnalyzer" />
     /// <summary>
@@ -117,14 +118,25 @@ namespace CoreBuilder
             if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
                 return CommandResult.Fail("Usage: UnusedClassAnalyzer <projectPath>");
 
-            var projectPath = args[0];
-            if (!Directory.Exists(projectPath))
-                return CommandResult.Fail($"Directory '{projectPath}' does not exist.");
+            var path = args[0];
 
-            var allFiles = Directory.EnumerateFiles(projectPath, "*.cs", SearchOption.AllDirectories)
-                .ToDictionary(f => f, f => File.ReadAllText(f));
+            // If a single file was passed, analyze that file only
+            IEnumerable<Diagnostic> diagnosticsEnumerable;
+            if (File.Exists(path))
+            {
+                diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+            }
+            else if (Directory.Exists(path))
+            {
+                // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+                diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+            }
+            else
+            {
+                return CommandResult.Fail($"Path not found: {path}");
+            }
 
-            var diagnostics = AnalyzeProject(allFiles).ToList();
+            var diagnostics = diagnosticsEnumerable.ToList();
 
             if (diagnostics.Count == 0)
                 return CommandResult.Ok("No unused classes found.");

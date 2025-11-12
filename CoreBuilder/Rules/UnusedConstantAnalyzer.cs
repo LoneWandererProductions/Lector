@@ -1,7 +1,7 @@
 ﻿/* 
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
- * FILE:        CoreBuilder/UnusedConstantAnalyzer.cs
+ * PROJECT:     CoreBuilder.Rules
+ * FILE:        UnusedConstantAnalyzer.cs
  * PURPOSE:     Analyzer to detect unused constants and static readonly fields across a project.
  * PROGRAMER:   Peter Geinitz (Wayfarer)
  */
@@ -16,7 +16,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -115,45 +115,42 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
     }
 
     /// <inheritdoc />
+    /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Missing argument: <path>\nUsage: unusedclass <folder>");
+        if (args.Length < 1)
+            return CommandResult.Fail("Missing argument: path");
 
         var path = args[0];
-        if (!Directory.Exists(path))
-            return CommandResult.Fail($"Directory does not exist: {path}");
 
-        var files = new Dictionary<string, string>();
-
-        foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
+        if (File.Exists(path))
         {
-            if (CoreHelper.ShouldIgnoreFile(file))
-                continue;
-
-            try
-            {
-                files[file] = File.ReadAllText(file);
-            }
-            catch
-            {
-                // unreadable file — skip silently
-            }
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+        }
+        else if (Directory.Exists(path))
+        {
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
         }
 
-        if (files.Count == 0)
-            return CommandResult.Fail("No valid .cs files found (or all ignored).");
+        var diagnostics = diagnosticsEnumerable.ToList();
 
-        var results = AnalyzeProject(files).ToList();
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("No unused private fields found.");
 
-        if (results.Count == 0)
-            return CommandResult.Ok("✅ No unused classes detected.");
+        var output = string.Join("\n", diagnostics.Select(d =>
+            $"{d.FilePath}({d.LineNumber}): {d.Message}"))
+        + $"\nTotal: {diagnostics.Count} unused private fields.";
 
-        var report = string.Join(Environment.NewLine,
-            results.Select(r => $"{r.FilePath}:{r.LineNumber} -> {r.Message}"));
-
-        return CommandResult.Ok(report);
+        return CommandResult.Ok(output);
     }
+
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

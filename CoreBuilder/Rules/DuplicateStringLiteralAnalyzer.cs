@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        DuplicateStringLiteralAnalyzer.cs
  * PURPOSE:     Analyzer that finds duplicate string literals across a project.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -20,7 +20,7 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -101,26 +101,36 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
         }
     }
 
-
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
         if (args.Length < 1)
-            return CommandResult.Fail("Usage: DuplicateStringLiteral([directoryPath])");
+            return CommandResult.Fail("Usage: DuplicateStringLiteral(<fileOrDirectoryPath>)");
 
-        var directory = args[0];
-        if (!Directory.Exists(directory))
-            return CommandResult.Fail($"Directory not found: {directory}");
+        var path = args[0];
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return CommandResult.Fail($"Path does not exist: {path}");
 
         try
         {
-            var diagnostics = AnalyzeDirectory(directory).ToList();
+            List<Diagnostic> diagnostics;
+
+            if (Directory.Exists(path))
+            {
+                // 🔹 Directory: run centralized analyzer for each .cs file
+                diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+            }
+            else
+            {
+                // 🔹 Single file analysis
+                diagnostics = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
+            }
 
             if (diagnostics.Count == 0)
-                return CommandResult.Ok($"No duplicate string literals found in {directory}.", EnumTypes.Wstring);
+                return CommandResult.Ok($"No duplicate string literals found in '{path}'.");
 
             var sb = new StringBuilder();
-            sb.AppendLine($"Duplicate string literal analysis for: {directory}");
+            sb.AppendLine($"Duplicate string literal analysis for: {path}");
             sb.AppendLine(new string('-', 80));
 
             foreach (var d in diagnostics)
@@ -129,11 +139,11 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
             sb.AppendLine(new string('-', 80));
             sb.AppendLine($"{diagnostics.Count} duplicate string occurrences detected.");
 
-            return CommandResult.Ok(sb.ToString(), diagnostics, EnumTypes.Wstring);
+            return CommandResult.Ok(sb.ToString(), diagnostics);
         }
         catch (Exception ex)
         {
-            return CommandResult.Fail($"DuplicateStringLiteral execution failed: {ex.Message}", ex, EnumTypes.Wstring);
+            return CommandResult.Fail($"DuplicateStringLiteral execution failed: {ex.Message}", ex);
         }
     }
 
@@ -154,7 +164,7 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     {
         var occurrences = new Dictionary<string, List<(string file, int line)>>();
 
-        foreach (var file in Directory.GetFiles(directory, "*.cs", SearchOption.AllDirectories))
+        foreach (var file in Directory.GetFiles(directory, CoreResources.ResourceCsExtension, SearchOption.AllDirectories))
         {
             if (CoreHelper.ShouldIgnoreFile(file))
                 continue;

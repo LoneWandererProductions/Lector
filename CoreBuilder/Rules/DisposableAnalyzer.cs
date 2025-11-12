@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        DisposableAnalyzer.cs
  * PURPOSE:     Analyzer that detects undisposed IDisposable objects.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -13,18 +13,19 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Analyzer that detects undisposed IDisposable objects.
 /// </summary>
-/// <seealso cref="CoreBuilder.Interface.ICodeAnalyzer" />
+/// <seealso cref="ICodeAnalyzer" />
 public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc cref="ICodeAnalyzer" />
@@ -115,8 +116,35 @@ public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
     }
 
     /// <inheritdoc />
+    /// <inheritdoc />
     public CommandResult Execute(params string[] args)
-        => CoreHelper.Run(args, Analyze, Name);
+    {
+        if (args.Length == 0)
+            return CommandResult.Fail("Usage: DisposableLeak <fileOrDirectoryPath>");
+
+        var path = args[0];
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return CommandResult.Fail($"Path not found: {path}");
+
+        List<Diagnostic> results;
+
+        if (Directory.Exists(path))
+        {
+            // 🔹 Use centralized RunAnalyze logic for directories
+            results = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+        }
+        else
+        {
+            // 🔹 Single file analysis
+            results = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
+        }
+
+        if (results.Count == 0)
+            return CommandResult.Ok($"No undisposed IDisposable objects found in {path}.");
+
+        var output = string.Join("\n", results.Select(d => d.ToString()));
+        return CommandResult.Ok(output, results);
+    }
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

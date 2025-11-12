@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
- * FILE:        Helper/CoreHelper.cs
+ * PROJECT:     CoreBuilder.Helper
+ * FILE:        CoreHelper.cs
  * PURPOSE:     Common helper methods shared by analyzers, extractors, and console tools.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -101,53 +101,6 @@ public static class CoreHelper
     }
 
     /// <summary>
-    /// Executes an analyzer function on the specified file and 
-    /// returns the formatted <see cref="CommandResult"/>.
-    /// </summary>
-    /// <param name="args">Command arguments (expects a file path as the first argument).</param>
-    /// <param name="analyzerFunc">
-    /// The analyzer delegate accepting file path and content, returning diagnostics.
-    /// </param>
-    /// <param name="analyzerName">The display name of the analyzer.</param>
-    /// <returns>
-    /// A <see cref="CommandResult"/> indicating success or failure and containing diagnostic output.
-    /// </returns>
-    internal static CommandResult Run(
-        string[] args,
-        Func<string, string, IEnumerable<Diagnostic>> analyzerFunc,
-        string analyzerName)
-    {
-        if (args.Length < 1)
-            return CommandResult.Fail($"Missing argument: file path for {analyzerName}.");
-
-        var filePath = args[0];
-        if (!File.Exists(filePath))
-            return CommandResult.Fail($"File not found: {filePath}");
-
-        try
-        {
-            var fileContent = File.ReadAllText(filePath);
-            var diagnostics = analyzerFunc(filePath, fileContent).ToList();
-
-            if (diagnostics.Count == 0)
-                return CommandResult.Ok($"No issues found by {analyzerName}.");
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"{analyzerName} results for: {filePath}");
-            sb.AppendLine(new string('-', 80));
-            diagnostics.ForEach(d => sb.AppendLine(d.ToString()));
-            sb.AppendLine(new string('-', 80));
-            sb.AppendLine($"{diagnostics.Count} issues found.");
-
-            return CommandResult.Ok(sb.ToString(), diagnostics, EnumTypes.Wstring);
-        }
-        catch (Exception ex)
-        {
-            return CommandResult.Fail($"{analyzerName} execution failed: {ex.Message}", ex, EnumTypes.Wstring);
-        }
-    }
-
-    /// <summary>
     /// Determines whether a <c>for</c> loop has a constant numeric bound.
     /// </summary>
     /// <param name="loop">The <see cref="ForStatementSyntax"/> to analyze.</param>
@@ -164,31 +117,6 @@ public static class CoreHelper
         }
 
         return LoopContext.VariableBounded;
-    }
-
-    /// <summary>
-    /// Attempts to validate that a directory path exists.
-    /// </summary>
-    /// <param name="projectPath">The input project path.</param>
-    /// <param name="error">Error message if invalid.</param>
-    /// <returns>True if valid; otherwise false.</returns>
-    public static bool TryGetValidProjectPath(string? projectPath, out string error)
-    {
-        error = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(projectPath))
-        {
-            error = "Project path is missing or empty.";
-            return false;
-        }
-
-        if (!Directory.Exists(projectPath))
-        {
-            error = $"Project path not found: {projectPath}";
-            return false;
-        }
-
-        return true;
     }
 
     /// <summary>

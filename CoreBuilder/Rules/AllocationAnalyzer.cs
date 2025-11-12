@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        AllocationAnalyzer.cs
  * PURPOSE:     Analyzer that detects allocations in hot paths.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -12,12 +12,13 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -107,7 +108,37 @@ public sealed class AllocationAnalyzer : ICodeAnalyzer, ICommand
 
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
-        => CoreHelper.Run(args, Analyze, Name);
+    {
+        if (args.Length == 0)
+            return CommandResult.Fail("Usage: Allocation <fileOrDirectoryPath>");
+
+        var path = args[0];
+
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
+        if (File.Exists(path))
+        {
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+        }
+        else if (Directory.Exists(path))
+        {
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
+        }
+
+        var diagnostics = diagnosticsEnumerable.ToList();
+
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("No Allocations found.");
+
+        var output = string.Join("\n", diagnostics.Select(d => d.ToString()));
+        return CommandResult.Ok(output, diagnostics);
+    }
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

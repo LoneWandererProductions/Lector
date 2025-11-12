@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        EventHandlerAnalyzer.cs
  * PURPOSE:     Analyzer that detects potential event handler leaks.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -12,6 +12,7 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,13 +20,13 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
 /// Check if Event is unsubscribed.
 /// </summary>
-/// <seealso cref="CoreBuilder.Interface.ICodeAnalyzer" />
+/// <seealso cref="ICodeAnalyzer" />
 public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
@@ -90,23 +91,30 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
     public CommandResult Execute(params string[] args)
     {
         if (args.Length < ParameterCount)
-            return CommandResult.Fail($"Usage: {Namespace}.{Name} <path>");
+            return CommandResult.Fail($"Usage: {Namespace}.{Name} <fileOrDirectoryPath>");
 
         var path = args[0];
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return CommandResult.Fail($"Path not found: {path}");
 
-        if (!File.Exists(path))
-            return CommandResult.Fail($"File not found: {path}");
+        List<Diagnostic> diagnostics;
 
-        // 🔹 Reuse Analyze() instead of redoing logic
-        var content = File.ReadAllText(path);
-        var diagnostics = Analyze(path, content).ToList();
+        if (Directory.Exists(path))
+        {
+            // 🔹 Use centralized RunAnalyze logic for directories
+            diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+        }
+        else
+        {
+            // 🔹 Single file analysis
+            diagnostics = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
+        }
 
-        return diagnostics.Count == 0
-            ? CommandResult.Ok("No potential event handler leaks detected.")
-            : CommandResult.Ok(
-                string.Join("\n", diagnostics.Select(d => d.ToString())),
-                diagnostics
-              );
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("✅ No potential event handler leaks detected.");
+
+        var output = string.Join(Environment.NewLine, diagnostics.Select(d => d.ToString()));
+        return CommandResult.Ok(output, diagnostics);
     }
 
     /// <inheritdoc />

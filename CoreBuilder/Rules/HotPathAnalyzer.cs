@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        HotPathAnalyzer.cs
  * PURPOSE:     Analyzer that detects frequently called methods and flags hot paths.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -19,7 +19,7 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -133,26 +133,23 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 
         var path = args[0];
 
-        // 🔹 Collect diagnostics for either file or directory
-        var diagnostics = new List<Diagnostic>();
-
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
         if (File.Exists(path))
         {
-            var content = File.ReadAllText(path);
-            diagnostics.AddRange(Analyze(path, content));
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
         }
         else if (Directory.Exists(path))
         {
-            foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
-            {
-                var content = File.ReadAllText(file);
-                diagnostics.AddRange(Analyze(file, content));
-            }
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
         }
         else
         {
             return CommandResult.Fail($"Path not found: {path}");
         }
+
+        var diagnostics = diagnosticsEnumerable.ToList();
 
         if (diagnostics.Count == 0)
             return CommandResult.Ok("No hot paths detected.");

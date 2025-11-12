@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        LicenseHeaderAnalyzer.cs
  * PURPOSE:     Analyzer to detect missing license headers in C# files.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -11,12 +11,13 @@ using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -65,15 +66,39 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer, ICommand
 
     /// <inheritdoc />
     /// <summary>
-    /// Executes the analyzer on a single file path.
+    /// Executes the analyzer on a directory path using centralized RunAnalyze logic.
     /// </summary>
+    /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        return CoreHelper.Run(
-            args,
-            (filePath, content) => Analyze(filePath, content),
-            Name
+        if (args.Length == 0)
+            return CommandResult.Fail("Missing argument: <fileOrDirectoryPath>");
+
+        var path = args[0];
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return CommandResult.Fail($"Path not found: {path}");
+
+        List<Diagnostic> diagnostics;
+
+        if (Directory.Exists(path))
+        {
+            // 🔹 Directory analysis
+            diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+        }
+        else
+        {
+            // 🔹 Single file analysis
+            diagnostics = RunAnalyze.RunAnalyzerForFile(path, this)?.ToList() ?? new List<Diagnostic>();
+        }
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok("✅ All files contain license headers.");
+
+        var output = string.Join(Environment.NewLine,
+            diagnostics.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}")
         );
+
+        return CommandResult.Ok(output, diagnostics);
     }
 
     /// <inheritdoc />

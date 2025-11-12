@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        UnusedParameterAnalyzer.cs
  * PURPOSE:     Unused parameter Analyzer.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -19,7 +19,7 @@ using Weaver.Interfaces;
 using Weaver.Messages;
 using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -39,16 +39,15 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public int ParameterCount => 1;
 
-    public CommandSignature Signature => throw new System.NotImplementedException();
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
     /// <inheritdoc />
     public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
     {
         // 🔹 Ignore generated code and compiler artifacts
         if (CoreHelper.ShouldIgnoreFile(filePath))
-        {
             yield break;
-        }
 
         var tree = CSharpSyntaxTree.ParseText(fileContent);
         var compilation = CSharpCompilation.Create("Analysis")
@@ -67,18 +66,16 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
             foreach (var parameter in methodDecl.ParameterList.Parameters)
             {
                 var symbol = model.GetDeclaredSymbol(parameter);
-
                 if (symbol is not { } paramSymbol)
-                {
                     continue;
-                }
 
                 var references = methodDecl.DescendantNodes()
                     .OfType<IdentifierNameSyntax>()
                     .Where(id =>
                         SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, paramSymbol));
 
-                if (references.Any()) continue;
+                if (references.Any())
+                    continue;
 
                 var line = parameter.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 yield return new Diagnostic(Name, DiagnosticSeverity.Warning, filePath, line,
@@ -94,28 +91,31 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
             return CommandResult.Fail("Missing argument: path");
 
         var path = args[0];
-        if (!Directory.Exists(path))
-            return CommandResult.Fail($"Directory not found: {path}");
 
-        var files = Directory
-            .EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !CoreHelper.ShouldIgnoreFile(f))
-            .ToList();
-
-        var diagnostics = new List<Diagnostic>();
-
-        foreach (var file in files)
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
+        if (File.Exists(path))
         {
-            var content = File.ReadAllText(file);
-            diagnostics.AddRange(Analyze(file, content));
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
         }
+        else if (Directory.Exists(path))
+        {
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
+        }
+
+        var diagnostics = diagnosticsEnumerable.ToList();
 
         if (diagnostics.Count == 0)
             return CommandResult.Ok("No unused parameters found.");
 
         var output = string.Join("\n", diagnostics.Select(d =>
-            $"{d.FilePath}({d.LineNumber}): {d.Message}"))
-        + $"\nTotal: {diagnostics.Count} unused parameters.";
+            $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
+            $"\nTotal: {diagnostics.Count} unused parameters.";
 
         return CommandResult.Ok(output);
     }

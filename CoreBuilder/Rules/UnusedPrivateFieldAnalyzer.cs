@@ -1,8 +1,8 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
- * FILE:        UnusedLocalVariableAnalyzer.cs
- * PURPOSE:     Unused local variable Analyzer.
+ * PROJECT:     CoreBuilder.Rules
+ * FILE:        UnusedPrivateFieldAnalyzer.cs
+ * PURPOSE:     Unused private field Analyzer.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -20,19 +20,19 @@ using Weaver.Interfaces;
 using Weaver.Messages;
 using DiagnosticSeverity = CoreBuilder.Enums.DiagnosticSeverity;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
-/// Analyzer that finds unused local variables.
+/// Analyzer that finds unused private fields.
 /// </summary>
-public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer, ICommand
+public sealed class UnusedPrivateFieldAnalyzer : ICodeAnalyzer, ICommand
 {
     /// <inheritdoc />
-    public string Name => "UnusedLocalVariable";
+    public string Name => "UnusedPrivateField";
 
     /// <inheritdoc />
-    public string Description => "Unused local variable Analyzer.";
+    public string Description => "Analyzer that finds unused private fields.";
 
     /// <inheritdoc />
     public string Namespace => "Analyzer";
@@ -48,9 +48,7 @@ public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer, ICommand
     {
         // 🔹 Ignore generated code and compiler artifacts
         if (CoreHelper.ShouldIgnoreFile(filePath))
-        {
             yield break;
-        }
 
         var tree = CSharpSyntaxTree.ParseText(fileContent);
         var compilation = CSharpCompilation.Create("Analysis")
@@ -60,27 +58,29 @@ public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer, ICommand
         var model = compilation.GetSemanticModel(tree);
         var root = tree.GetRoot();
 
-        foreach (var localDecl in root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>())
+        foreach (var fieldDecl in root.DescendantNodes().OfType<FieldDeclarationSyntax>())
         {
-            foreach (var variable in localDecl.Declaration.Variables)
+            // Only look at private fields
+            if (!fieldDecl.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+                continue;
+
+            foreach (var variable in fieldDecl.Declaration.Variables)
             {
-                if (variable.Identifier.Text == "_")
-                    continue; // discard, don’t flag
-
                 var symbol = model.GetDeclaredSymbol(variable);
-
-                if (symbol is not ILocalSymbol localSymbol) continue;
+                if (symbol is not IFieldSymbol fieldSymbol)
+                    continue;
 
                 var references = root.DescendantNodes()
                     .OfType<IdentifierNameSyntax>()
-                    .Where(id =>
-                        SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, localSymbol));
+                    .Where(id => SymbolEqualityComparer.Default.Equals(
+                        model.GetSymbolInfo(id).Symbol, fieldSymbol));
 
-                if (references.Any()) continue;
+                if (references.Any())
+                    continue;
 
                 var line = variable.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 yield return new Diagnostic(Name, DiagnosticSeverity.Info, filePath, line,
-                    $"Unused local variable '{variable.Identifier.Text}'.");
+                    $"Unused private field '{variable.Identifier.Text}'.");
             }
         }
     }
@@ -88,43 +88,37 @@ public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Missing argument: <path>\nUsage: unusedlocal <folder>");
+        if (args.Length < 1)
+            return CommandResult.Fail("Missing argument: path");
 
         var path = args[0];
-        if (!Directory.Exists(path))
-            return CommandResult.Fail($"Directory not found: {path}");
 
-        var files = Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !CoreHelper.ShouldIgnoreFile(f))
-            .ToList();
-
-        if (files.Count == 0)
-            return CommandResult.Ok("No C# files found to analyze.");
-
-        var diagnostics = new List<Diagnostic>();
-
-        foreach (var file in files)
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
+        if (File.Exists(path))
         {
-            try
-            {
-                var content = File.ReadAllText(file);
-                diagnostics.AddRange(Analyze(file, content));
-            }
-            catch
-            {
-                // unreadable file - ignore silently
-            }
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+        }
+        else if (Directory.Exists(path))
+        {
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
         }
 
+        var diagnostics = diagnosticsEnumerable.ToList();
+
         if (diagnostics.Count == 0)
-            return CommandResult.Ok("✅ No unused local variables found.");
+            return CommandResult.Ok("No unused private fields found.");
 
-        var msg = string.Join(Environment.NewLine,
-            diagnostics.Select(d => $"{d.FilePath}:{d.LineNumber} -> {d.Message}")
-        );
+        var output = string.Join("\n", diagnostics.Select(d =>
+            $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
+            $"\nTotal: {diagnostics.Count} unused private fields.";
 
-        return CommandResult.Ok(msg);
+        return CommandResult.Ok(output);
     }
 
     /// <inheritdoc />

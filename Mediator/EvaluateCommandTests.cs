@@ -12,12 +12,15 @@ using Weaver.ScriptEngine;
 
 namespace Mediator
 {
+    /// <summary>
+    /// Evaluate command tests.
+    /// </summary>
     [TestClass]
     public class EvaluateCommandTests
     {
-        private VariableRegistry _registry;
-        private ExpressionEvaluator _evaluator;
-        private EvaluateCommand _command;
+        private VariableRegistry? _registry;
+        private ExpressionEvaluator? _evaluator;
+        private EvaluateCommand? _command;
 
         /// <summary>
         /// Setups this instance.
@@ -62,8 +65,8 @@ namespace Mediator
         [TestMethod]
         public void EvaluateBooleanExpressionReturnsTrue()
         {
-            _registry.Set("a", 10, EnumTypes.Wdouble);
-            _registry.Set("b", 5, EnumTypes.Wdouble);
+            _registry?.Set("a", 10, EnumTypes.Wdouble);
+            _registry?.Set("b", 5, EnumTypes.Wdouble);
 
             var result = _command.Execute(new string[] { "a > b" });
             Assert.IsTrue(result.Success);
@@ -76,8 +79,8 @@ namespace Mediator
         [TestMethod]
         public void EvaluateBooleanExpressionAndOrEvaluation()
         {
-            _registry.Set("flag1", true, EnumTypes.Wbool);
-            _registry.Set("flag2", false, EnumTypes.Wbool);
+            _registry?.Set("flag1", true, EnumTypes.Wbool);
+            _registry?.Set("flag2", false, EnumTypes.Wbool);
 
             var result = _command.Execute(new string[] { "flag1 and flag2" });
             Assert.IsTrue(result.Success);
@@ -94,7 +97,7 @@ namespace Mediator
         [TestMethod]
         public void EvaluateUnaryNotExpressionReturnsCorrectValue()
         {
-            _registry.Set("flag1", true, EnumTypes.Wbool);
+            _registry?.Set("flag1", true, EnumTypes.Wbool);
 
             var result = _command.Execute(new string[] { "not flag1" });
             Assert.IsTrue(result.Success);
@@ -107,8 +110,8 @@ namespace Mediator
         [TestMethod]
         public void EvaluateRegistryVariablesInExpressionCalculatesCorrectly()
         {
-            _registry.Set("x", 2, EnumTypes.Wdouble);
-            _registry.Set("y", 3, EnumTypes.Wdouble);
+            _registry?.Set("x", 2, EnumTypes.Wdouble);
+            _registry?.Set("y", 3, EnumTypes.Wdouble);
             _registry.Set("z", 1, EnumTypes.Wdouble);
 
             var result = _command.Execute(new string[] { "x + y - z" });
@@ -122,8 +125,8 @@ namespace Mediator
         [TestMethod]
         public void EvaluateMultipleRegistryVariablesArithmeticCalculatesCorrectly()
         {
-            _registry.Set("score1", 5, EnumTypes.Wdouble);
-            _registry.Set("score2", 10, EnumTypes.Wdouble);
+            _registry?.Set("score1", 5, EnumTypes.Wdouble);
+            _registry?.Set("score2", 10, EnumTypes.Wdouble);
             _registry.Set("score3", 3, EnumTypes.Wdouble);
 
             var result = _command.Execute(new string[] { "score1 + score2 - score3 * 2" });

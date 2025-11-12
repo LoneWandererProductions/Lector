@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     CoreBuilder
- * FILE:        ConResources.cs
+ * FILE:        CoreResources.cs
  * PURPOSE:     Namespaces and Commands for my command line Tool
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -11,7 +11,7 @@ namespace CoreBuilder;
 /// <summary>
 ///     Resource File
 /// </summary>
-internal static class ConResources
+internal static class CoreResources
 {
     /// <summary>
     ///     The user space fore code

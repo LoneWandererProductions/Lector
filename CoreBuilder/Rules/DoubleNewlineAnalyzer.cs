@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     CoreBuilder
+ * PROJECT:     CoreBuilder.Rules
  * FILE:        DoubleNewlineAnalyzer.cs
  * PURPOSE:     Simple Double Newline Analyzer.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -17,7 +17,7 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace CoreBuilder;
+namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
 /// <summary>
@@ -65,16 +65,34 @@ public sealed class DoubleNewlineAnalyzer : ICodeAnalyzer, ICommand
     public CommandResult Execute(params string[] args)
     {
         if (args.Length == 0)
-            return CommandResult.Fail("Usage: DoubleNewline <filePath>");
+            return CommandResult.Fail("Usage: DoubleNewline <fileOrDirectoryPath>");
 
-        var filePath = args[0];
-        if (!File.Exists(filePath))
-            return CommandResult.Fail($"File not found: {filePath}");
+        var path = args[0];
 
-        var content = File.ReadAllText(filePath);
-        var results = Analyze(filePath, content).ToList();
+        // If a single file was passed, analyze that file only
+        IEnumerable<Diagnostic> diagnosticsEnumerable;
+        if (File.Exists(path))
+        {
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+        }
+        else if (Directory.Exists(path))
+        {
+            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
+            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+        }
+        else
+        {
+            return CommandResult.Fail($"Path not found: {path}");
+        }
 
-        return FormatResult(results, Path.GetFileName(filePath));
+        var diagnostics = diagnosticsEnumerable.ToList();
+
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok($"No double newlines found in {path}.");
+
+
+        return FormatResult(diagnostics, Path.GetFileName(path));
     }
 
     /// <inheritdoc />
