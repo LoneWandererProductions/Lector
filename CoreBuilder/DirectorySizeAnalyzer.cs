@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +21,7 @@ namespace CoreBuilder;
 
 /// <inheritdoc />
 /// <summary>
-/// Provides functionality to analyze directory size and 
+/// Provides functionality to analyze directory size and
 /// display file contributions as percentages of total size.
 /// </summary>
 public sealed class DirectorySizeAnalyzer : ICommand

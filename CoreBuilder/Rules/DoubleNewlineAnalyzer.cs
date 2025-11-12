@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;

@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
@@ -27,10 +29,10 @@ namespace CoreBuilder.Rules;
 /// </summary>
 public sealed class UnusedPrivateFieldAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "UnusedPrivateField";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that finds unused private fields.";
 
     /// <inheritdoc />
@@ -114,8 +116,8 @@ public sealed class UnusedPrivateFieldAnalyzer : ICodeAnalyzer, ICommand
             return CommandResult.Ok("No unused private fields found.");
 
         var output = string.Join("\n", diagnostics.Select(d =>
-            $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
-            $"\nTotal: {diagnostics.Count} unused private fields.";
+                         $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
+                     $"\nTotal: {diagnostics.Count} unused private fields.";
 
         return CommandResult.Ok(output);
     }

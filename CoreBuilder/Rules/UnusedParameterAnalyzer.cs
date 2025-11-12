@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
@@ -27,10 +29,10 @@ namespace CoreBuilder.Rules;
 /// </summary>
 public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "UnusedParameter";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that finds unused method parameters.";
 
     /// <inheritdoc />
@@ -114,8 +116,8 @@ public sealed class UnusedParameterAnalyzer : ICodeAnalyzer, ICommand
             return CommandResult.Ok("No unused parameters found.");
 
         var output = string.Join("\n", diagnostics.Select(d =>
-            $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
-            $"\nTotal: {diagnostics.Count} unused parameters.";
+                         $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
+                     $"\nTotal: {diagnostics.Count} unused parameters.";
 
         return CommandResult.Ok(output);
     }

@@ -6,6 +6,8 @@
  * PROGRAMER:   Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -13,6 +15,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Weaver;
+using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace CoreBuilder.Rules;
@@ -28,12 +32,12 @@ namespace CoreBuilder.Rules;
 /// - May flag false positives if a constant is used via reflection, nameof(), etc.
 /// - Project-wide scope is achieved by cross-file matching.
 /// </summary>
-public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
+public sealed class UnusedConstantAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "UnusedConstantAnalyzer";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer to detect unused constants and static readonly fields across a project.";
 
     /// <inheritdoc />
@@ -42,12 +46,15 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
     /// <inheritdoc />
     public int ParameterCount => 1;
 
+    /// <inheritdoc />
+    public CommandSignature Signature => new(Namespace, Name, ParameterCount);
+
     /// <summary>
     /// Runs a per-file analysis (not used in this analyzer).
     /// </summary>
     public IEnumerable<Diagnostic> Analyze(string filePath, string content)
     {
-        // This analyzer does not work per file; 
+        // This analyzer does not work per file;
         // it only makes sense project-wide.
         return Enumerable.Empty<Diagnostic>();
     }
@@ -144,8 +151,8 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer
             return CommandResult.Ok("No unused private fields found.");
 
         var output = string.Join("\n", diagnostics.Select(d =>
-            $"{d.FilePath}({d.LineNumber}): {d.Message}"))
-        + $"\nTotal: {diagnostics.Count} unused private fields.";
+                         $"{d.FilePath}({d.LineNumber}): {d.Message}"))
+                     + $"\nTotal: {diagnostics.Count} unused private fields.";
 
         return CommandResult.Ok(output);
     }

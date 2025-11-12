@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -26,10 +28,10 @@ namespace CoreBuilder.Rules;
 /// </summary>
 public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "LicenseHeader";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Simple analyzer that checks if a file starts with a license header.";
 
     /// <inheritdoc />

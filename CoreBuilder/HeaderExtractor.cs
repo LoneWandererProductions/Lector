@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Helper;
 using System;
 using System.Collections.Generic;
@@ -53,7 +55,12 @@ public sealed class HeaderExtractor : ICommand
     /// <inheritdoc />
     public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Processes the files.
+    /// </summary>
+    /// <param name="directoryPath">The directory path.</param>
+    /// <param name="includeSubdirectories">if set to <c>true</c> [include subdirectories].</param>
+    /// <returns>Files with added Headers</returns>
     public string ProcessFiles(string? directoryPath, bool includeSubdirectories)
     {
         if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
@@ -92,7 +99,12 @@ public sealed class HeaderExtractor : ICommand
         return log.Length > 0 ? log.ToString() : "No files required header insertion.";
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Detects the files needing headers.
+    /// </summary>
+    /// <param name="directoryPath">The directory path.</param>
+    /// <param name="includeSubdirectories">if set to <c>true</c> [include subdirectories].</param>
+    /// <returns>Files that need headers</returns>
     public string DetectFilesNeedingHeaders(string? directoryPath, bool includeSubdirectories)
     {
         if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
@@ -135,9 +147,9 @@ public sealed class HeaderExtractor : ICommand
             return CommandResult.Fail("Missing argument: directory path.");
 
         var directoryPath = args[0];
-        var includeSubdirs = args.Length > 1 && bool.TryParse(args[1], out var result) && result;
+        var includeSubDirs = args.Length > 1 && bool.TryParse(args[1], out var result) && result;
 
-        var previewList = DetectFilesNeedingHeaders(directoryPath, includeSubdirs);
+        var previewList = DetectFilesNeedingHeaders(directoryPath, includeSubDirs);
         if (string.IsNullOrWhiteSpace(previewList) || previewList.StartsWith("All files"))
             return CommandResult.Ok("All files already contain headers. Nothing to insert.");
 
@@ -206,10 +218,10 @@ public sealed class HeaderExtractor : ICommand
     private static string ExtractNamespace(string content)
     {
         foreach (var parts in from line in content.Split('\n')
-                              select line.Trim()
+                 select line.Trim()
                  into trimmed
-                              where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
-                              select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
+                 where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
+                 select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
         {
             return parts.Length > 1 ? parts[1] : "UnknownNamespace";
         }

@@ -6,6 +6,8 @@
 * PROGRAMMER:  Peter Geinitz (Wayfarer)
 */
 
+// ReSharper disable UnusedType.Global
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,7 +65,6 @@ public sealed class ResXtract : ICommand
         _ignorePatterns = ignorePatterns ?? new List<string>();
     }
 
-    /// <inheritdoc />
     /// <summary>
     ///     Processes the given project directory, extracting string literals
     ///     and replacing them with resource references.
@@ -79,17 +80,21 @@ public sealed class ResXtract : ICommand
         return RunExtraction(projectPath, outputResourceFile, appendToExisting, replace).ChangedFiles;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Detects the affected files.
+    /// </summary>
+    /// <param name="projectPath">The project path.</param>
+    /// <returns>Files that would be affected.</returns>
     public string? DetectAffectedFiles(string? projectPath)
     {
         var files = CoreHelper.GetSourceFiles(projectPath);
 
         var affectedFiles =
             (from file in files
-             let code = File.ReadAllText(file)
-             let strings = ExtractStrings(code)
-             where strings.Any()
-             select Path.GetFullPath(file)).ToList();
+                let code = File.ReadAllText(file)
+                let strings = ExtractStrings(code)
+                where strings.Any()
+                select Path.GetFullPath(file)).ToList();
 
         return affectedFiles.Count == 0
             ? null

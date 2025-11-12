@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -29,10 +31,10 @@ namespace CoreBuilder.Rules;
 /// <seealso cref="ICodeAnalyzer" />
 public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "EventHandler";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that detects potential event handler leaks.";
 
     /// <inheritdoc />
@@ -60,8 +62,8 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
         var root = tree.GetRoot();
 
         foreach (var sub in root.DescendantNodes()
-                                .OfType<AssignmentExpressionSyntax>()
-                                .Where(a => a.IsKind(SyntaxKind.AddAssignmentExpression)))
+                     .OfType<AssignmentExpressionSyntax>()
+                     .Where(a => a.IsKind(SyntaxKind.AddAssignmentExpression)))
         {
             if (sub.Left is not IdentifierNameSyntax eventName)
                 continue;

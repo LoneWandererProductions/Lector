@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -27,10 +29,10 @@ namespace CoreBuilder.Rules;
 /// <seealso cref="T:CoreBuilder.Interface.ICodeAnalyzer" />
 public sealed class AllocationAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "Allocation";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that detects allocations in hot paths.";
 
     /// <inheritdoc />

@@ -20,6 +20,8 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
+// ReSharper disable UnusedType.Global
+
 namespace CoreBuilder.Rules;
 
 /// <inheritdoc cref="ICodeAnalyzer" />
@@ -31,10 +33,10 @@ namespace CoreBuilder.Rules;
 /// <seealso cref="ICodeAnalyzer" />
 public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "DuplicateStringLiteral";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that finds duplicate string literals across a project.";
 
     /// <inheritdoc />
@@ -90,8 +92,7 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     /// </returns>
     public IEnumerable<Diagnostic> AnalyzeDirectory(string directory)
     {
-        if (_cachedLiterals == null)
-            _cachedLiterals = BuildProjectLiterals(directory);
+        _cachedLiterals ??= BuildProjectLiterals(directory);
 
         foreach (var kvp in _cachedLiterals)
         {
@@ -164,7 +165,8 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     {
         var occurrences = new Dictionary<string, List<(string file, int line)>>();
 
-        foreach (var file in Directory.GetFiles(directory, CoreResources.ResourceCsExtension, SearchOption.AllDirectories))
+        foreach (var file in Directory.GetFiles(directory, CoreResources.ResourceCsExtension,
+                     SearchOption.AllDirectories))
         {
             if (CoreHelper.ShouldIgnoreFile(file))
                 continue;

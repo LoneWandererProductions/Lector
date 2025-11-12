@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -33,10 +35,10 @@ namespace CoreBuilder.Rules
     /// </summary>
     public sealed class UnusedClassAnalyzer : ICodeAnalyzer, ICommand
     {
-        /// <inheritdoc />
+        /// <inheritdoc cref="ICodeAnalyzer" />
         public string Name => "UnusedClassAnalyzer";
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="ICodeAnalyzer" />
         public string Description => "Analyzer to detect unused classes across a project.";
 
         /// <inheritdoc />
@@ -90,6 +92,7 @@ namespace CoreBuilder.Rules
             // Check if each class is used anywhere
             foreach (var decl in declarations)
             {
+                //TODO check usage
                 var isUsed = allFiles.Values.Any(c =>
                     Regex.IsMatch(c, $@"\b{Regex.Escape(decl.Name)}\b"));
 

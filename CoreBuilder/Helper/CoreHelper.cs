@@ -27,7 +27,7 @@ public static class CoreHelper
     /// </summary>
     /// <param name="filePath">The absolute path of the file.</param>
     /// <returns>
-    /// <see langword="true"/> if the file is auto-generated or excluded; 
+    /// <see langword="true"/> if the file is auto-generated or excluded;
     /// otherwise, <see langword="false"/>.
     /// </returns>
     internal static bool ShouldIgnoreFile(string filePath)
@@ -66,7 +66,7 @@ public static class CoreHelper
     }
 
     /// <summary>
-    /// Determines the loop context (constant, variable, or nested) 
+    /// Determines the loop context (constant, variable, or nested)
     /// for a given syntax node.
     /// </summary>
     /// <param name="node">The syntax node to analyze.</param>
@@ -103,7 +103,7 @@ public static class CoreHelper
     /// </summary>
     /// <param name="loop">The <see cref="ForStatementSyntax"/> to analyze.</param>
     /// <returns>
-    /// <see cref="LoopContext.ConstantBounded"/> if the loop's upper bound is a numeric literal; 
+    /// <see cref="LoopContext.ConstantBounded"/> if the loop's upper bound is a numeric literal;
     /// otherwise <see cref="LoopContext.VariableBounded"/>.
     /// </returns>
     private static LoopContext AnalyzeForLoop(ForStatementSyntax loop)
@@ -126,7 +126,7 @@ public static class CoreHelper
     {
         var dir = new DirectoryInfo(startPath);
         if (dir.Exists && dir.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
-            return dir.Name!;
+            return dir.Name;
 
         while (dir != null)
         {

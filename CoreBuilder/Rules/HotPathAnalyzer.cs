@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
@@ -27,10 +29,10 @@ namespace CoreBuilder.Rules;
 /// </summary>
 public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Name => "HotPath";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ICodeAnalyzer" />
     public string Description => "Analyzer that detects frequently called methods and flags hot paths.";
 
     /// <inheritdoc />
@@ -110,7 +112,8 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 
             DiagnosticImpact impact = loopContext switch
             {
-                LoopContext.ConstantBounded or LoopContext.VariableBounded or LoopContext.Nested => DiagnosticImpact.CpuBound,
+                LoopContext.ConstantBounded or LoopContext.VariableBounded or LoopContext.Nested => DiagnosticImpact
+                    .CpuBound,
                 _ => DiagnosticImpact.Other
             };
 
