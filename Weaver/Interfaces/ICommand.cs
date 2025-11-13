@@ -75,6 +75,9 @@ namespace Weaver.Interfaces
         /// Optional preview mode: called by .tryrun().
         /// Returns a preview result without committing side effects.
         /// </summary>
-        CommandResult? TryRun(params string[] args) => null;
+        CommandResult? TryRun(params string[] args)
+        {
+            return InvokeExtension("tryrun", args);
+        }
     }
 }

@@ -68,10 +68,10 @@ namespace Weaver.Core
             // Step 4: Return preview result (not considered a final success)
             return new CommandResult
             {
-                Message = preview.Message,
+                Message = $"{preview.Message}\n{feedback.Prompt}",
                 Feedback = feedback,
                 RequiresConfirmation = true,
-                Success = false // preview itself is not a final success
+                Success = false
             };
         }
     }
