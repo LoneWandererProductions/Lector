@@ -46,25 +46,28 @@ namespace Weaver.ParseEngine
             if (string.IsNullOrWhiteSpace(raw))
                 throw new FormatException("Empty input.");
 
-            // Split off namespace and command.ext structure
             raw = raw.Trim();
 
-            // Split by '.' only if not inside parentheses
+            // Split by '.' only if not inside parentheses (for extension)
             var segments = SplitOutsideParentheses(raw, '.');
 
             if (segments.Count == 0)
                 throw new FormatException("Missing command name.");
 
-            // Handle namespace:command
+            // Handle namespace:command using SplitOutsideParentheses (so colons inside args are ignored)
             var mainPart = segments[0];
             string? ns = null;
             var cmdPart = mainPart;
 
-            var nsSplit = mainPart.Split(':', 2);
-            if (nsSplit.Length == 2)
+            var nsSplit = SplitOutsideParentheses(mainPart, ':');
+            if (nsSplit.Count == 2)
             {
                 ns = nsSplit[0].Trim();
                 cmdPart = nsSplit[1].Trim();
+            }
+            else
+            {
+                cmdPart = mainPart;
             }
 
             // Parse main command
@@ -76,10 +79,9 @@ namespace Weaver.ParseEngine
             var argString = mainMatch.Groups["args"].Value;
             var args = ParseArgs(argString);
 
-            // Parse optional extension
+            // Parse optional extension (only one supported)
             var ext = string.Empty;
             var extArgs = Array.Empty<string>();
-
             if (segments.Count > 1)
             {
                 var extMatch = CommandPattern.Match(segments[1]);

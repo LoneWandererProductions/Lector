@@ -27,13 +27,13 @@ namespace Weaver.Commands
     public sealed class ApiExplorerCommand : ICommand
     {
         /// <inheritdoc />
-        public string Name => "api.explore";
+        public string Name => "apiexplore";
 
         /// <inheritdoc />
         public string Description => "Scans source files and lists namespaces, classes, interfaces, and public members.";
 
         /// <inheritdoc />
-        public string Namespace => "Weaver.Commands";
+        public string Namespace => "Development";
 
         /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
@@ -45,14 +45,14 @@ namespace Weaver.Commands
         public CommandResult Execute(params string[] args)
         {
             if (args.Length == 0)
-                return CommandResult.Fail("Usage: api.explore <folder>");
+                return CommandResult.Fail("Usage: apiexplore <folder>");
 
             var rootPath = args[0];
             if (!Directory.Exists(rootPath))
                 return CommandResult.Fail($"Folder not found: {rootPath}");
 
             var sb = new StringBuilder();
-            var files = Directory.EnumerateFiles(rootPath, "*.cs", SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(rootPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories);
 
             foreach (var file in files)
             {
