@@ -88,9 +88,65 @@ namespace Mediator
         /// </summary>
         public CommandResult InvokeExtension(string extensionName, params string[] args)
         {
-            if (!extensionName.Equals("feedback", StringComparison.OrdinalIgnoreCase))
-                return CommandResult.Fail($"Unknown extension '{extensionName}'.");
+            return extensionName.ToLowerInvariant() switch
+            {
+                "tryrun" => HandleTryRun(args),
+                "feedback" => HandleFeedback(args),
+                _ => CommandResult.Fail($"Unknown extension '{extensionName}'.")
+            };
+        }
 
+        /// <summary>
+        /// Handles the try run.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns>The CommandResult</returns>
+        private CommandResult HandleTryRun(string[] args)
+        {
+            if (args.Length == 0)
+                return CommandResult.Fail("Missing argument: target file.");
+
+            var target = args[0];
+
+            FeedbackRequest? feedback = null;
+            var cache = feedback;
+
+            feedback = new FeedbackRequest(
+                prompt: $"Preview: Are you sure you want to delete '{target}'? (yes/no/cancel)",
+                options: new[] { "yes", "no", "cancel" },
+                onRespond: input =>
+                {
+                    input = input.Trim().ToLowerInvariant();
+                    return input switch
+                    {
+                        "yes" => Execute(target),
+                        "no" => CommandResult.Fail("Deletion cancelled by user."),
+                        "cancel" => CommandResult.Fail("Deletion cancelled by user."),
+                        _ => new CommandResult
+                        {
+                            Message = "Please answer yes/no/cancel",
+                            RequiresConfirmation = true,
+                            Feedback = cache
+                        }
+                    };
+                });
+
+            return new CommandResult
+            {
+                Message = $"Are you sure you want to delete '{target}'?",
+                Feedback = feedback,
+                RequiresConfirmation = true,
+                Success = false
+            };
+        }
+
+        /// <summary>
+        /// Handles the feedback.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns>The CommandResult</returns>
+        private CommandResult HandleFeedback(string[] args)
+        {
             if (args.Length == 0)
                 return new CommandResult
                 {
@@ -116,5 +172,6 @@ namespace Mediator
                 }
             };
         }
+
     }
 }
