@@ -42,7 +42,7 @@ namespace Weaver.Core
         public string Description => "Lists all commands or shows information about a specific command.";
 
         /// <inheritdoc />
-        public int ParameterCount => 1; // we’ll allow 0 or 1 dynamically
+        public int ParameterCount => 0; // we’ll allow 0 or 1 dynamically
 
         /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
