@@ -177,7 +177,7 @@ public sealed class ResXtract : ICommand
 
         return new CommandResult
         {
-            Message = "Preview complete. Awaiting user confirmation.",
+            Message = $"Preview complete. The following files would be updated:\n\n{preview}\n\nAwaiting user confirmation.",
             Feedback = feedback,
             RequiresConfirmation = true,
             Success = false

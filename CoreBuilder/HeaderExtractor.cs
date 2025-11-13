@@ -41,7 +41,7 @@ public sealed class HeaderExtractor : ICommand
 ";
 
     /// <inheritdoc />
-    public string Name => "HeaderExtractor";
+    public string Name => "Header";
 
     /// <inheritdoc />
     public string Description => "Detects and inserts standardized license headers into C# files.";
@@ -179,7 +179,7 @@ public sealed class HeaderExtractor : ICommand
 
         return new CommandResult
         {
-            Message = "Preview of header insertion complete. Awaiting user confirmation.",
+            Message = $"Preview of header insertion complete. Files missing headers:\n\n{previewList}\n\nAwaiting user confirmation.",
             Feedback = feedback,
             RequiresConfirmation = true,
             Success = false
