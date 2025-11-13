@@ -7,6 +7,7 @@
  */
 
 using CoreBuilder;
+using CoreBuilder.Helper;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -52,7 +53,8 @@ namespace Weaver.Commands
                 return CommandResult.Fail($"Folder not found: {rootPath}");
 
             var sb = new StringBuilder();
-            var files = Directory.EnumerateFiles(rootPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(rootPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories)
+                                 .Where(f => !CoreHelper.ShouldIgnoreFile(f)); // <-- filter out ignored files
 
             foreach (var file in files)
             {
@@ -87,10 +89,18 @@ namespace Weaver.Commands
         /// <summary>
         /// Writes all type declarations and their members to the StringBuilder.
         /// </summary>
+        /// <param name="types">The types.</param>
+        /// <param name="sb">The sb.</param>
+        /// <param name="nsName">Name of the ns.</param>
         private static void DumpTypes(IEnumerable<BaseTypeDeclarationSyntax> types, StringBuilder sb, string nsName)
         {
+            // Filter to only public types
+            var publicTypes = types.Where(t => IsPublic(t.Modifiers)).ToList();
+            if (publicTypes.Count == 0)
+                return; // Nothing public => skip the whole namespace
+
             sb.AppendLine($"namespace {nsName}");
-            foreach (var type in types)
+            foreach (var type in publicTypes)
             {
                 var modifiers = string.Join(" ", type.Modifiers);
                 var typeKind = type switch
@@ -104,13 +114,11 @@ namespace Weaver.Commands
 
                 var baseList = (type as TypeDeclarationSyntax)?.BaseList;
                 var bases = baseList != null && baseList.Types.Count > 0
-                    ? $" : {string.Join(", ", baseList.Types.ToArray().Select(b => b.Type.ToString()))}"
+                    ? $" : {string.Join(", ", baseList.Types.Select(b => b.Type.ToString()))}"
                     : string.Empty;
-
 
                 sb.AppendLine($"  {modifiers} {typeKind} {type.Identifier}{bases}");
 
-                // Only explore members for class/struct/interface
                 if (type is TypeDeclarationSyntax typeDecl)
                 {
                     foreach (var member in typeDecl.Members)
@@ -118,14 +126,21 @@ namespace Weaver.Commands
                         switch (member)
                         {
                             case MethodDeclarationSyntax m when IsPublic(m.Modifiers):
-                                sb.AppendLine($"    method: {m.Identifier}({string.Join(", ", m.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})");
+                                var isExtension = m.ParameterList.Parameters.FirstOrDefault()?
+                                    .Modifiers.Any(mod => mod.IsKind(SyntaxKind.ThisKeyword)) == true;
+
+                                var prefix = isExtension ? "extension method" : "method";
+                                sb.AppendLine($"    {prefix}: {m.Identifier}({string.Join(", ", m.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})");
                                 break;
+
                             case PropertyDeclarationSyntax p when IsPublic(p.Modifiers):
                                 sb.AppendLine($"    property: {p.Identifier} : {p.Type}");
                                 break;
+
                             case FieldDeclarationSyntax f when IsPublic(f.Modifiers):
                                 sb.AppendLine($"    field: {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.Text))} : {f.Declaration.Type}");
                                 break;
+
                             case EventDeclarationSyntax e when IsPublic(e.Modifiers):
                                 sb.AppendLine($"    event: {e.Identifier} : {e.Type}");
                                 break;
@@ -140,8 +155,14 @@ namespace Weaver.Commands
         /// <summary>
         /// Checks if a syntax token list contains a "public" modifier.
         /// </summary>
+        /// <param name="modifiers">The modifiers.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified modifiers is public; otherwise, <c>false</c>.
+        /// </returns>
         private static bool IsPublic(SyntaxTokenList modifiers)
-            => modifiers.Any(m => m.Text == "public");
+        {
+            return modifiers.Any(m => m.Text == "public");
+        }
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)

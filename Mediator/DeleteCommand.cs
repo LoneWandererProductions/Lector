@@ -136,7 +136,7 @@ namespace Mediator
                 Message = $"Are you sure you want to delete '{target}'?",
                 Feedback = feedback,
                 RequiresConfirmation = true,
-                Success = false
+                Success = true
             };
         }
 

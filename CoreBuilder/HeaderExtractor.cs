@@ -47,7 +47,7 @@ public sealed class HeaderExtractor : ICommand
     public string Description => "Detects and inserts standardized license headers into C# files.";
 
     /// <inheritdoc />
-    public string Namespace => "Formatter";
+    public string Namespace => "Development";
 
     /// <inheritdoc />
     public int ParameterCount => 1;

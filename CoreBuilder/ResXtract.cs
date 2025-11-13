@@ -46,7 +46,7 @@ public sealed class ResXtract : ICommand
     public string Description => "Extracts hardcoded strings into a resource file and optionally rewrites code.";
 
     /// <inheritdoc />
-    public string Namespace => "Analyzer";
+    public string Namespace => "Development";
 
     /// <inheritdoc />
     public int ParameterCount => 1;
