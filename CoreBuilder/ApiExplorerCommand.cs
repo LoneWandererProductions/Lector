@@ -1,25 +1,25 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.Commands
+ * PROJECT:     CoreBuilder
  * FILE:        ApiExplorerCommand.cs
  * PURPOSE:     Command to list namespaces, classes, and members in a source directory.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using CoreBuilder;
-using CoreBuilder.Helper;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CoreBuilder.Helper;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Commands
+namespace CoreBuilder
 {
     /// <inheritdoc />
     /// <summary>
@@ -31,7 +31,8 @@ namespace Weaver.Commands
         public string Name => "apiexplore";
 
         /// <inheritdoc />
-        public string Description => "Scans source files and lists namespaces, classes, interfaces, and public members.";
+        public string Description =>
+            "Scans source files and lists namespaces, classes, interfaces, and public members.";
 
         /// <inheritdoc />
         public string Namespace => "Development";
@@ -53,8 +54,9 @@ namespace Weaver.Commands
                 return CommandResult.Fail($"Folder not found: {rootPath}");
 
             var sb = new StringBuilder();
-            var files = Directory.EnumerateFiles(rootPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories)
-                                 .Where(f => !CoreHelper.ShouldIgnoreFile(f)); // <-- filter out ignored files
+            var files = Directory
+                .EnumerateFiles(rootPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories)
+                .Where(f => !CoreHelper.ShouldIgnoreFile(f)); // <-- filter out ignored files
 
             foreach (var file in files)
             {
@@ -113,7 +115,7 @@ namespace Weaver.Commands
                 };
 
                 var baseList = (type as TypeDeclarationSyntax)?.BaseList;
-                var bases = baseList != null && baseList.Types.Count > 0
+                var bases = baseList is { Types.Count: > 0 }
                     ? $" : {string.Join(", ", baseList.Types.Select(b => b.Type.ToString()))}"
                     : string.Empty;
 
@@ -130,7 +132,8 @@ namespace Weaver.Commands
                                     .Modifiers.Any(mod => mod.IsKind(SyntaxKind.ThisKeyword)) == true;
 
                                 var prefix = isExtension ? "extension method" : "method";
-                                sb.AppendLine($"    {prefix}: {m.Identifier}({string.Join(", ", m.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})");
+                                sb.AppendLine(
+                                    $"    {prefix}: {m.Identifier}({string.Join(", ", m.ParameterList.Parameters.Select(p => $"{p.Type} {p.Identifier}"))})");
                                 break;
 
                             case PropertyDeclarationSyntax p when IsPublic(p.Modifiers):
@@ -138,7 +141,8 @@ namespace Weaver.Commands
                                 break;
 
                             case FieldDeclarationSyntax f when IsPublic(f.Modifiers):
-                                sb.AppendLine($"    field: {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.Text))} : {f.Declaration.Type}");
+                                sb.AppendLine(
+                                    $"    field: {string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.Text))} : {f.Declaration.Type}");
                                 break;
 
                             case EventDeclarationSyntax e when IsPublic(e.Modifiers):

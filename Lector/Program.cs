@@ -9,7 +9,6 @@
 using CoreBuilder;
 using CoreBuilder.Rules;
 using Weaver;
-using Weaver.Commands;
 using Weaver.Interfaces;
 
 namespace Lector
@@ -54,8 +53,7 @@ namespace Lector
                     // The engine ensures feedback is handled internally
                     Console.WriteLine(result.Message);
                 }
-            }
-            while (!exit);
+            } while (!exit);
         }
 
         /// <summary>
@@ -65,24 +63,24 @@ namespace Lector
         private static void RegisterApps(Weave weave)
         {
             ICommand[] modules =
-                {
-                    new DirectorySizeAnalyzer(),
-                    new HeaderExtractor(),
-                    new ResXtract(),
-                    new AllocationAnalyzer(),
-                    new DisposableAnalyzer(),
-                    new DoubleNewlineAnalyzer(),
-                    new DuplicateStringLiteralAnalyzer(),
-                    new EventHandlerAnalyzer(),
-                    new HotPathAnalyzer(),
-                    new LicenseHeaderAnalyzer(),
-                    new UnusedClassAnalyzer(),
-                    new UnusedConstantAnalyzer(),
-                    new UnusedLocalVariableAnalyzer(),
-                    new UnusedParameterAnalyzer(),
-                    new UnusedPrivateFieldAnalyzer(),
-                    new ApiExplorerCommand()
-                };
+            {
+                new DirectorySizeAnalyzer(),
+                new HeaderExtractor(),
+                new ResXtract(),
+                new AllocationAnalyzer(),
+                new DisposableAnalyzer(),
+                new DoubleNewlineAnalyzer(),
+                new DuplicateStringLiteralAnalyzer(),
+                new EventHandlerAnalyzer(),
+                new HotPathAnalyzer(),
+                new LicenseHeaderAnalyzer(),
+                new UnusedClassAnalyzer(),
+                new UnusedConstantAnalyzer(),
+                new UnusedLocalVariableAnalyzer(),
+                new UnusedParameterAnalyzer(),
+                new UnusedPrivateFieldAnalyzer(),
+                new ApiExplorerCommand()
+            };
 
             foreach (var module in modules)
                 weave.Register(module);

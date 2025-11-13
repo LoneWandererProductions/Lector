@@ -20,9 +20,8 @@ namespace Weaver.ScriptEngine
     public sealed class ScriptExecutor
     {
         private readonly Weave _weave;
-        private readonly VariableRegistry _registry;
         private readonly IEvaluator _evaluator;
-        private readonly List<(string Category, string? Statement)> _statements;
+        private readonly List<(string Category, string)> _statements;
 
         private readonly Dictionary<string, int> _labelPositions;
         private int _position;
@@ -34,18 +33,18 @@ namespace Weaver.ScriptEngine
         public ScriptExecutor(Weave weave, List<(string Category, string)> statements)
         {
             _weave = weave;
-            _registry = new VariableRegistry();
-            _evaluator = new ExpressionEvaluator(_registry);
+            var registry = new VariableRegistry();
+            _evaluator = new ExpressionEvaluator(registry);
 
             // Register internal commands
-            weave.Register(new SetValue(_registry));
-            weave.Register(new GetValue(_registry));
-            weave.Register(new DeleteValue(_registry));
-            weave.Register(new Memory(_registry));
+            weave.Register(new SetValue(registry));
+            weave.Register(new GetValue(registry));
+            weave.Register(new DeleteValue(registry));
+            weave.Register(new Memory(registry));
             //the evaluate command needs the evaluator and registry
-            weave.Register(new EvaluateCommand(_evaluator, _registry));
+            weave.Register(new EvaluateCommand(_evaluator, registry));
 
-            _statements = statements ?? new List<(string, string?)>();
+            _statements = statements ?? new List<(string Category, string)>();
             _position = 0;
 
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

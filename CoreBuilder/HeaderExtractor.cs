@@ -7,6 +7,7 @@
  */
 
 // ReSharper disable UnusedType.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 using CoreBuilder.Helper;
 using System;
@@ -179,7 +180,8 @@ public sealed class HeaderExtractor : ICommand
 
         return new CommandResult
         {
-            Message = $"Preview of header insertion complete. Files missing headers:\n\n{previewList}\n\nAwaiting user confirmation.",
+            Message =
+                $"Preview of header insertion complete. Files missing headers:\n\n{previewList}\n\nAwaiting user confirmation.",
             Feedback = feedback,
             RequiresConfirmation = true,
             Success = false

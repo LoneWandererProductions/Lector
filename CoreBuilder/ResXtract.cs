@@ -7,6 +7,7 @@
 */
 
 // ReSharper disable UnusedType.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
+
 
 namespace CoreBuilder;
 
@@ -177,7 +179,8 @@ public sealed class ResXtract : ICommand
 
         return new CommandResult
         {
-            Message = $"Preview complete. The following files would be updated:\n\n{preview}\n\nAwaiting user confirmation.",
+            Message =
+                $"Preview complete. The following files would be updated:\n\n{preview}\n\nAwaiting user confirmation.",
             Feedback = feedback,
             RequiresConfirmation = true,
             Success = false
