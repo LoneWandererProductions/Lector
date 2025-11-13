@@ -9,6 +9,7 @@
 using CoreBuilder;
 using CoreBuilder.Rules;
 using Weaver;
+using Weaver.Commands;
 using Weaver.Interfaces;
 
 namespace Lector
@@ -79,7 +80,8 @@ namespace Lector
                     new UnusedConstantAnalyzer(),
                     new UnusedLocalVariableAnalyzer(),
                     new UnusedParameterAnalyzer(),
-                    new UnusedPrivateFieldAnalyzer()
+                    new UnusedPrivateFieldAnalyzer(),
+                    new ApiExplorerCommand()
                 };
 
             foreach (var module in modules)
