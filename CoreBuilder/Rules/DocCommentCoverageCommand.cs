@@ -37,7 +37,7 @@ namespace CoreBuilder.Rules
         public string Description => "Reports the percentage of public members with XML doc comments.";
 
         /// <inheritdoc />
-        public int ParameterCount => 1; // e.g., path to assembly or source folder
+        public int ParameterCount => 1;
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null;
@@ -56,32 +56,39 @@ namespace CoreBuilder.Rules
 
             foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
             {
-                var symbol = ReflectionHelper.GetSymbol(typeDecl); // pseudo: Syntax → TypeInfo
-                if (!ReflectionHelper.HasXmlDoc(symbol))
+                // Check type-level doc comments
+                var trivia = typeDecl.GetLeadingTrivia();
+                bool hasXmlDoc = CoreHelper.HasXmlDocTrivia(trivia);
+
+                if (!hasXmlDoc)
                 {
                     var line = typeDecl.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                     yield return new Diagnostic(
                         Name,
-                        DiagnosticSeverity.Info,
+                        Enums.DiagnosticSeverity.Info,
                         filePath,
                         line,
-                        $"Type '{typeDecl.Identifier.Text}' is missing XML documentation.",
+                        $"Type '{CoreHelper.GetTypeFullName(typeDecl)}' is missing XML documentation.",
                         DiagnosticImpact.Readability
                     );
                 }
 
+                // Check members
                 foreach (var member in typeDecl.Members)
                 {
-                    var memberSymbol = ReflectionHelper.GetSymbol(member);
-                    if (!ReflectionHelper.HasXmlDoc(memberSymbol))
+                    var memberTrivia = member.GetLeadingTrivia();
+                    bool memberHasDoc = CoreHelper.HasXmlDocTrivia(memberTrivia);
+
+                    if (!memberHasDoc)
                     {
                         var line = member.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
                         yield return new Diagnostic(
                             Name,
-                            DiagnosticSeverity.Info,
+                            Enums.DiagnosticSeverity.Info,
                             filePath,
                             line,
-                            $"Member '{member.GetName()}' is missing XML documentation.",
+                            $"Member '{CoreHelper.GetMemberName(member)}' is missing XML documentation.",
                             DiagnosticImpact.Readability
                         );
                     }
@@ -99,7 +106,8 @@ namespace CoreBuilder.Rules
             if (!Directory.Exists(folder))
                 return CommandResult.Fail($"Folder '{folder}' does not exist.");
 
-            int total = 0, documented = 0;
+            int total = 0;
+            int documented = 0;
 
             foreach (var file in Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories))
             {
@@ -107,22 +115,21 @@ namespace CoreBuilder.Rules
                     continue;
 
                 var content = File.ReadAllText(file);
-                var diagnostics = Analyze(file, content);
-
-                // Count total public types/members
                 var tree = CSharpSyntaxTree.ParseText(content);
                 var root = tree.GetRoot();
+
                 foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
                 {
-                    total++; // count type
-                    if (!ReflectionHelper.HasXmlDoc(ReflectionHelper.GetSymbol(typeDecl)))
-                        continue; // not documented
-                    documented++;
+                    total++;
+
+                    if (CoreHelper.HasXmlDocTrivia(typeDecl.GetLeadingTrivia()))
+                        documented++;
 
                     foreach (var member in typeDecl.Members)
                     {
-                        total++; // count member
-                        if (ReflectionHelper.HasXmlDoc(ReflectionHelper.GetSymbol(member)))
+                        total++;
+
+                        if (CoreHelper.HasXmlDocTrivia(member.GetLeadingTrivia()))
                             documented++;
                     }
                 }
@@ -136,5 +143,4 @@ namespace CoreBuilder.Rules
         public CommandResult InvokeExtension(string extensionName, params string[] args)
             => CommandResult.Fail($"'{Name}' has no extensions.");
     }
-
 }

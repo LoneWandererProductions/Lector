@@ -140,6 +140,56 @@ public static class CoreHelper
     }
 
     /// <summary>
+    /// Checks whether the given trivia list contains XML documentation comments.
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect.</param>
+    /// <returns><c>true</c> if XML documentation exists; otherwise <c>false</c>.</returns>
+    public static bool HasXmlDocTrivia(SyntaxTriviaList trivia)
+    {
+        // XML documentation comments appear as SingleLineDocumentationCommentTrivia
+        // or MultiLineDocumentationCommentTrivia.
+        foreach (var t in trivia)
+        {
+            if (t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
+                t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the name of the member.
+    /// </summary>
+    /// <param name="member">The member.</param>
+    /// <returns>Name of Member.</returns>
+    public static string GetMemberName(MemberDeclarationSyntax member)
+    {
+        return member switch
+        {
+            MethodDeclarationSyntax m => m.Identifier.Text,
+            PropertyDeclarationSyntax p => p.Identifier.Text,
+            FieldDeclarationSyntax f => string.Join(", ", f.Declaration.Variables.Select(v => v.Identifier.Text)),
+            EventDeclarationSyntax e => e.Identifier.Text,
+            _ => member.Kind().ToString()
+        };
+    }
+
+    /// <summary>
+    /// Gets the full name of the type.
+    /// </summary>
+    /// <param name="typeDecl">The type decl.</param>
+    /// <param name="namespaceName">Name of the namespace.</param>
+    /// <returns>Full type name.</returns>
+    public static string GetTypeFullName(TypeDeclarationSyntax typeDecl, string? namespaceName = null)
+    {
+        var ns = namespaceName ?? (typeDecl.Parent as NamespaceDeclarationSyntax)?.Name.ToString();
+        return ns != null ? $"{ns}.{typeDecl.Identifier.Text}" : typeDecl.Identifier.Text;
+    }
+
+    /// <summary>
     /// Enumerates all relevant C# source files in a project directory.
     /// </summary>
     /// <param name="projectPath">The root project directory.</param>

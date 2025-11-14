@@ -31,6 +31,7 @@ namespace CoreBuilder.Enums
         /// <summary>
         /// miscellaneous, low-risk
         /// </summary>
-        Other = 3
+        Other = 3,
+        Readability = 4
     }
 }

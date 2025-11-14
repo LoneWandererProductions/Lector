@@ -79,6 +79,8 @@ namespace Lector
                 new UnusedLocalVariableAnalyzer(),
                 new UnusedParameterAnalyzer(),
                 new UnusedPrivateFieldAnalyzer(),
+                new DocCommentCoverageCommand(),
+                new DeadReferenceAnalyzer(),
                 new ApiExplorerCommand()
             };
 
