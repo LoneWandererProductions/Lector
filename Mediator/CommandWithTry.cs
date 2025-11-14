@@ -33,7 +33,7 @@ namespace Mediator
         public CommandResult Execute(params string[] args)
             => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
 
-                /// <inheritdoc />
+        /// <inheritdoc />
         public CommandResult InvokeExtension(string ext, params string[] args)
             => CommandResult.Fail("no ext");
 
@@ -44,5 +44,4 @@ namespace Mediator
         public CommandResult? TryRun(params string[] args)
             => new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
     }
-
 }

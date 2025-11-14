@@ -23,7 +23,7 @@ namespace CoreBuilder.Helper
         /// <value>
         /// The project refs.
         /// </value>
-        internal List<string> ProjectRefs { get; } = new();
+        private List<string> ProjectRefs { get; } = new();
 
         /// <summary>
         /// Gets the package refs.
@@ -31,7 +31,7 @@ namespace CoreBuilder.Helper
         /// <value>
         /// The package refs.
         /// </value>
-        internal List<string> PackageRefs { get; } = new();
+        private List<string> PackageRefs { get; } = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectReferenceInfo"/> class.
@@ -43,19 +43,19 @@ namespace CoreBuilder.Helper
 
             ProjectRefs.AddRange(
                 doc.Descendants("ProjectReference")
-                   .Select(e => (string)e.Attribute("Include") ?? "")
+                    .Select(e => (string)e.Attribute("Include") ?? "")
             );
 
             PackageRefs.AddRange(
                 doc.Descendants("PackageReference")
-                   .Select(e => (string)e.Attribute("Include") ?? "")
+                    .Select(e => (string)e.Attribute("Include") ?? "")
             );
         }
 
         /// <summary>
         /// Gets the unused references.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Possible unused References.</returns>
         internal IEnumerable<string> GetUnusedReferences()
         {
             // TODO: real symbol-based checking.

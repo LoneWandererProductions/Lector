@@ -6,17 +6,30 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
 using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace Lector
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Sample Extension.
+    /// </summary>
+    /// <seealso cref="Weaver.Interfaces.ICommandExtension" />
     public sealed class SampleExtension : ICommandExtension
     {
+        /// <inheritdoc />
         public string Name => "sample"; // name of the extension
+
+        /// <inheritdoc />
         public string Description => "A sample extension that wraps command execution.";
+
+        /// <inheritdoc />
         public string Namespace => "system";
 
+        /// <inheritdoc />
         /// <summary>
         /// Wraps the execution of the command. Can run before/after logic or inject feedback.
         /// </summary>
@@ -48,12 +61,14 @@ namespace Lector
             return result;
         }
 
+        /// <inheritdoc />
         public void BeforeExecute(ICommand command, string[]? args = null)
         {
             // Optional pre-processing
             Console.WriteLine($"[SampleExtension] Before executing {command.Name}");
         }
 
+        /// <inheritdoc />
         public void AfterExecute(ICommand command, CommandResult result)
         {
             // Optional post-processing

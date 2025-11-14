@@ -58,14 +58,14 @@ namespace CoreBuilder.Rules
             {
                 // Check type-level doc comments
                 var trivia = typeDecl.GetLeadingTrivia();
-                bool hasXmlDoc = CoreHelper.HasXmlDocTrivia(trivia);
+                var hasXmlDoc = CoreHelper.HasXmlDocTrivia(trivia);
 
                 if (!hasXmlDoc)
                 {
                     var line = typeDecl.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                     yield return new Diagnostic(
                         Name,
-                        Enums.DiagnosticSeverity.Info,
+                        DiagnosticSeverity.Info,
                         filePath,
                         line,
                         $"Type '{CoreHelper.GetTypeFullName(typeDecl)}' is missing XML documentation.",
@@ -77,7 +77,7 @@ namespace CoreBuilder.Rules
                 foreach (var member in typeDecl.Members)
                 {
                     var memberTrivia = member.GetLeadingTrivia();
-                    bool memberHasDoc = CoreHelper.HasXmlDocTrivia(memberTrivia);
+                    var memberHasDoc = CoreHelper.HasXmlDocTrivia(memberTrivia);
 
                     if (!memberHasDoc)
                     {
@@ -85,7 +85,7 @@ namespace CoreBuilder.Rules
 
                         yield return new Diagnostic(
                             Name,
-                            Enums.DiagnosticSeverity.Info,
+                            DiagnosticSeverity.Info,
                             filePath,
                             line,
                             $"Member '{CoreHelper.GetMemberName(member)}' is missing XML documentation.",
@@ -106,8 +106,8 @@ namespace CoreBuilder.Rules
             if (!Directory.Exists(folder))
                 return CommandResult.Fail($"Folder '{folder}' does not exist.");
 
-            int total = 0;
-            int documented = 0;
+            var total = 0;
+            var documented = 0;
 
             foreach (var file in Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories))
             {
@@ -135,7 +135,7 @@ namespace CoreBuilder.Rules
                 }
             }
 
-            double percent = total == 0 ? 0 : (documented * 100.0 / total);
+            var percent = total == 0 ? 0 : (documented * 100.0 / total);
             return CommandResult.Ok($"Doc comment coverage: {percent:F1}% ({documented}/{total})");
         }
 

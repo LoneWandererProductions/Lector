@@ -92,7 +92,7 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
             if (loopContext == LoopContext.None)
                 continue;
 
-            int risk = loopContext switch
+            var risk = loopContext switch
             {
                 LoopContext.ConstantBounded => ConstantLoopWeight,
                 LoopContext.VariableBounded => VariableLoopWeight,
@@ -110,7 +110,7 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
 
             var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 
-            DiagnosticImpact impact = loopContext switch
+            var impact = loopContext switch
             {
                 LoopContext.ConstantBounded or LoopContext.VariableBounded or LoopContext.Nested => DiagnosticImpact
                     .CpuBound,

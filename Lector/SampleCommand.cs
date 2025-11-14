@@ -6,25 +6,41 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable UnusedType.Global
+
+#nullable enable
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
 namespace Lector
 {
+    /// <inheritdoc />
     /// <summary>
     /// Template command for the Weaver engine.
     /// Implements ICommand with optional preview support.
     /// </summary>
     public sealed class SampleCommand : ICommand
     {
+        /// <inheritdoc />
         public string Namespace => "system";
+
+        /// <inheritdoc />
         public string Name => "sample";
+
+        /// <inheritdoc />
         public string Description => "A sample command demonstrating feedback and preview usage.";
+
+        /// <inheritdoc />
         public int ParameterCount => 1;
+
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, int>? Extensions => null; // no manual feedback extension needed
+
+        /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
+        /// <inheritdoc />
         /// <summary>
         /// Normal execution of the command.
         /// Uses FeedbackRequest for confirmation.
@@ -66,6 +82,7 @@ namespace Lector
             };
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Optional preview mode called by extensions like .tryrun()
         /// </summary>
@@ -82,6 +99,7 @@ namespace Lector
             };
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// No extension handling required: all feedback handled via IFeedback.
         /// </summary>

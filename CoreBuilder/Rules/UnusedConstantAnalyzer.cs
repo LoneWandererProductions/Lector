@@ -91,12 +91,12 @@ public sealed class UnusedConstantAnalyzer : ICodeAnalyzer, ICommand
         // Cross-check each declaration against all file contents
         foreach (var decl in declarations)
         {
-            int usageCount = 0;
+            var usageCount = 0;
 
             foreach (var kvp in allFiles)
             {
                 var lines = kvp.Value.Split('\n');
-                for (int i = 0; i < lines.Length; i++)
+                for (var i = 0; i < lines.Length; i++)
                 {
                     // Skip the declaration line itself
                     if (kvp.Key == decl.FilePath && i == decl.Line - 1) continue;

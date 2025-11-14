@@ -57,7 +57,8 @@ namespace Weaver.ParseEngine
             // Handle namespace:command using SplitOutsideParentheses (so colons inside args are ignored)
             var mainPart = segments[0];
             string? ns = null;
-            var cmdPart = mainPart;
+
+            string cmdPart;
 
             var nsSplit = SplitOutsideParentheses(mainPart, ':');
             if (nsSplit.Count == 2)
@@ -82,15 +83,23 @@ namespace Weaver.ParseEngine
             // Parse optional extension (only one supported)
             var ext = string.Empty;
             var extArgs = Array.Empty<string>();
-            if (segments.Count > 1)
-            {
-                var extMatch = CommandPattern.Match(segments[1]);
-                if (!extMatch.Success)
-                    throw new FormatException($"Invalid extension syntax near '{segments[1]}'.");
 
-                ext = extMatch.Groups["cmd"].Value;
-                extArgs = ParseArgs(extMatch.Groups["args"].Value);
-            }
+            if (segments.Count <= 1)
+                return new ParsedCommand
+                {
+                    Namespace = ns ?? string.Empty,
+                    Name = cmd,
+                    Args = args,
+                    Extension = ext,
+                    ExtensionArgs = extArgs
+                };
+
+            var extMatch = CommandPattern.Match(segments[1]);
+            if (!extMatch.Success)
+                throw new FormatException($"Invalid extension syntax near '{segments[1]}'.");
+
+            ext = extMatch.Groups["cmd"].Value;
+            extArgs = ParseArgs(extMatch.Groups["args"].Value);
 
             return new ParsedCommand
             {
@@ -117,12 +126,24 @@ namespace Weaver.ParseEngine
             for (var i = 0; i < input.Length; i++)
             {
                 var c = input[i];
-                if (c == '(') depth++;
-                else if (c == ')') depth--;
-                else if (c == separator && depth == 0)
+                switch (c)
                 {
-                    parts.Add(input[start..i].Trim());
-                    start = i + 1;
+                    case '(':
+                        depth++;
+                        break;
+                    case ')':
+                        depth--;
+                        break;
+                    default:
+                    {
+                        if (c == separator && depth == 0)
+                        {
+                            parts.Add(input[start..i].Trim());
+                            start = i + 1;
+                        }
+
+                        break;
+                    }
                 }
             }
 

@@ -45,5 +45,4 @@ namespace Mediator
             return CommandResult.Fail("no ext");
         }
     }
-
 }

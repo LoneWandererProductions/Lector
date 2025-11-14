@@ -13,7 +13,7 @@ using Weaver.Messages;
 namespace Mediator
 {
     [TestClass]
-    public partial class ExtensionIntegrationTests
+    public class ExtensionIntegrationTests
     {
         /// <summary>
         /// The weaver
@@ -59,16 +59,14 @@ namespace Mediator
             var cmdWithoutTry = new CommandWithoutTry();
 
             // executor simply calls Execute on the command
-            Func<string[], CommandResult> executorWithTry =
-                args => cmdWithTry.Execute(args);
+            CommandResult ExecutorWithTry(string[] args) => cmdWithTry.Execute(args);
 
-            Func<string[], CommandResult> executorWithoutTry =
-                args => cmdWithoutTry.Execute(args);
+            CommandResult ExecutorWithoutTry(string[] args) => cmdWithoutTry.Execute(args);
 
             // ---------------------------------------------
             // CASE 1: Command IMPLEMENTS TryRun()
             // ---------------------------------------------
-            var resultTry = extension.Invoke(cmdWithTry, new[] { "fileA" }, executorWithTry);
+            var resultTry = extension.Invoke(cmdWithTry, new[] { "fileA" }, ExecutorWithTry);
 
             Assert.IsTrue(resultTry.RequiresConfirmation);
             Assert.IsNotNull(resultTry.Feedback);
@@ -82,7 +80,7 @@ namespace Mediator
             // CASE 2: Command does NOT implement TryRun()
             // TryRunExtension should use executor instead
             // ---------------------------------------------
-            var resultNoTry = extension.Invoke(cmdWithoutTry, new[] { "fileB" }, executorWithoutTry);
+            var resultNoTry = extension.Invoke(cmdWithoutTry, new[] { "fileB" }, ExecutorWithoutTry);
 
             Assert.IsTrue(resultNoTry.RequiresConfirmation);
             Assert.IsNotNull(resultNoTry.Feedback);
@@ -94,7 +92,5 @@ namespace Mediator
             Assert.IsFalse(confirmed2.Success);
             Assert.AreEqual("Execution cancelled by user.", confirmed2.Message);
         }
-
-
     }
 }

@@ -25,12 +25,12 @@ internal static class CoreHelper
     /// <summary>
     /// The ignore cache
     /// </summary>
-    private static readonly Dictionary<string, bool> _ignoreCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, bool> IgnoreCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The source file cache
     /// </summary>
-    private static readonly Dictionary<string, string[]> _sourceFileCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string[]> SourceFileCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Determines whether a given file should be ignored during analysis.
@@ -40,14 +40,13 @@ internal static class CoreHelper
     /// <see langword="true"/> if the file is auto-generated or excluded;
     /// otherwise, <see langword="false"/>.
     /// </returns>
-
     internal static bool ShouldIgnoreFile(string filePath)
     {
-        if (_ignoreCache.TryGetValue(filePath, out bool cached))
+        if (IgnoreCache.TryGetValue(filePath, out var cached))
             return cached;
 
-        bool result = ShouldIgnore(filePath);
-        _ignoreCache[filePath] = result;
+        var result = ShouldIgnore(filePath);
+        IgnoreCache[filePath] = result;
         return result;
     }
 
@@ -163,19 +162,20 @@ internal static class CoreHelper
     /// <returns>Enumerable of file paths.</returns>
     internal static IEnumerable<string> GetSourceFiles(string projectPath)
     {
-        if (_sourceFileCache.TryGetValue(projectPath, out var cached))
+        if (SourceFileCache.TryGetValue(projectPath, out var cached))
             return cached;
 
-        var files = Directory.EnumerateFiles(projectPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories)
-                            .Where(f => !f.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains(@"\.vs\", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains("resource", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains("const", StringComparison.OrdinalIgnoreCase))
+        var files = Directory
+            .EnumerateFiles(projectPath, CoreResources.ResourceCsExtension, SearchOption.AllDirectories)
+            .Where(f => !f.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\obj\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains(@"\.vs\", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains("resource", StringComparison.OrdinalIgnoreCase) &&
+                        !f.Contains("const", StringComparison.OrdinalIgnoreCase))
             .ToArray();
 
-        _sourceFileCache[projectPath] = files;
+        SourceFileCache[projectPath] = files;
         return files;
     }
 
@@ -208,7 +208,7 @@ internal static class CoreHelper
     /// </returns>
     private static bool ShouldIgnore(string filePath)
     {
-        if (_ignoreCache.TryGetValue(filePath, out bool cached))
+        if (IgnoreCache.TryGetValue(filePath, out var cached))
             return cached;
 
         var fileName = Path.GetFileName(filePath);

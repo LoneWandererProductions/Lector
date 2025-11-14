@@ -21,7 +21,7 @@ namespace CoreBuilder.Rules
     /// Command that detects unused project/assembly references.
     /// </summary>
     /// <seealso cref="Weaver.Interfaces.ICommand" />
-    public sealed partial class DeadReferenceAnalyzer : ICommand, ICodeAnalyzer
+    public sealed class DeadReferenceAnalyzer : ICommand, ICodeAnalyzer
     {
         /// <inheritdoc cref="ICodeAnalyzer" />
         public string Namespace => "analysis";
@@ -56,11 +56,11 @@ namespace CoreBuilder.Rules
             {
                 yield return new Diagnostic(
                     Name,
-                    CoreBuilder.Enums.DiagnosticSeverity.Warning,
+                    Enums.DiagnosticSeverity.Warning,
                     filePath,
                     0,
                     $"Unused reference '{r}' detected.",
-                    CoreBuilder.Enums.DiagnosticImpact.Other
+                    Enums.DiagnosticImpact.Other
                 );
             }
         }
@@ -70,7 +70,7 @@ namespace CoreBuilder.Rules
         {
             if (args.Length == 0) return CommandResult.Fail("Please provide a folder with projects (.csproj).");
 
-            string folder = args[0];
+            var folder = args[0];
             var diagnostics = new List<Diagnostic>();
 
             foreach (var project in Directory.EnumerateFiles(folder, "*.csproj", SearchOption.AllDirectories))
@@ -81,7 +81,8 @@ namespace CoreBuilder.Rules
             if (diagnostics.Count == 0)
                 return CommandResult.Ok("No unused references found.");
 
-            var messages = string.Join("\n", diagnostics.ConvertAll(d => $"{Path.GetFileName(d.FilePath)} -> {d.Message}"));
+            var messages = string.Join("\n",
+                diagnostics.ConvertAll(d => $"{Path.GetFileName(d.FilePath)} -> {d.Message}"));
             return CommandResult.Ok($"Unused references detected:\n{messages}");
         }
 

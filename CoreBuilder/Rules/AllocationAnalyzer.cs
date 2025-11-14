@@ -79,7 +79,7 @@ public sealed class AllocationAnalyzer : ICodeAnalyzer, ICommand
             var loopContext = CoreHelper.GetLoopContext(alloc);
             if (loopContext == LoopContext.None) continue;
 
-            int risk = loopContext switch
+            var risk = loopContext switch
             {
                 LoopContext.ConstantBounded => ConstantLoopWeight,
                 LoopContext.VariableBounded => VariableLoopWeight,
