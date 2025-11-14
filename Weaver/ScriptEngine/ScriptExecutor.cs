@@ -37,10 +37,10 @@ namespace Weaver.ScriptEngine
             _evaluator = new ExpressionEvaluator(registry);
 
             // Register internal commands
-            weave.Register(new SetValue(registry));
-            weave.Register(new GetValue(registry));
-            weave.Register(new DeleteValue(registry));
-            weave.Register(new Memory(registry));
+            weave.Register(new SetValueCommand(registry));
+            weave.Register(new GetValueCommand(registry));
+            weave.Register(new DeleteValueCommand(registry));
+            weave.Register(new MemoryCommand(registry));
             //the evaluate command needs the evaluator and registry
             weave.Register(new EvaluateCommand(_evaluator, registry));
 

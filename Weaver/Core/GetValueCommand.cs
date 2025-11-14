@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
- * FILE:        GetValue.cs
+ * FILE:        GetValueCommand.cs
  * PURPOSE:     Retrieves a stored value and type from the Scripter Engine.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -15,15 +15,18 @@ namespace Weaver.Core
     /// <summary>
     ///     Internal command, retrieves a value and type from the Scripter registry.
     /// </summary>
-    public sealed class GetValue : ICommand
+    public sealed class GetValueCommand : ICommand
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
         private readonly IVariableRegistry _registry;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetValue"/> class.
+        /// Initializes a new instance of the <see cref="GetValueCommand"/> class.
         /// </summary>
         /// <param name="registry">The variable registry to read from.</param>
-        public GetValue(IVariableRegistry registry)
+        public GetValueCommand(IVariableRegistry registry)
         {
             _registry = registry;
         }

@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
- * FILE:        SetValue.cs
+ * FILE:        SetValueCommand.cs
  * PURPOSE:     Sets a value and type for the Scripter Engine. Uses the internal Scripter Variable Storage.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -15,15 +15,15 @@ namespace Weaver.Core
     /// <summary>
     ///     Internal command, sets a typed value in the Scripter registry.
     /// </summary>
-    public sealed class SetValue : ICommand
+    public sealed class SetValueCommand : ICommand
     {
         private readonly IVariableRegistry _registry;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SetValue"/> class.
+        /// Initializes a new instance of the <see cref="SetValueCommand"/> class.
         /// </summary>
         /// <param name="registry">The variable registry to store the value in.</param>
-        public SetValue(IVariableRegistry registry)
+        public SetValueCommand(IVariableRegistry registry)
         {
             _registry = registry;
         }

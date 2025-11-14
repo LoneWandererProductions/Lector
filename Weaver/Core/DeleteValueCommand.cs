@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
- * FILE:        DeleteValue.cs
+ * FILE:        DeleteValueCommand.cs
  * PURPOSE:     Deletes a stored value from the Scripter Engine.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -16,7 +16,7 @@ namespace Weaver.Core
     /// Mostly internal command, deletes a value from the Scripter registry.
     /// </summary>
     /// <seealso cref="Weaver.Interfaces.ICommand" />
-    public sealed class DeleteValue : ICommand
+    public sealed class DeleteValueCommand : ICommand
     {
         /// <summary>
         /// The registry
@@ -24,10 +24,10 @@ namespace Weaver.Core
         private readonly IVariableRegistry _registry;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteValue"/> class.
+        /// Initializes a new instance of the <see cref="DeleteValueCommand"/> class.
         /// </summary>
         /// <param name="registry">The registry.</param>
-        public DeleteValue(IVariableRegistry registry)
+        public DeleteValueCommand(IVariableRegistry registry)
         {
             _registry = registry;
         }

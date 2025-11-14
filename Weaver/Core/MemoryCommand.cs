@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Core
- * FILE:        Memory.cs
+ * FILE:        MemoryCommand.cs
  * PURPOSE:     Internal Command, for scripting Engine, lists all stored variables.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -16,15 +16,18 @@ namespace Weaver.Core
     /// Internal Command, for scripting Engine, lists all stored variables.
     /// </summary>
     /// <seealso cref="Weaver.Interfaces.ICommand" />
-    public sealed class Memory : ICommand
+    public sealed class MemoryCommand : ICommand
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
         private readonly IVariableRegistry _registry;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Memory"/> class.
+        /// Initializes a new instance of the <see cref="MemoryCommand"/> class.
         /// </summary>
         /// <param name="registry">The registry.</param>
-        public Memory(IVariableRegistry registry)
+        public MemoryCommand(IVariableRegistry registry)
         {
             _registry = registry;
         }
