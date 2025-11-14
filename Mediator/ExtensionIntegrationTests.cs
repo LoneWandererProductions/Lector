@@ -1,4 +1,4 @@
-/*
+﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        ExtensionIntegrationTests.cs
@@ -7,11 +7,13 @@
  */
 
 using Weaver;
+using Weaver.Core;
+using Weaver.Messages;
 
 namespace Mediator
 {
     [TestClass]
-    public class ExtensionIntegrationTests
+    public partial class ExtensionIntegrationTests
     {
         /// <summary>
         /// The weaver
@@ -44,5 +46,55 @@ namespace Mediator
             Assert.IsFalse(result.Success); // because DeleteCommand returns RequiresConfirmation feedback initially
             Assert.IsNotNull(result.Feedback, "Feedback should exist");
         }
+
+        /// <summary>
+        /// Tries the run extension behavior with and without try run.
+        /// </summary>
+        [TestMethod]
+        public void TryRunExtensionBehaviorWithAndWithoutTryRun()
+        {
+            var extension = new TryRunExtension();
+
+            var cmdWithTry = new CommandWithTry();
+            var cmdWithoutTry = new CommandWithoutTry();
+
+            // executor simply calls Execute on the command
+            Func<string[], CommandResult> executorWithTry =
+                args => cmdWithTry.Execute(args);
+
+            Func<string[], CommandResult> executorWithoutTry =
+                args => cmdWithoutTry.Execute(args);
+
+            // ---------------------------------------------
+            // CASE 1: Command IMPLEMENTS TryRun()
+            // ---------------------------------------------
+            var resultTry = extension.Invoke(cmdWithTry, new[] { "fileA" }, executorWithTry);
+
+            Assert.IsTrue(resultTry.RequiresConfirmation);
+            Assert.IsNotNull(resultTry.Feedback);
+            Assert.IsTrue(resultTry.Message.Contains("[Preview-WithTry]"));
+
+            // simulate user saying "yes"
+            var confirmed1 = resultTry.Feedback!.Respond("yes");
+            Assert.AreEqual("EXEC fileA", confirmed1.Message);
+
+            // ---------------------------------------------
+            // CASE 2: Command does NOT implement TryRun()
+            // TryRunExtension should use executor instead
+            // ---------------------------------------------
+            var resultNoTry = extension.Invoke(cmdWithoutTry, new[] { "fileB" }, executorWithoutTry);
+
+            Assert.IsTrue(resultNoTry.RequiresConfirmation);
+            Assert.IsNotNull(resultNoTry.Feedback);
+            Assert.IsTrue(resultNoTry.Message.Contains("[Preview-Fallback]"));
+
+            // simulate user saying "no"
+            var confirmed2 = resultTry.Feedback!.Respond("no");
+
+            Assert.IsFalse(confirmed2.Success);
+            Assert.AreEqual("Execution cancelled by user.", confirmed2.Message);
+        }
+
+
     }
 }

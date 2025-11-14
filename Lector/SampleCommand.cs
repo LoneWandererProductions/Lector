@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Lector
  * FILE:        SampleCommand.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Another Test Command for the Weaver engine demonstrating feedback and preview.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
