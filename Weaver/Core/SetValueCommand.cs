@@ -17,6 +17,9 @@ namespace Weaver.Core
     /// </summary>
     public sealed class SetValueCommand : ICommand
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
         private readonly IVariableRegistry _registry;
 
         /// <summary>
