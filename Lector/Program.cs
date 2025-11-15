@@ -62,27 +62,7 @@ namespace Lector
         /// <param name="weave">The weave.</param>
         private static void RegisterApps(Weave weave)
         {
-            ICommand[] modules =
-            {
-                new DirectorySizeAnalyzer(),
-                new HeaderExtractor(),
-                new ResXtract(),
-                new AllocationAnalyzer(),
-                new DisposableAnalyzer(),
-                new DoubleNewlineAnalyzer(),
-                new DuplicateStringLiteralAnalyzer(),
-                new EventHandlerAnalyzer(),
-                new HotPathAnalyzer(),
-                new LicenseHeaderAnalyzer(),
-                new UnusedClassAnalyzer(),
-                new UnusedConstantAnalyzer(),
-                new UnusedLocalVariableAnalyzer(),
-                new UnusedParameterAnalyzer(),
-                new UnusedPrivateFieldAnalyzer(),
-                new DocCommentCoverageCommand(),
-                new DeadReferenceAnalyzer(),
-                new ApiExplorerCommand()
-            };
+            var modules = AnalyzerFactory.GetCommands();
 
             foreach (var module in modules)
                 weave.Register(module);

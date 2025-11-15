@@ -90,19 +90,22 @@ internal static class CoreHelper
     /// <returns>The project root directory.</returns>
     internal static string FindProjectRoot(string startPath)
     {
+        // Normalize: convert file path → directory path
+        if (File.Exists(startPath))
+            startPath = Path.GetDirectoryName(startPath)!;
+
         var dir = new DirectoryInfo(startPath);
-        if (dir.Exists && dir.Extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
-            return dir.Name;
 
         while (dir != null)
         {
-            if (dir.GetFiles("*.csproj").Any())
+            if (dir.GetFiles(CoreResources.ResourceCsProjectExtension).Any())
                 return dir.FullName;
 
             dir = dir.Parent;
         }
 
-        return Path.GetDirectoryName(startPath)!;
+        // Fallback
+        return startPath;
     }
 
     /// <summary>

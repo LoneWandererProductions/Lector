@@ -14,7 +14,12 @@ namespace CoreBuilder;
 internal static class CoreResources
 {
     /// <summary>
-    /// The resource cs extension
+    /// The cs extension
     /// </summary>
     internal const string ResourceCsExtension = "*.cs";
+
+    /// <summary>
+    /// The resource cs project extension
+    /// </summary>
+    internal const string ResourceCsProjectExtension = "*.csproj";
 }

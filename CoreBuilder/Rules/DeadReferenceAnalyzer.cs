@@ -8,6 +8,7 @@
 
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Weaver;
@@ -44,7 +45,7 @@ namespace CoreBuilder.Rules
         /// <inheritdoc />
         public IEnumerable<Diagnostic> Analyze(string filePath, string fileContent)
         {
-            if (CoreHelper.ShouldIgnoreFile(filePath))
+            if (!filePath.EndsWith(CoreResources.ResourceCsProjectExtension, StringComparison.OrdinalIgnoreCase))
                 yield break;
 
             // FileContent is empty for .csproj execution → load file

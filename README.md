@@ -178,6 +178,89 @@ setValue("score2", 5, Wint);
 evaluate("score1 > score2 && score2 > 0"); // returns true
 ```
 
+# CoreBuilder and Code Analyzer Modules
+
+The **CoreBuilder** project provides a collection of lightweight code analyzers and developer utilities that all implement the `ICommand` interface. Although originally built as standalone tools, they were adapted to the Weave command framework so they can be:
+
+- executed from the Weave engine,  
+- scripted inside Weaver Script Engine,  
+- tested via command extensions,  
+- displayed in the CoreViewer UI.
+
+These modules behave like a minimal, scriptable version of **ReSharper** or **Roslyn analyzers**, but with a narrower focus and simpler implementation.
+
+## Included Analyzers and Utilities
+
+All analyzers below support `ICommand` and can therefore be executed through Weave:
+
+```
+new DirectorySizeAnalyzer(),
+new HeaderExtractor(),
+new ResXtract(),
+new AllocationAnalyzer(),
+new DisposableAnalyzer(),
+new DoubleNewlineAnalyzer(),
+new DuplicateStringLiteralAnalyzer(),
+new EventHandlerAnalyzer(),
+new HotPathAnalyzer(),
+new LicenseHeaderAnalyzer(),
+new UnusedClassAnalyzer(),
+new UnusedConstantAnalyzer(),
+new UnusedLocalVariableAnalyzer(),
+new UnusedParameterAnalyzer(),
+new UnusedPrivateFieldAnalyzer(),
+new DocCommentCoverageCommand(),
+new DeadReferenceAnalyzer(),
+new ApiExplorerCommand()
+```
+
+## Purpose of CoreBuilder
+
+- **Code Diagnostics:**  
+  Detect unused code, inconsistent formatting, missing comments, disposable-pattern errors, or accidental allocations.
+
+- **Project Utilities:**  
+  Extract headers, license blocks, or extract strings into an resource .cs file.
+
+- **API Exploration:**  
+  Lightweight tool to inspect methods, parameters, and reflection metadata.
+
+- **Filesystem Utilities:**  
+  Commands like `DirectorySizeAnalyzer` help quickly inspect directory complexity or storage impact.
+
+## CoreViewer Integration
+
+The **CoreViewer** project provides a simple GUI frontend — essentially a “poor man’s Code Analyzer.”  
+It displays:
+
+- analysis results,
+- diagnostics grouped by file/severity,
+- simple on/off toggles for analyzers,
+- basic interaction buttons for running modules.
+
+It is intentionally minimalistic: the analyzers run independently and do not require Visual Studio or Roslyn. CoreViewer simply hosts them and exposes the results.
+
+## Supporting Projects
+
+- **CommonDialogs:**  
+  A small helper library offering file pickers, directory pickers, and confirmation prompts used by CoreViewer.
+
+- **ViewModel:**  
+  MVVM-ready view models for CoreViewer, providing binding-friendly interfaces for analyzer execution results.
+
+Together, these projects form a compact ecosystem:
+
+- **Weave / Script Engine** handles command execution and scripting.  
+- **CoreBuilder** provides code-oriented commands and analyzers.  
+- **CoreViewer** visualizes analyzer output.  
+- **CommonDialogs + ViewModel** support the UI environment.
+
+This allows every analyzer to run:
+
+- from the GUI,  
+- from command line strings,
+- from scripted workflows,
+
 ## UML
 
 ```mermaid
