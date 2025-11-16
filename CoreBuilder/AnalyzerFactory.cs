@@ -46,7 +46,8 @@ namespace CoreBuilder
                 new DocCommentCoverageCommand(),
                 new DeadReferenceAnalyzer(),
                 new ApiExplorerCommand(),
-                new FileLockScanner()
+                new FileLockScanner(),
+                new SmartPingPro()
             };
 
             return modules; 
@@ -89,7 +90,8 @@ namespace CoreBuilder
             ICommand[] modules =
             {
                 new DirectorySizeAnalyzer(),
-                new FileLockScanner()
+                new FileLockScanner(),
+                new SmartPingPro()
             };
 
             // Filter by Namespace
