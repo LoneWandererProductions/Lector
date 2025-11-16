@@ -74,7 +74,6 @@ namespace CoreBuilder.Rules
             try
             {
                 results = AnalyzerExecutor.ExecutePath(this, args, "Usage: deadrefs <folderOrFile (.csproj)>");
-
             }
             catch (Exception ex)
             {

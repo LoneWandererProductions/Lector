@@ -55,17 +55,18 @@ namespace CommonDialogs
         /// True if this folder or file is selected in the TreeView.
         /// Setting this property raises <see cref="PropertyChanged"/>.
         /// </summary>
-       public bool IsSelected
+        public bool IsSelected
         {
             get => _isSelected;
             set
             {
                 if (_isSelected == value) return;
+
                 _isSelected = value;
                 OnPropertyChanged(nameof(IsSelected));
 
                 if (_isSelected)
-                    _parentVM.SelectedFolder = this;  // ← direct, safe
+                    _parentVm.SelectedFolder = this; // ← direct, safe
             }
         }
 
@@ -77,7 +78,7 @@ namespace CommonDialogs
         /// <summary>
         /// The parent vm
         /// </summary>
-        private readonly FolderViewModel _parentVM;
+        private readonly FolderViewModel _parentVm;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FolderItemViewModel" /> for a given path.
@@ -88,7 +89,7 @@ namespace CommonDialogs
         {
             Path = path;
             Header = System.IO.Path.GetFileName(path) ?? path;
-            _parentVM = parentVM;
+            _parentVm = parentVM;
             HasChildren = SafeHasChildren(path);
         }
 
@@ -143,10 +144,11 @@ namespace CommonDialogs
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var dir in dirs)
-                        Children.Add(new FolderItemViewModel(dir, _parentVM));
+                        Children.Add(new FolderItemViewModel(dir, _parentVm));
 
                     foreach (var file in files)
-                        Children.Add(new FolderItemViewModel(file, _parentVM) { Header = System.IO.Path.GetFileName(file) });
+                        Children.Add(new FolderItemViewModel(file, _parentVm)
+                            { Header = System.IO.Path.GetFileName(file) });
                 });
             }
             catch

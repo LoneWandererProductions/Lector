@@ -29,7 +29,7 @@ namespace CoreBuilder.Rules
         /// <returns>Folders or for a File Path it will return a Diagnostic result, if any errors it will return a message.</returns>
         /// <exception cref="System.ArgumentException"></exception>
         /// <exception cref="System.IO.FileNotFoundException">Path not found: {path}</exception>
-        internal static List<Diagnostic> ExecutePath(ICodeAnalyzer analyzer, string[] args, string usageMessage)
+        internal static List<Diagnostic> ExecutePath(ICodeAnalyzer? analyzer, string[] args, string usageMessage)
         {
             if (args.Length == 0)
                 throw new ArgumentException(usageMessage);

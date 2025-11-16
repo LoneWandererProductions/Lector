@@ -234,7 +234,7 @@ namespace CommonDialogs
 
                 var newDirPath = Path.Combine(Paths, ComDlgResources.NewFolder);
                 var dirName = newDirPath;
-                int i = 1;
+                var i = 1;
 
                 while (Directory.Exists(dirName))
                     dirName = $"{newDirPath} ({i++})";
@@ -273,9 +273,9 @@ namespace CommonDialogs
         {
             Paths = path;
 
-            string[] directories =
+            var directories =
                 Directory.Exists(path) ? Directory.GetDirectories(path) : Directory.GetLogicalDrives();
-            string[] files = ShowFiles && Directory.Exists(path) ? Directory.GetFiles(path) : Array.Empty<string>();
+            var files = ShowFiles && Directory.Exists(path) ? Directory.GetFiles(path) : Array.Empty<string>();
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -289,7 +289,8 @@ namespace CommonDialogs
                 if (ShowFiles)
                 {
                     foreach (var file in files)
-                        FolderItems.Add(new FolderItemViewModel(file, this) { Header = Path.GetFileName(file) ?? file });
+                        FolderItems.Add(new FolderItemViewModel(file, this)
+                            { Header = Path.GetFileName(file) ?? file });
                 }
             });
         }
@@ -307,10 +308,10 @@ namespace CommonDialogs
                     return null;
 
                 // Normalize path (removes trailing slashes)
-                string full = Path.GetFullPath(path);
+                var full = Path.GetFullPath(path);
 
                 // Detect root (C:\, D:\, etc.)
-                string? root = Path.GetPathRoot(full);
+                var root = Path.GetPathRoot(full);
                 if (root != null &&
                     root.Equals(full, StringComparison.OrdinalIgnoreCase))
                 {
@@ -325,6 +326,5 @@ namespace CommonDialogs
                 return null; // On ANY error, return null
             }
         }
-
     }
 }

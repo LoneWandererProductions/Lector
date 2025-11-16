@@ -50,7 +50,7 @@ namespace CoreBuilder
                 new SmartPingPro()
             };
 
-            return modules; 
+            return modules;
         }
 
         /// <summary>

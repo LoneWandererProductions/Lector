@@ -9,6 +9,7 @@
 using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -25,7 +26,7 @@ namespace CoreBuilder.Helper
         /// <param name="directory">The directory path to scan recursively.</param>
         /// <param name="analyzer">The analyzer instance implementing <see cref="ICodeAnalyzer"/>.</param>
         /// <returns>A collection of all diagnostics produced by the analyzer.</returns>
-        internal static IEnumerable<Diagnostic> RunAnalyzer(string directory, ICodeAnalyzer analyzer)
+        internal static IEnumerable<Diagnostic> RunAnalyzer(string directory, ICodeAnalyzer? analyzer)
         {
             // Validate input
             if (string.IsNullOrWhiteSpace(directory) || analyzer == null)
@@ -37,8 +38,6 @@ namespace CoreBuilder.Helper
             var diagnostics = new List<Diagnostic>();
 
             // Search recursively for .cs files
-            var files = Directory.GetFiles(directory, CoreResources.ResourceCsExtension, SearchOption.AllDirectories);
-
             foreach (var file in SafeEnumerateFiles(directory, CoreResources.ResourceCsExtension))
             {
                 if (CoreHelper.ShouldIgnoreFile(file))
@@ -57,7 +56,7 @@ namespace CoreBuilder.Helper
         /// <param name="filePath">The full path of the file to analyze.</param>
         /// <param name="analyzer">The analyzer instance implementing <see cref="ICodeAnalyzer"/>.</param>
         /// <returns>A collection of diagnostics for that file.</returns>
-        internal static IEnumerable<Diagnostic> RunAnalyzerForFile(string filePath, ICodeAnalyzer analyzer)
+        internal static IEnumerable<Diagnostic> RunAnalyzerForFile(string filePath, ICodeAnalyzer? analyzer)
         {
             if (string.IsNullOrWhiteSpace(filePath) || analyzer == null)
                 return Enumerable.Empty<Diagnostic>();
@@ -85,18 +84,30 @@ namespace CoreBuilder.Helper
 
             while (stack.Count > 0)
             {
-                string current = stack.Pop();
+                var current = stack.Pop();
 
-                string[] files = Array.Empty<string>();
-                try { files = Directory.GetFiles(current, pattern); }
-                catch { }
+                var files = Array.Empty<string>();
+                try
+                {
+                    files = Directory.GetFiles(current, pattern);
+                }
+                catch (Exception exe)
+                {
+                    Trace.WriteLine($"Error accessing files in directory {current}: {exe.Message}");
+                }
 
                 foreach (var f in files)
                     yield return f;
 
-                string[] dirs = Array.Empty<string>();
-                try { dirs = Directory.GetDirectories(current); }
-                catch { }
+                var dirs = Array.Empty<string>();
+                try
+                {
+                    dirs = Directory.GetDirectories(current);
+                }
+                catch (Exception exe)
+                {
+                    Trace.WriteLine($"Error accessing directories in directory {current}: {exe.Message}");
+                }
 
                 foreach (var d in dirs)
                     stack.Push(d);

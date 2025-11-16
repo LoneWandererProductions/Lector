@@ -121,6 +121,8 @@ public sealed class DirectorySizeAnalyzer : ICommand
         if (args.Length < 1)
             return CommandResult.Fail("Usage: DirectorySize([path])");
 
+        //Todo parse subfolder and use safe enumeration
+
         var directoryPath = args[0];
         var includeSubdirs = args.Length > 1 && args[1].Equals("true", StringComparison.OrdinalIgnoreCase);
 

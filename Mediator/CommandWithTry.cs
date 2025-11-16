@@ -41,7 +41,7 @@ namespace Mediator
         /// <summary>
         /// Here is the important part:
         /// </summary>
-        public CommandResult? TryRun(params string[] args)
+        public CommandResult TryRun(params string[] args)
             => new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
     }
 }

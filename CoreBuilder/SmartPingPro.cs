@@ -46,9 +46,9 @@ namespace CoreBuilder
             if (args.Length < 1)
                 return CommandResult.Fail("Usage: SmartPingPro [host] [options]");
 
-            string host = args[0];
-            int pingCount = args.Length > 1 && int.TryParse(args[1], out int n) ? n : 5;
-            bool doReverseDns = args.Length > 2 && args[2].Equals("true", StringComparison.OrdinalIgnoreCase);
+            var host = args[0];
+            var pingCount = args.Length > 1 && int.TryParse(args[1], out var n) ? n : 5;
+            var doReverseDns = args.Length > 2 && args[2].Equals("true", StringComparison.OrdinalIgnoreCase);
 
             var sb = new StringBuilder();
             sb.AppendLine($"SmartPingPro Report for {host}");
@@ -61,8 +61,8 @@ namespace CoreBuilder
             // 2. Ping statistics
             var ping = new System.Net.NetworkInformation.Ping();
             var rttList = new List<long>();
-            int received = 0;
-            for (int i = 0; i < pingCount; i++)
+            var received = 0;
+            for (var i = 0; i < pingCount; i++)
             {
                 var reply = ping.Send(host, 1000);
                 if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
@@ -71,10 +71,13 @@ namespace CoreBuilder
                     received++;
                 }
             }
-            double loss = (double)(pingCount - received) / pingCount * 100;
-            sb.AppendLine($"\nPing Statistics:\nPackets sent: {pingCount}, Received: {received}, Lost: {pingCount - received} ({loss:F0}%)");
+
+            var loss = (double)(pingCount - received) / pingCount * 100;
+            sb.AppendLine(
+                $"\nPing Statistics:\nPackets sent: {pingCount}, Received: {received}, Lost: {pingCount - received} ({loss:F0}%)");
             if (rttList.Any())
-                sb.AppendLine($"Latency: Min/Avg/Max = {rttList.Min()}ms / {rttList.Average():F0}ms / {rttList.Max()}ms");
+                sb.AppendLine(
+                    $"Latency: Min/Avg/Max = {rttList.Min()}ms / {rttList.Average():F0}ms / {rttList.Max()}ms");
 
             // 3. Reverse DNS
             if (doReverseDns)
@@ -84,7 +87,10 @@ namespace CoreBuilder
                     var entry = System.Net.Dns.GetHostEntry(host);
                     sb.AppendLine($"\nReverse DNS: {entry.HostName}");
                 }
-                catch { sb.AppendLine("\nReverse DNS: (not found)"); }
+                catch
+                {
+                    sb.AppendLine("\nReverse DNS: (not found)");
+                }
             }
 
             // 4. Port Scan (common ports)
@@ -92,15 +98,17 @@ namespace CoreBuilder
             sb.AppendLine("\nOpen Ports:");
             foreach (var port in ports)
             {
-                using (var tcp = new System.Net.Sockets.TcpClient())
+                using var tcp = new System.Net.Sockets.TcpClient();
+
+                try
                 {
-                    try
-                    {
-                        var task = tcp.ConnectAsync(host, port);
-                        task.Wait(300); // timeout
-                        sb.AppendLine($"{port} {(GetServiceName(port) ?? "")} Open");
-                    }
-                    catch { sb.AppendLine($"{port} {(GetServiceName(port) ?? "")} Closed"); }
+                    var task = tcp.ConnectAsync(host, port);
+                    task.Wait(300); // timeout
+                    sb.AppendLine($"{port} {(GetServiceName(port) ?? "")} Open");
+                }
+                catch
+                {
+                    sb.AppendLine($"{port} {(GetServiceName(port) ?? "")} Closed");
                 }
             }
 
@@ -130,5 +138,4 @@ namespace CoreBuilder
         public CommandResult InvokeExtension(string extensionName, params string[] args)
             => CommandResult.Fail($"'{Name}' has no extensions.");
     }
-
 }

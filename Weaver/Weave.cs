@@ -42,7 +42,10 @@ namespace Weaver
                 [WeaverResources.GlobalExtensionHelp] = new CommandExtension
                     { Name = WeaverResources.GlobalExtensionHelp, ParameterCount = 0, IsInternal = true },
                 [WeaverResources.GlobalExtensionTryRun] = new CommandExtension
-                    { Name = WeaverResources.GlobalExtensionTryRun, ParameterCount = 0, IsInternal = true, IsPreview = true }
+                {
+                    Name = WeaverResources.GlobalExtensionTryRun, ParameterCount = 0, IsInternal = true,
+                    IsPreview = true
+                }
             };
 
         /// <summary>

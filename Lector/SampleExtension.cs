@@ -8,6 +8,7 @@
 
 // ReSharper disable UnusedType.Global
 
+#nullable enable
 using Weaver.Interfaces;
 using Weaver.Messages;
 

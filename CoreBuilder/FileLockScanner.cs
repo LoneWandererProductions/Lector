@@ -47,7 +47,7 @@ public sealed class FileLockScanner : ICommand
         if (args.Length < 1)
             return CommandResult.Fail("Usage: FileLockScanner([path])");
 
-        string directoryPath = args[0];
+        var directoryPath = args[0];
         if (!Directory.Exists(directoryPath))
             return CommandResult.Fail("Directory does not exist.");
 
@@ -94,7 +94,10 @@ public sealed class FileLockScanner : ICommand
                         return p.Modules.Cast<ProcessModule>()
                             .Any(m => string.Equals(m.FileName, file, StringComparison.OrdinalIgnoreCase));
                     }
-                    catch { return false; }
+                    catch
+                    {
+                        return false;
+                    }
                 })
                 .Select(p => p.ProcessName)
                 .Distinct()
