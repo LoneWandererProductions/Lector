@@ -45,7 +45,8 @@ namespace CoreBuilder
                 new UnusedPrivateFieldAnalyzer(),
                 new DocCommentCoverageCommand(),
                 new DeadReferenceAnalyzer(),
-                new ApiExplorerCommand()
+                new ApiExplorerCommand(),
+                new FileLockScanner()
             };
 
             return modules; 
@@ -87,25 +88,9 @@ namespace CoreBuilder
         {
             ICommand[] modules =
             {
-        new DirectorySizeAnalyzer(),
-        new HeaderExtractor(),
-        new ResXtract(),
-        new AllocationAnalyzer(),
-        new DisposableAnalyzer(),
-        new DoubleNewlineAnalyzer(),
-        new DuplicateStringLiteralAnalyzer(),
-        new EventHandlerAnalyzer(),
-        new HotPathAnalyzer(),
-        new LicenseHeaderAnalyzer(),
-        new UnusedClassAnalyzer(),
-        new UnusedConstantAnalyzer(),
-        new UnusedLocalVariableAnalyzer(),
-        new UnusedParameterAnalyzer(),
-        new UnusedPrivateFieldAnalyzer(),
-        new DocCommentCoverageCommand(),
-        new DeadReferenceAnalyzer(),
-        new ApiExplorerCommand()
-    };
+                new DirectorySizeAnalyzer(),
+                new FileLockScanner()
+            };
 
             // Filter by Namespace
             return modules
