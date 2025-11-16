@@ -13,8 +13,8 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -89,35 +89,19 @@ public sealed class UnusedPrivateFieldAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length < 1)
-            return CommandResult.Fail("Missing argument: path");
-
-        var path = args[0];
-
-        // If a single file was passed, analyze that file only
-        IEnumerable<Diagnostic> diagnosticsEnumerable;
-        if (File.Exists(path))
+        List<Diagnostic> results;
+        try
         {
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: UnusedPrivateField <fileOrDirectoryPath>");
         }
-        else if (Directory.Exists(path))
+        catch (Exception ex)
         {
-            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
-        }
-        else
-        {
-            return CommandResult.Fail($"Path not found: {path}");
+            return CommandResult.Fail(ex.Message);
         }
 
-        var diagnostics = diagnosticsEnumerable.ToList();
-
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("No unused private fields found.");
-
-        var output = string.Join("\n", diagnostics.Select(d =>
+        var output = string.Join("\n", results.Select(d =>
                          $"{d.FilePath}({d.LineNumber}): {d.Message}")) +
-                     $"\nTotal: {diagnostics.Count} unused private fields.";
+                     $"\nTotal: {results.Count} unused private fields.";
 
         return CommandResult.Ok(output);
     }

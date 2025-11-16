@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -92,31 +91,18 @@ public sealed class EventHandlerAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length < ParameterCount)
-            return CommandResult.Fail($"Usage: {Namespace}.{Name} <fileOrDirectoryPath>");
-
-        var path = args[0];
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return CommandResult.Fail($"Path not found: {path}");
-
-        List<Diagnostic> diagnostics;
-
-        if (Directory.Exists(path))
+        List<Diagnostic> results;
+        try
         {
-            // 🔹 Use centralized RunAnalyze logic for directories
-            diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: EventHandler <fileOrDirectoryPath>");
         }
-        else
+        catch (Exception ex)
         {
-            // 🔹 Single file analysis
-            diagnostics = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
+            return CommandResult.Fail(ex.Message);
         }
 
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("✅ No potential event handler leaks detected.");
-
-        var output = string.Join(Environment.NewLine, diagnostics.Select(d => d.ToString()));
-        return CommandResult.Ok(output, diagnostics);
+        var output = string.Join(Environment.NewLine, results.Select(d => d.ToString()));
+        return CommandResult.Ok(output, results);
     }
 
     /// <inheritdoc />

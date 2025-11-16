@@ -11,6 +11,7 @@ using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -69,22 +70,19 @@ namespace CoreBuilder.Rules
         /// <inheritdoc />
         public CommandResult Execute(params string[] args)
         {
-            if (args.Length == 0) return CommandResult.Fail("Please provide a folder with projects (.csproj).");
-
-            var folder = args[0];
-            var diagnostics = new List<Diagnostic>();
-
-            foreach (var project in Directory.EnumerateFiles(folder, "*.csproj", SearchOption.AllDirectories))
+            List<Diagnostic> results;
+            try
             {
-                diagnostics.AddRange(Analyze(project, string.Empty));
+                results = AnalyzerExecutor.ExecutePath(this, args, "Usage: deadrefs <folderOrFile (.csproj)>");
+
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail(ex.Message);
             }
 
-            if (diagnostics.Count == 0)
-                return CommandResult.Ok("No unused references found.");
-
-            var messages = string.Join("\n",
-                diagnostics.ConvertAll(d => $"{Path.GetFileName(d.FilePath)} -> {d.Message}"));
-            return CommandResult.Ok($"Unused references detected:\n{messages}");
+            var output = string.Join("\n", results.Select(d => $"{Path.GetFileName(d.FilePath)} -> {d.Message}"));
+            return CommandResult.Ok($"Unused references detected:\n{output}", results);
         }
 
         /// <inheritdoc />

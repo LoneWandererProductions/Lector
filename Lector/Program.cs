@@ -7,9 +7,7 @@
  */
 
 using CoreBuilder;
-using CoreBuilder.Rules;
 using Weaver;
-using Weaver.Interfaces;
 
 namespace Lector
 {

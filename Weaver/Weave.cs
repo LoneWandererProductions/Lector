@@ -41,8 +41,8 @@ namespace Weaver
             {
                 [WeaverResources.GlobalExtensionHelp] = new CommandExtension
                     { Name = WeaverResources.GlobalExtensionHelp, ParameterCount = 0, IsInternal = true },
-                ["tryrun"] = new CommandExtension
-                    { Name = "tryrun", ParameterCount = 0, IsInternal = true, IsPreview = true }
+                [WeaverResources.GlobalExtensionTryRun] = new CommandExtension
+                    { Name = WeaverResources.GlobalExtensionTryRun, ParameterCount = 0, IsInternal = true, IsPreview = true }
             };
 
         /// <summary>
@@ -224,7 +224,6 @@ namespace Weaver
 
                 return result;
             }
-
 
             // 2️⃣ Parse command
             ParsedCommand parsed;
@@ -421,7 +420,6 @@ namespace Weaver
 
             return result;
         }
-
 
         /// <summary>
         /// Resets this instance.

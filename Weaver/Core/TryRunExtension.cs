@@ -19,7 +19,7 @@ namespace Weaver.Core
     public sealed class TryRunExtension : ICommandExtension
     {
         /// <inheritdoc />
-        public string Name => "tryrun";
+        public string Name => WeaverResources.GlobalExtensionTryRun;
 
         /// <inheritdoc />
         public string Description =>

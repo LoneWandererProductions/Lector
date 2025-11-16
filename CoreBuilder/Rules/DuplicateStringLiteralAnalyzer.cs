@@ -105,48 +105,45 @@ public sealed class DuplicateStringLiteralAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length < 1)
-            return CommandResult.Fail("Usage: DuplicateStringLiteral(<fileOrDirectoryPath>)");
-
-        var path = args[0];
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return CommandResult.Fail($"Path does not exist: {path}");
+        List<Diagnostic> diagnostics;
 
         try
         {
-            List<Diagnostic> diagnostics;
-
-            if (Directory.Exists(path))
-            {
-                // 🔹 Directory: run centralized analyzer for each .cs file
-                diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
-            }
-            else
-            {
-                // 🔹 Single file analysis
-                diagnostics = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
-            }
-
-            if (diagnostics.Count == 0)
-                return CommandResult.Ok($"No duplicate string literals found in '{path}'.");
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Duplicate string literal analysis for: {path}");
-            sb.AppendLine(new string('-', 80));
-
-            foreach (var d in diagnostics)
-                sb.AppendLine(d.ToString());
-
-            sb.AppendLine(new string('-', 80));
-            sb.AppendLine($"{diagnostics.Count} duplicate string occurrences detected.");
-
-            return CommandResult.Ok(sb.ToString(), diagnostics);
+            diagnostics = AnalyzerExecutor.ExecutePath(
+                this,
+                args,
+                "Usage: DuplicateStringLiteral <fileOrDirectoryPath>"
+            );
+        }
+        catch (ArgumentException ae)
+        {
+            return CommandResult.Fail(ae.Message);
+        }
+        catch (FileNotFoundException fnfe)
+        {
+            return CommandResult.Fail(fnfe.Message);
         }
         catch (Exception ex)
         {
             return CommandResult.Fail($"DuplicateStringLiteral execution failed: {ex.Message}", ex);
         }
+
+        if (diagnostics.Count == 0)
+            return CommandResult.Ok($"No duplicate string literals found in '{args[0]}'.");
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"Duplicate string literal analysis for: {args[0]}");
+        sb.AppendLine(new string('-', 80));
+
+        foreach (var d in diagnostics)
+            sb.AppendLine(d.ToString());
+
+        sb.AppendLine(new string('-', 80));
+        sb.AppendLine($"{diagnostics.Count} duplicate string occurrences detected.");
+
+        return CommandResult.Ok(sb.ToString(), diagnostics);
     }
+
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

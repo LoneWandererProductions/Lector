@@ -14,8 +14,8 @@ using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -118,31 +118,17 @@ public sealed class DisposableAnalyzer : ICodeAnalyzer, ICommand
     }
 
     /// <inheritdoc />
-    /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Usage: DisposableLeak <fileOrDirectoryPath>");
-
-        var path = args[0];
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return CommandResult.Fail($"Path not found: {path}");
-
         List<Diagnostic> results;
-
-        if (Directory.Exists(path))
+        try
         {
-            // 🔹 Use centralized RunAnalyze logic for directories
-            results = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: DisposableLeak<fileOrDirectoryPath>");
         }
-        else
+        catch (Exception ex)
         {
-            // 🔹 Single file analysis
-            results = RunAnalyze.RunAnalyzerForFile(path, this).ToList() ?? new List<Diagnostic>();
+            return CommandResult.Fail(ex.Message);
         }
-
-        if (results.Count == 0)
-            return CommandResult.Ok($"No undisposed IDisposable objects found in {path}.");
 
         var output = string.Join("\n", results.Select(d => d.ToString()));
         return CommandResult.Ok(output, results);

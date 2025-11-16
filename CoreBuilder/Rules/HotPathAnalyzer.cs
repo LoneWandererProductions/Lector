@@ -13,8 +13,8 @@ using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Weaver;
@@ -131,31 +131,15 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length < ParameterCount)
-            return CommandResult.Fail($"Usage: {Namespace}.{Name} <file-or-directory>");
-
-        var path = args[0];
-
-        // If a single file was passed, analyze that file only
-        IEnumerable<Diagnostic> diagnosticsEnumerable;
-        if (File.Exists(path))
+        List<Diagnostic> results;
+        try
         {
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: HotPath <fileOrDirectoryPath>");
         }
-        else if (Directory.Exists(path))
+        catch (Exception ex)
         {
-            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+            return CommandResult.Fail(ex.Message);
         }
-        else
-        {
-            return CommandResult.Fail($"Path not found: {path}");
-        }
-
-        var diagnostics = diagnosticsEnumerable.ToList();
-
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("No hot paths detected.");
 
         // 🔹 Aggregate and display summary
         var sb = new StringBuilder();

@@ -11,6 +11,7 @@
 using CoreBuilder.Enums;
 using CoreBuilder.Helper;
 using CoreBuilder.Interface;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -64,37 +65,32 @@ public sealed class DoubleNewlineAnalyzer : ICodeAnalyzer, ICommand
     }
 
     /// <inheritdoc />
+    /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Usage: DoubleNewline <fileOrDirectoryPath>");
+        List<Diagnostic> diagnostics;
 
-        var path = args[0];
-
-        // If a single file was passed, analyze that file only
-        IEnumerable<Diagnostic> diagnosticsEnumerable;
-        if (File.Exists(path))
+        try
         {
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+            diagnostics = AnalyzerExecutor.ExecutePath(
+                this,
+                args,
+                "Usage: DoubleNewline <fileOrDirectoryPath>"
+            );
         }
-        else if (Directory.Exists(path))
+        catch (ArgumentException ae)
         {
-            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+            return CommandResult.Fail(ae.Message);
         }
-        else
+        catch (FileNotFoundException fnfe)
         {
-            return CommandResult.Fail($"Path not found: {path}");
+            return CommandResult.Fail(fnfe.Message);
         }
-
-        var diagnostics = diagnosticsEnumerable.ToList();
-
 
         if (diagnostics.Count == 0)
-            return CommandResult.Ok($"No double newlines found in {path}.");
+            return CommandResult.Ok($"No double newlines found in {args[0]}.");
 
-
-        return FormatResult(diagnostics, Path.GetFileName(path));
+        return FormatResult(diagnostics, Path.GetFileName(args[0]));
     }
 
     /// <inheritdoc />

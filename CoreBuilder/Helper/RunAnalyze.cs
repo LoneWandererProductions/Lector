@@ -7,6 +7,7 @@
  */
 
 using CoreBuilder.Interface;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace CoreBuilder.Helper
             // Search recursively for .cs files
             var files = Directory.GetFiles(directory, CoreResources.ResourceCsExtension, SearchOption.AllDirectories);
 
-            foreach (var file in files)
+            foreach (var file in SafeEnumerateFiles(directory, CoreResources.ResourceCsExtension))
             {
                 if (CoreHelper.ShouldIgnoreFile(file))
                     continue;
@@ -69,6 +70,37 @@ namespace CoreBuilder.Helper
 
             var content = File.ReadAllText(filePath);
             return analyzer.Analyze(filePath, content);
+        }
+
+        /// <summary>
+        /// Recursively enumerates files while skipping inaccessible folders.
+        /// </summary>
+        /// <param name="root">The root.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <returns>All Folders.</returns>
+        private static IEnumerable<string> SafeEnumerateFiles(string root, string pattern)
+        {
+            var stack = new Stack<string>();
+            stack.Push(root);
+
+            while (stack.Count > 0)
+            {
+                string current = stack.Pop();
+
+                string[] files = Array.Empty<string>();
+                try { files = Directory.GetFiles(current, pattern); }
+                catch { }
+
+                foreach (var f in files)
+                    yield return f;
+
+                string[] dirs = Array.Empty<string>();
+                try { dirs = Directory.GetDirectories(current); }
+                catch { }
+
+                foreach (var d in dirs)
+                    stack.Push(d);
+            }
         }
     }
 }

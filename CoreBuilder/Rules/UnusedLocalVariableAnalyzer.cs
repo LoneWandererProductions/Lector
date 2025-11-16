@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -89,34 +88,18 @@ public sealed class UnusedLocalVariableAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Missing argument: <path>\nUsage: unusedlocal <folder>");
-
-        var path = args[0];
-
-        // If a single file was passed, analyze that file only
-        IEnumerable<Diagnostic> diagnosticsEnumerable;
-        if (File.Exists(path))
+        List<Diagnostic> results;
+        try
         {
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: UnusedLocalVariable <fileOrDirectoryPath>");
         }
-        else if (Directory.Exists(path))
+        catch (Exception ex)
         {
-            // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
-            diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+            return CommandResult.Fail(ex.Message);
         }
-        else
-        {
-            return CommandResult.Fail($"Path not found: {path}");
-        }
-
-        var diagnostics = diagnosticsEnumerable.ToList();
-
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("✅ No unused local variables found.");
 
         var msg = string.Join(Environment.NewLine,
-            diagnostics.Select(d => $"{d.FilePath}:{d.LineNumber} -> {d.Message}")
+            results.Select(d => $"{d.FilePath}:{d.LineNumber} -> {d.Message}")
         );
 
         return CommandResult.Ok(msg);

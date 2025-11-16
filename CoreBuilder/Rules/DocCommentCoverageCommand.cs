@@ -11,8 +11,8 @@ using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -99,45 +99,20 @@ namespace CoreBuilder.Rules
         /// <inheritdoc />
         public CommandResult Execute(params string[] args)
         {
-            if (args.Length == 0)
-                return CommandResult.Fail("Please provide a folder path.");
-
-            var folder = args[0];
-            if (!Directory.Exists(folder))
-                return CommandResult.Fail($"Folder '{folder}' does not exist.");
-
-            var total = 0;
-            var documented = 0;
-
-            foreach (var file in Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories))
+            List<Diagnostic> results;
+            try
             {
-                if (CoreHelper.ShouldIgnoreFile(file))
-                    continue;
-
-                var content = File.ReadAllText(file);
-                var tree = CSharpSyntaxTree.ParseText(content);
-                var root = tree.GetRoot();
-
-                foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
-                {
-                    total++;
-
-                    if (CoreHelper.HasXmlDocTrivia(typeDecl.GetLeadingTrivia()))
-                        documented++;
-
-                    foreach (var member in typeDecl.Members)
-                    {
-                        total++;
-
-                        if (CoreHelper.HasXmlDocTrivia(member.GetLeadingTrivia()))
-                            documented++;
-                    }
-                }
+                results = AnalyzerExecutor.ExecutePath(this, args, "Usage: Doccoverage <fileOrDirectoryPath>");
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail(ex.Message);
             }
 
-            var percent = total == 0 ? 0 : (documented * 100.0 / total);
-            return CommandResult.Ok($"Doc comment coverage: {percent:F1}% ({documented}/{total})");
+            var messages = string.Join("\n", results.Select(d => d.ToString()));
+            return CommandResult.Ok(messages, results);
         }
+
 
         /// <inheritdoc />
         public CommandResult InvokeExtension(string extensionName, params string[] args)

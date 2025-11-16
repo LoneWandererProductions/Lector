@@ -26,6 +26,11 @@ namespace Weaver
         /// <summary>
         /// The global extension help
         /// </summary>
-        internal const string GlobalExtensionHelp = "help";
+        internal static string GlobalExtensionHelp => GlobalCommandHelp;
+
+        /// <summary>
+        /// The global extension try run
+        /// </summary>
+        internal const string GlobalExtensionTryRun = "tryrun";
     }
 }

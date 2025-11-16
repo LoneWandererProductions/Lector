@@ -9,11 +9,9 @@
 // ReSharper disable UnusedType.Global
 
 using CoreBuilder.Enums;
-using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Weaver;
@@ -114,34 +112,18 @@ namespace CoreBuilder.Rules
         /// <inheritdoc />
         public CommandResult Execute(params string[] args)
         {
-            if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
-                return CommandResult.Fail("Usage: UnusedClassAnalyzer <projectPath>");
-
-            var path = args[0];
-
-            // If a single file was passed, analyze that file only
-            IEnumerable<Diagnostic> diagnosticsEnumerable;
-            if (File.Exists(path))
+            List<Diagnostic> results;
+            try
             {
-                diagnosticsEnumerable = RunAnalyze.RunAnalyzerForFile(path, this);
+                results = AnalyzerExecutor.ExecutePath(this, args, "Usage: UnusedClassAnalyzer <fileOrDirectoryPath>");
             }
-            else if (Directory.Exists(path))
+            catch (Exception ex)
             {
-                // Analyze all .cs files under the directory (RunAnalyzer handles ignore rules)
-                diagnosticsEnumerable = RunAnalyze.RunAnalyzer(path, this);
+                return CommandResult.Fail(ex.Message);
             }
-            else
-            {
-                return CommandResult.Fail($"Path not found: {path}");
-            }
-
-            var diagnostics = diagnosticsEnumerable.ToList();
-
-            if (diagnostics.Count == 0)
-                return CommandResult.Ok("No unused classes found.");
 
             var report = string.Join(Environment.NewLine,
-                diagnostics.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}"));
+                results.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}"));
 
             return CommandResult.Ok($"Unused Classes Report:\n{report}");
         }

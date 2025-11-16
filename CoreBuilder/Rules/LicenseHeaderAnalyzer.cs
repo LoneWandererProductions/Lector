@@ -13,7 +13,6 @@ using CoreBuilder.Helper;
 using CoreBuilder.Interface;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Weaver;
 using Weaver.Interfaces;
@@ -73,34 +72,21 @@ public sealed class LicenseHeaderAnalyzer : ICodeAnalyzer, ICommand
     /// <inheritdoc />
     public CommandResult Execute(params string[] args)
     {
-        if (args.Length == 0)
-            return CommandResult.Fail("Missing argument: <fileOrDirectoryPath>");
-
-        var path = args[0];
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return CommandResult.Fail($"Path not found: {path}");
-
-        List<Diagnostic> diagnostics;
-
-        if (Directory.Exists(path))
+        List<Diagnostic> results;
+        try
         {
-            // 🔹 Directory analysis
-            diagnostics = RunAnalyze.RunAnalyzer(path, this)?.ToList() ?? new List<Diagnostic>();
+            results = AnalyzerExecutor.ExecutePath(this, args, "Usage: LicenseHeader <fileOrDirectoryPath>");
         }
-        else
+        catch (Exception ex)
         {
-            // 🔹 Single file analysis
-            diagnostics = RunAnalyze.RunAnalyzerForFile(path, this)?.ToList() ?? new List<Diagnostic>();
+            return CommandResult.Fail(ex.Message);
         }
-
-        if (diagnostics.Count == 0)
-            return CommandResult.Ok("✅ All files contain license headers.");
 
         var output = string.Join(Environment.NewLine,
-            diagnostics.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}")
+            results.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}")
         );
 
-        return CommandResult.Ok(output, diagnostics);
+        return CommandResult.Ok(output, results);
     }
 
     /// <inheritdoc />

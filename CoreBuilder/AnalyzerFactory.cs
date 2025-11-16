@@ -11,11 +11,13 @@ using CoreBuilder.Rules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Weaver.Interfaces;
 
 namespace CoreBuilder
 {
+    /// <summary>
+    /// Simple factory to return all available code analyzers and commands.
+    /// </summary>
     public static class AnalyzerFactory
     {
         /// <summary>
