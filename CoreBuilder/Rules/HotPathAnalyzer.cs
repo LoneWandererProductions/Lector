@@ -141,10 +141,16 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
             return CommandResult.Fail(ex.Message);
         }
 
-        // 🔹 Aggregate and display summary
         var sb = new StringBuilder();
         sb.AppendLine("🔥 Hot Path Summary:");
         sb.AppendLine(new string('-', 50));
+
+        // Add diagnostics first
+        foreach (var d in results)
+            sb.AppendLine(d.ToString());
+
+        sb.AppendLine("\nAggregated Methods:");
+        sb.AppendLine("-------------------");
 
         foreach (var kvp in _aggregateStats.OrderByDescending(k => k.Value.TotalRisk))
         {
@@ -154,11 +160,11 @@ public sealed class HotPathAnalyzer : ICodeAnalyzer, ICommand
         }
 
         return CommandResult.Ok(
-            message: $"Hot path analysis complete. {_aggregateStats.Count} unique methods detected.",
-            value: sb.ToString(),
+            message: sb.ToString(),
             type: EnumTypes.Wstring
         );
     }
+
 
     /// <inheritdoc />
     public CommandResult InvokeExtension(string extensionName, params string[] args)

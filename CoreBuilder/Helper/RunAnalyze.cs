@@ -7,9 +7,7 @@
  */
 
 using CoreBuilder.Interface;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -38,7 +36,7 @@ namespace CoreBuilder.Helper
             var diagnostics = new List<Diagnostic>();
 
             // Search recursively for .cs files
-            foreach (var file in SafeEnumerateFiles(directory, CoreResources.ResourceCsExtension))
+            foreach (var file in CoreHelper.SafeEnumerateFiles(directory, CoreResources.ResourceCsExtension))
             {
                 if (CoreHelper.ShouldIgnoreFile(file))
                     continue;
@@ -69,49 +67,6 @@ namespace CoreBuilder.Helper
 
             var content = File.ReadAllText(filePath);
             return analyzer.Analyze(filePath, content);
-        }
-
-        /// <summary>
-        /// Recursively enumerates files while skipping inaccessible folders.
-        /// </summary>
-        /// <param name="root">The root.</param>
-        /// <param name="pattern">The pattern.</param>
-        /// <returns>All Folders.</returns>
-        private static IEnumerable<string> SafeEnumerateFiles(string root, string pattern)
-        {
-            var stack = new Stack<string>();
-            stack.Push(root);
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                var files = Array.Empty<string>();
-                try
-                {
-                    files = Directory.GetFiles(current, pattern);
-                }
-                catch (Exception exe)
-                {
-                    Trace.WriteLine($"Error accessing files in directory {current}: {exe.Message}");
-                }
-
-                foreach (var f in files)
-                    yield return f;
-
-                var dirs = Array.Empty<string>();
-                try
-                {
-                    dirs = Directory.GetDirectories(current);
-                }
-                catch (Exception exe)
-                {
-                    Trace.WriteLine($"Error accessing directories in directory {current}: {exe.Message}");
-                }
-
-                foreach (var d in dirs)
-                    stack.Push(d);
-            }
         }
     }
 }

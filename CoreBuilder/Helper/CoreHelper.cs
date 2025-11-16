@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -144,6 +145,49 @@ internal static class CoreHelper
             EventDeclarationSyntax e => e.Identifier.Text,
             _ => member.Kind().ToString()
         };
+    }
+
+    /// <summary>
+    /// Recursively enumerates files while skipping inaccessible folders.
+    /// </summary>
+    /// <param name="root">The root.</param>
+    /// <param name="pattern">The pattern.</param>
+    /// <returns>All Folders.</returns>
+    internal static IEnumerable<string> SafeEnumerateFiles(string root, string pattern)
+    {
+        var stack = new Stack<string>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            var files = Array.Empty<string>();
+            try
+            {
+                files = Directory.GetFiles(current, pattern);
+            }
+            catch (Exception exe)
+            {
+                Trace.WriteLine($"Error accessing files in directory {current}: {exe.Message}");
+            }
+
+            foreach (var f in files)
+                yield return f;
+
+            var dirs = Array.Empty<string>();
+            try
+            {
+                dirs = Directory.GetDirectories(current);
+            }
+            catch (Exception exe)
+            {
+                Trace.WriteLine($"Error accessing directories in directory {current}: {exe.Message}");
+            }
+
+            foreach (var d in dirs)
+                stack.Push(d);
+        }
     }
 
     /// <summary>

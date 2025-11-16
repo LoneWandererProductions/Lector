@@ -7,7 +7,10 @@
  */
 
 // ReSharper disable UnusedType.Global
+// ReSharper disable MemberCanBeMadeStatic.Global
+// ReSharper disable MemberCanBePrivate.Global
 
+using CoreBuilder.Helper;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -60,11 +63,40 @@ public sealed class DirectorySizeAnalyzer : ICommand
 
         try
         {
-            files = Directory
-                .EnumerateFiles(directoryPath, "*.*",
-                    includeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
-                .Select(f => new FileInfo(f))
-                .ToList();
+            IEnumerable<string> filePaths;
+
+            if (includeSubdirectories)
+            {
+                // Use safe recursive enumeration
+                filePaths = CoreHelper.SafeEnumerateFiles(directoryPath, "*.*");
+            }
+            else
+            {
+                // Standard top-level enumeration
+                try
+                {
+                    filePaths = Directory.GetFiles(directoryPath, "*.*", SearchOption.TopDirectoryOnly);
+                }
+                catch (Exception ex)
+                {
+                    return $"Error accessing directory: {directoryPath}\n{ex.Message}";
+                }
+            }
+
+            files = filePaths
+                .Select(path =>
+                {
+                    try
+                    {
+                        return new FileInfo(path);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                })
+                .Where(f => f is not null)
+                .ToList()!;
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -121,14 +153,14 @@ public sealed class DirectorySizeAnalyzer : ICommand
         if (args.Length < 1)
             return CommandResult.Fail("Usage: DirectorySize([path])");
 
-        //Todo parse subfolder and use safe enumeration
-
+        // Parse path + optional subfolder flag
         var directoryPath = args[0];
-        var includeSubdirs = args.Length > 1 && args[1].Equals("true", StringComparison.OrdinalIgnoreCase);
+        var includeSubDirs = args.Length > 1 &&
+                             args[1].Equals("true", StringComparison.OrdinalIgnoreCase);
 
         try
         {
-            var output = DisplayDirectorySizeOverview(directoryPath, includeSubdirs);
+            var output = DisplayDirectorySizeOverview(directoryPath, includeSubDirs);
             return CommandResult.Ok(output, EnumTypes.Wstring);
         }
         catch (Exception ex)
