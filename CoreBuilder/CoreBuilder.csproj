@@ -22,4 +22,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Make internals visible to another assembly -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>CoreBuilderTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

@@ -197,7 +197,7 @@ public sealed class ResXtract : ICommand
     /// </summary>
     /// <param name="code">The code.</param>
     /// <returns>Strings to extract.</returns>
-    private static IEnumerable<string> ExtractStrings(string code)
+    internal static IEnumerable<string> ExtractStrings(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
         var root = syntaxTree.GetRoot();
