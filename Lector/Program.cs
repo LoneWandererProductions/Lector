@@ -17,6 +17,7 @@ namespace Lector
         /// Defines the entry point of the application.
         /// </summary>
         /// <param name="args">The arguments.</param>
+        [STAThread]
         private static void Main(string[] args)
         {
             var weave = new Weave();
