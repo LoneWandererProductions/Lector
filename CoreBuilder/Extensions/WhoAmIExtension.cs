@@ -24,7 +24,7 @@ namespace CoreBuilder.Extensions
         public string Name => "Who";
 
         /// <inheritdoc />
-        public string Description => "Returns specific information of WhoAmI command (e.g., ip, hostname, username)";
+        public string Description => "Returns specific information of WhoAmI command (e.g., ip, hostname, username), you can join them or return a single one.";
 
         /// <inheritdoc />
         public string Namespace => "System";
@@ -34,10 +34,8 @@ namespace CoreBuilder.Extensions
         {
             if (args.Length == 0)
             {
-                return CommandResult.Fail("No parameter specified. Example: Who(ip)");
+                return CommandResult.Fail("No parameter specified. Example: whoami().who(ip,hostname) or whoami().who(ip)");
             }
-
-            string requested = args[0].ToLowerInvariant();
 
             try
             {
@@ -56,23 +54,33 @@ namespace CoreBuilder.Extensions
 
                 string ipsJoined = ips.Any() ? string.Join(", ", ips) : "None";
 
-                return requested switch
-                {
-                    "hostname" => CommandResult.Ok(message: hostname),
-                    "username" => CommandResult.Ok(message: username),
-                    "domain" => CommandResult.Ok(message: domain),
-                    "ip" => CommandResult.Ok(message: ipsJoined),
-                    "os" => CommandResult.Ok(message: Environment.OSVersion.ToString()),
-                    "64bitos" => CommandResult.Ok(message: Environment.Is64BitOperatingSystem.ToString()),
-                    "64bitprocess" => CommandResult.Ok(message: Environment.Is64BitProcess.ToString()),
-                    "processorcount" => CommandResult.Ok(message: Environment.ProcessorCount.ToString()),
-                    "clrversion" => CommandResult.Ok(message: Environment.Version.ToString()),
-                    _ => CommandResult.Fail($"Unknown parameter '{requested}'.")
-                };
+                // Build a list of lines for requested fields
+                var lines = args.Select(arg => arg.ToLowerInvariant())
+                                .Select(field =>
+                                {
+                                    return field switch
+                                    {
+                                        "hostname" => $"Hostname: {hostname}",
+                                        "username" => $"Username: {username}",
+                                        "domain" => $"Domain: {domain}",
+                                        "ip" => $"IP: {ipsJoined}",
+                                        "os" => $"OS: {Environment.OSVersion}",
+                                        "64bitos" => $"64-bit OS: {Environment.Is64BitOperatingSystem}",
+                                        "64bitprocess" => $"64-bit Process: {Environment.Is64BitProcess}",
+                                        "processorcount" => $"Processor Count: {Environment.ProcessorCount}",
+                                        "clrversion" => $"CLR Version: {Environment.Version}",
+                                        _ => $"Unknown parameter: {field}"
+                                    };
+                                }).ToArray();
+
+                // Join lines into a single message
+                string message = string.Join(Environment.NewLine, lines);
+
+                return CommandResult.Ok(message: message);
             }
             catch (Exception ex)
             {
-                return CommandResult.Fail($"WhoAmIExtension failed: {ex.Message}");
+                return CommandResult.Fail($"WhoExtension failed: {ex.Message}");
             }
         }
     }
