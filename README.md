@@ -195,7 +195,6 @@ All analyzers below support `ICommand` and can therefore be executed through Wea
 
 ```
 new DirectorySizeAnalyzer(),
-new DirectorySizeAnalyzer(),
 new LogTailCommand(),
 new HeaderExtractor(),
 new ResXtract(),
