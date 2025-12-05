@@ -195,6 +195,8 @@ All analyzers below support `ICommand` and can therefore be executed through Wea
 
 ```
 new DirectorySizeAnalyzer(),
+new DirectorySizeAnalyzer(),
+new LogTailCommand(),
 new HeaderExtractor(),
 new ResXtract(),
 new AllocationAnalyzer(),
@@ -211,7 +213,11 @@ new UnusedParameterAnalyzer(),
 new UnusedPrivateFieldAnalyzer(),
 new DocCommentCoverageCommand(),
 new DeadReferenceAnalyzer(),
-new ApiExplorerCommand()
+new ApiExplorerCommand(),
+new FileLockScanner(),
+new SmartPingPro(), 
+new WhoAmI(),
+new Tree()
 ```
 
 ## Purpose of CoreBuilder
