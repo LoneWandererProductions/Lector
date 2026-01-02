@@ -66,7 +66,12 @@ namespace Mediator
             // ---------------------------------------------
             // CASE 1: Command IMPLEMENTS TryRun()
             // ---------------------------------------------
-            var resultTry = extension.Invoke(cmdWithTry, new[] { "fileA" }, ExecutorWithTry);
+            var resultTry = extension.Invoke(
+                cmdWithTry,
+                new[] { "fileA" },       // extensionArgs
+                ExecutorWithTry,         // executor
+                new[] { "fileA" }        // commandArgs
+            );
 
             Assert.IsTrue(resultTry.RequiresConfirmation);
             Assert.IsNotNull(resultTry.Feedback);
@@ -76,18 +81,22 @@ namespace Mediator
             var confirmed1 = resultTry.Feedback!.Respond("yes");
             Assert.AreEqual("EXEC fileA", confirmed1.Message);
 
-            // ---------------------------------------------
-            // CASE 2: Command does NOT implement TryRun()
-            // TryRunExtension should use executor instead
-            // ---------------------------------------------
-            var resultNoTry = extension.Invoke(cmdWithoutTry, new[] { "fileB" }, ExecutorWithoutTry);
+            // -----------------------------
+            // CASE 2: Command without TryRun
+            // -----------------------------
+            var resultNoTry = extension.Invoke(
+                cmdWithoutTry,
+                new[] { "fileB" },
+                ExecutorWithoutTry,
+                new[] { "fileB" }        // commandArgs
+            );
 
             Assert.IsTrue(resultNoTry.RequiresConfirmation);
             Assert.IsNotNull(resultNoTry.Feedback);
             Assert.IsTrue(resultNoTry.Message.Contains("[Preview-Fallback]"));
 
-            // simulate user saying "no"
-            var confirmed2 = resultTry.Feedback!.Respond("no");
+            // simulate user saying "no" (note: use resultNoTry.Feedback, not resultTry.Feedback)
+            var confirmed2 = resultNoTry.Feedback!.Respond("no");
 
             Assert.IsFalse(confirmed2.Success);
             Assert.AreEqual("Execution cancelled by user.", confirmed2.Message);

@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.Core;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -20,41 +19,56 @@ namespace Weaver.ScriptEngine
     public sealed class ScriptExecutor
     {
         private readonly Weave _weave;
+
+        /// <summary>
+        /// The evaluator
+        /// </summary>
         private readonly IEvaluator _evaluator;
+
+        /// <summary>
+        /// The statements
+        /// </summary>
         private readonly List<(string Category, string)> _statements;
 
+        /// <summary>
+        /// The label positions
+        /// </summary>
         private readonly Dictionary<string, int> _labelPositions;
+
+        /// <summary>
+        /// The position
+        /// </summary>
         private int _position;
+
+        /// <summary>
+        /// The pending feedback
+        /// </summary>
         private FeedbackRequest? _pendingFeedback;
 
-        // Only store the start index of do-while loops
+        /// <summary>
+        /// Only store the start index of do-while loops
+        /// </summary>
         private readonly Stack<int> _doWhileStack = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScriptExecutor"/> class.
+        /// </summary>
+        /// <param name="weave">The weave.</param>
+        /// <param name="statements">The statements.</param>
         public ScriptExecutor(Weave weave, List<(string Category, string)> statements)
         {
+            //now weave also holds all the variables and evaluator commands we need.
             _weave = weave;
-            var registry = new VariableRegistry();
-            _evaluator = new ExpressionEvaluator(registry);
-
-            // Register internal commands
-            weave.Register(new SetValueCommand(registry));
-            weave.Register(new GetValueCommand(registry));
-            weave.Register(new DeleteValueCommand(registry));
-            weave.Register(new MemoryCommand(registry));
-            //the evaluate command needs the evaluator and registry
-            weave.Register(new EvaluateCommand(_evaluator, registry));
-
+            _evaluator = new ExpressionEvaluator(_weave.Runtime.Variables);
             _statements = statements ?? new List<(string Category, string)>();
             _position = 0;
 
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            // Pre-scan labels
             for (var i = 0; i < _statements.Count; i++)
             {
-                var (category, stmt) = _statements[i];
-                if (category == "Label" && !string.IsNullOrEmpty(stmt))
-                    _labelPositions[stmt] = i;
+                if (_statements[i].Category == "Label")
+                    _labelPositions[_statements[i].Item2] = i;
             }
         }
 

@@ -27,12 +27,13 @@ namespace Mediator
         public string Namespace => "Test";
 
         /// <inheritdoc />
-        public CommandResult Invoke(ICommand command, string[] args, Func<string[], CommandResult> executor)
+        public CommandResult Invoke(ICommand command, string[] extensionArgs, Func<string[], CommandResult> executor, string[] commandArgs)
         {
-            // Execute the command normally
-            var result = executor(args);
+            // Execute the original command with proper command args
+            var result = executor(commandArgs);
 
-            // Append a note
+            // Now handle extension args as needed (e.g., store key, append message, etc.)
+            // Here we just append "[EXT]" for demo
             return new CommandResult
             {
                 Message = $"{result.Message} [EXT]",
