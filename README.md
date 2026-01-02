@@ -246,5 +246,5 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
 
 ---
 
+This project is licensed under the Apache License
 
-License:  Apache License
