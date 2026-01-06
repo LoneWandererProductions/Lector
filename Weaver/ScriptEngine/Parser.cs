@@ -10,9 +10,19 @@ using System.Text;
 
 namespace Weaver.ScriptEngine
 {
+    /// <summary>
+    /// parser for script tokens into ScriptNode tree
+    /// </summary>
     internal sealed class Parser
     {
+        /// <summary>
+        /// The tokens
+        /// </summary>
         private readonly List<Token> _tokens;
+
+        /// <summary>
+        /// The position
+        /// </summary>
         private int _position;
 
         /// <summary>

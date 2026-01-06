@@ -1,20 +1,23 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine
- * FILE:        DebugHelpers.cs
- * PURPOSE:     Your file purpose here
+ * FILE:        Lowering.cs
+ * PURPOSE:     Converts the ScriptNode tree into a linear sequence for execution
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
 namespace Weaver.ScriptEngine
 {
-    internal static class DebugHelpers
+    /// <summary>
+    /// Script lowerer that flattens ScriptNode trees into linear sequences.
+    /// </summary>
+    internal static class Lowering
     {
         /// <summary>
         /// Flattens the ScriptNode tree into a linear sequence with debug categories.
         /// Includes pseudo-categories like Do_Open, Do_End, If_Open, If_End, Else_Open, Else_End.
         /// </summary>
-        public static IEnumerable<(string Category, string? Statement)> FlattenNodes(IEnumerable<ScriptNode> nodes)
+        public static IEnumerable<(string Category, string? Statement)> ScriptLowerer(IEnumerable<ScriptNode> nodes)
         {
             foreach (var node in nodes)
             {
@@ -44,7 +47,7 @@ namespace Weaver.ScriptEngine
                         yield return ("If_Condition", ifn.Condition);
                         yield return ("If_Open", null); // debug open
 
-                        foreach (var child in FlattenNodes(ifn.TrueBranch))
+                        foreach (var child in ScriptLowerer(ifn.TrueBranch))
                             yield return child;
 
                         yield return ("If_End", null); // debug end
@@ -53,7 +56,7 @@ namespace Weaver.ScriptEngine
                         {
                             yield return ("Else_Open", null);
 
-                            foreach (var child in FlattenNodes(ifn.FalseBranch))
+                            foreach (var child in ScriptLowerer(ifn.FalseBranch))
                                 yield return child;
 
                             yield return ("Else_End", null);
@@ -64,7 +67,7 @@ namespace Weaver.ScriptEngine
                     case DoWhileNode dw:
                         yield return ("Do_Open", null);
 
-                        foreach (var child in FlattenNodes(dw.Body))
+                        foreach (var child in ScriptLowerer(dw.Body))
                             yield return child;
 
                         yield return ("Do_End", null);

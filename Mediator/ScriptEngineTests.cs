@@ -43,7 +43,7 @@ namespace Mediator
             var parser = new Parser(tokens);
             var lines = parser.ParseIntoNodes(); // returns List<ScriptLine>
 
-            var blocks = DebugHelpers.FlattenNodes(lines).ToList();
+            var blocks = Lowering.ScriptLowerer(lines).ToList();
 
             // Debug: show all parsed lines
             Console.WriteLine("Parsed script lines:");

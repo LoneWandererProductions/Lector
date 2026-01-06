@@ -234,6 +234,10 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
   - Ensured optional and variadic parameters are correctly accepted.  
   - Introduced `GlobalDirect` to prevent accidental overwriting of core extensions.
 
+  - **Further work on the Script engine:**
+   - Improved Script compilation and execution robustness.
+   - Weaverprogram implemented for future integration as it's own program and future entry for DebugHelpers.
+
 ### Bug Fixes
 - Fixed `FindCommand` / `FindExtension` logic to correctly delegate arguments to command and extensions.  
 - Fixed `.store()` behavior to default to `result` key when no argument provided.  

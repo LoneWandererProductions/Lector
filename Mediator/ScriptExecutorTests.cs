@@ -22,6 +22,9 @@ namespace Mediator
         private Weave _weave = null!;
         private ScriptExecutor _executor = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
@@ -39,12 +42,12 @@ namespace Mediator
             var parser = new Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
-            var blocks = DebugHelpers.FlattenNodes(nodes);
+            var blocks = Lowering.ScriptLowerer(nodes);
 
             foreach (var line in blocks)
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
-            var statements = blocks
+            List<(string Category, string)> statements = blocks
                 .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
@@ -90,6 +93,9 @@ namespace Mediator
             StringAssert.Contains(result5.Message.ToLowerInvariant(), "empty");
         }
 
+        /// <summary>
+        /// Tests the label and goto.
+        /// </summary>
         [TestMethod]
         public void Test_LabelAndGoto()
         {
@@ -103,7 +109,7 @@ namespace Mediator
             var parser = new Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
-            var blocks = DebugHelpers.FlattenNodes(nodes).ToList();
+            var blocks = Lowering.ScriptLowerer(nodes).ToList();
 
             foreach (var line in blocks)
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
@@ -125,7 +131,9 @@ namespace Mediator
             Assert.IsTrue(safety < 11, "Goto loop should not be infinite.");
         }
 
-
+        /// <summary>
+        /// Tests the do while loop.
+        /// </summary>
         [TestMethod]
         public void TestDoWhileLoop()
         {
@@ -142,7 +150,7 @@ namespace Mediator
             var parser = new Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
-            var blocks = DebugHelpers.FlattenNodes(nodes);
+            var blocks = Lowering.ScriptLowerer(nodes);
 
             foreach (var line in blocks)
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
