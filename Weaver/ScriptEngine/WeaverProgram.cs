@@ -59,7 +59,6 @@ namespace Weaver.ScriptEngine
             if (weave == null) throw new ArgumentNullException(nameof(weave));
 
             var executor = new ScriptExecutor(weave, _instructions
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList());
 
@@ -84,7 +83,6 @@ namespace Weaver.ScriptEngine
         {
             if (weave == null) throw new ArgumentNullException(nameof(weave));
             return new ScriptExecutor(weave, _instructions
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList());
         }
