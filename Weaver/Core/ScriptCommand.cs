@@ -1,0 +1,82 @@
+﻿/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.ScriptEngine
+ * FILE:        ScriptCommand.cs
+ * PURPOSE:     Provides a command wrapper to compile and execute Weaver scripts.
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Interfaces;
+using Weaver.Messages;
+using Weaver.ScriptEngine;
+
+namespace Weaver.Core
+{
+    /// <inheritdoc />
+    /// <summary>
+    /// Command to compile & execute Weaver scripts.
+    /// </summary>
+    internal class ScriptCommand : ICommand
+    {
+        /// <inheritdoc />
+        public string Name => "RunScript";
+
+        /// <inheritdoc />
+        public string Description =>
+            "Compiles and executes a Weaver script. Usage: RunScript(<scriptText> [, <maxIterations>])";
+
+        /// <inheritdoc />
+        public string Namespace => WeaverResources.GlobalNamespace;
+
+        /// <inheritdoc />
+        public int ParameterCount => -1;
+
+        /// <inheritdoc />
+        public CommandSignature Signature => new(Namespace, Name, ParameterCount);
+
+        /// <inheritdoc />
+        public CommandResult Execute(string[] args)
+        {
+            if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
+            {
+                return CommandResult.Fail("Missing script text. Usage: RunScript(<script> [, <maxIterations>])");
+            }
+
+            string script = args[0];
+            int maxIterations = 1000;
+
+            if (args.Length > 1 && int.TryParse(args[1], out var parsed))
+                maxIterations = parsed;
+
+            WeaverProgram program;
+
+            try
+            {
+                program = WeaverProgram.Compile(script);
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail($"Compile error: {ex.Message}");
+            }
+
+            var weave = new Weave();
+
+            try
+            {
+                program.Run(weave, maxIterations);
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail($"Runtime error: {ex.Message}");
+            }
+
+            return CommandResult.Ok("Script executed successfully.");
+        }
+
+        /// <inheritdoc />
+        public CommandResult InvokeExtension(string extensionName, string[] args)
+        {
+            return CommandResult.Fail($"'{Name}' provides no extensions.");
+        }
+    }
+}

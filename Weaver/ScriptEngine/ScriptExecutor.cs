@@ -54,6 +54,14 @@ namespace Weaver.ScriptEngine
         private readonly Stack<int> _doWhileStack = new();
 
         /// <summary>
+        /// Current instruction index.
+        /// </summary>
+        /// <value>
+        /// The instruction pointer.
+        /// </value>
+        public int InstructionPointer => _position;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ScriptExecutor"/> class.
         /// </summary>
         /// <param name="weave">The weave.</param>
@@ -145,39 +153,48 @@ namespace Weaver.ScriptEngine
                             continue;
                         }
 
-                        var loopStart = _doWhileStack.Pop();
+                        // Evaluate the condition
+                        var loopStart = _doWhileStack.Peek();
                         var condResult = _evaluator.Evaluate(stmt!);
 
                         if (condResult)
                             _position = loopStart + 1; // loop again
                         else
-                            _position++; // exit loop
-                        continue;
-
-                    case "If_Condition":
-                        var cond = _evaluator.Evaluate(stmt!);
-                        _position++; // move past the condition node
-
-                        if (!cond)
                         {
-                            // Skip the "true" branch to the "Else_Open" if present, otherwise skip to next after If block
-                            var depth = 0;
-                            while (_position < _statements.Count)
-                            {
-                                var (cat, _) = _statements[_position];
-                                if (cat == "If_Condition" || cat == "Do_Condition")
-                                    depth++;
-                                else if (cat == "Else_Open" && depth == 0)
-                                    break;
-                                else if (cat == "CloseBrace" && depth > 0)
-                                    depth--;
-
-                                _position++;
-                            }
+                            _doWhileStack.Pop();
+                            _position++; // exit loop
                         }
 
                         continue;
 
+                    case "If_Condition":
+                        {
+                            var cond = _evaluator.Evaluate(stmt!);
+                            _position++; // move past the condition
+
+                            if (!cond)
+                            {
+                                // Skip until Else_Open OR next non-indented block
+                                while (_position < _statements.Count)
+                                {
+                                    var (cat, _) = _statements[_position];
+
+                                    if (cat == "Else_Open")
+                                        break;
+
+                                    // stop skipping on CloseBrace if your lowering emits it
+                                    if (cat == "CloseBrace")
+                                    {
+                                        _position++;
+                                        break;
+                                    }
+
+                                    _position++;
+                                }
+                            }
+
+                            continue;
+                        }
 
                     default: // "Command", "Assignment", etc.
                         var result = _weave.ProcessInput(stmt!);
