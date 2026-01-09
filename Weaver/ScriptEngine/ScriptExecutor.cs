@@ -170,31 +170,59 @@ namespace Weaver.ScriptEngine
                     case "If_Condition":
                         {
                             var cond = _evaluator.Evaluate(stmt!);
-                            _position++; // move past the condition
+                            _position++; // move past the If_Condition node
 
                             if (!cond)
                             {
-                                // Skip until Else_Open OR next non-indented block
+                                // Skip the "true" branch to Else_Open or If_End
+                                var depth = 0;
                                 while (_position < _statements.Count)
                                 {
                                     var (cat, _) = _statements[_position];
 
-                                    if (cat == "Else_Open")
-                                        break;
-
-                                    // stop skipping on CloseBrace if your lowering emits it
-                                    if (cat == "CloseBrace")
+                                    if (cat == "If_Condition" || cat == "Do_Condition")
                                     {
+                                        depth++;
+                                        _position++;
+                                    }
+                                    else if (cat == "Else_Open" && depth == 0)
+                                    {
+                                        // Jump into the else block
+                                        _position++; // move past Else_Open marker to first else command
+                                        break;
+                                    }
+                                    else if (cat == "If_End" && depth == 0)
+                                    {
+                                        // No else, skip past If_End
                                         _position++;
                                         break;
                                     }
-
-                                    _position++;
+                                    else if (cat == "CloseBrace" && depth > 0)
+                                    {
+                                        depth--;
+                                        _position++;
+                                    }
+                                    else
+                                    {
+                                        _position++;
+                                    }
                                 }
                             }
 
+                            // If condition was true, execution continues naturally into the "true" block
                             continue;
                         }
+
+                    case "Else_Open":
+                        // Simply skip the marker; execution continues into else block
+                        _position++;
+                        continue;
+
+                    case "If_End":
+                    case "Else_End":
+                        _position++; // just move past markers
+                        continue;
+
 
                     default: // "Command", "Assignment", etc.
                         var result = _weave.ProcessInput(stmt!);
