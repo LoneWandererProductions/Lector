@@ -2,10 +2,11 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        WeaveFeedbackTests.cs
- * PURPOSE:     test feedback loop of Weaver
+ * PURPOSE:     Test feedback loop of Weaver
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Mediator.Core;
 using Weaver;
 
 namespace Mediator
@@ -13,6 +14,9 @@ namespace Mediator
     [TestClass]
     public class WeaveFeedbackTests
     {
+        /// <summary>
+        /// Deletes the command triggers feedback and executes on confirmation.
+        /// </summary>
         [TestMethod]
         public void DeleteCommand_TriggersFeedback_AndExecutesOnConfirmation()
         {
@@ -34,6 +38,9 @@ namespace Mediator
             Assert.IsTrue(followUp.Message.Contains("deleted"), "Expected success message confirming deletion.");
         }
 
+        /// <summary>
+        /// Deletes the command cancels on user input.
+        /// </summary>
         [TestMethod]
         public void DeleteCommand_CancelsOnUserInput()
         {
@@ -49,6 +56,9 @@ namespace Mediator
             Assert.IsTrue(followUp.Message.Contains("cancelled"), "Expected cancellation message.");
         }
 
+        /// <summary>
+        /// Deletes the command invalid response re prompts user.
+        /// </summary>
         [TestMethod]
         public void DeleteCommand_InvalidResponse_RePromptsUser()
         {

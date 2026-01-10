@@ -2,10 +2,11 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        CommandTests.cs
- * PURPOSE:     Sample Command implementation for testing.
+ * PURPOSE:     Sample Command tests.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Mediator.Core;
 using Weaver;
 
 namespace Mediator

@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator.TryRun
+ * PROJECT:     Mediator
  * FILE:        ExtensionIntegrationTests.cs
  * PURPOSE:     Test Extension integration with commands.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -8,7 +8,7 @@
 
 using Weaver;
 
-namespace Mediator.TryRun
+namespace Mediator
 {
     [TestClass]
     public class ExtensionIntegrationTests
@@ -43,6 +43,36 @@ namespace Mediator.TryRun
             Assert.IsTrue(result.Message.Contains("[EXT]"), "Extension did not modify message");
             Assert.IsFalse(result.Success); // because DeleteCommand returns RequiresConfirmation feedback initially
             Assert.IsNotNull(result.Feedback, "Feedback should exist");
+        }
+
+        /// <summary>
+        /// Help global extension works for DeleteCommand.
+        /// </summary>
+        [TestMethod]
+        public void DeleteCommandHelpExtensionWorks()
+        {
+            // Execute command with .help extension
+            var result = _weaver.ProcessInput("delete(file.txt).help()");
+
+            Assert.IsNotNull(result, "Result should not be null");
+            Assert.IsTrue(result.Success, "Help extension always succeeds");
+            Assert.IsTrue(result.Message.Contains("Deletes a resource"), "Help message should include command description");
+            Assert.IsNull(result.Feedback, "Help should not require feedback");
+
+            result = _weaver.ProcessInput("help(delete)");
+            Assert.IsTrue(result.Message.Contains("Deletes a resource by name"));
+        }
+
+        /// <summary>
+        /// Help global extension works with unknown command gracefully.
+        /// </summary>
+        [TestMethod]
+        public void HelpExtensionHandlesUnknownCommand()
+        {
+            var result = _weaver.ProcessInput("nonexistent().help()");
+
+            Assert.IsNotNull(result, "Result should not be null");
+
         }
     }
 }

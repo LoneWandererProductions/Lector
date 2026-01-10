@@ -1,6 +1,6 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     UnknownNamespace
+ * PROJECT:     Mediator.Core
  * FILE:        DeleteCommand.cs
  * PURPOSE:     Test command that deletes a resource with confirmation via feedback.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -10,13 +10,13 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Mediator
+namespace Mediator.Core
 {
     /// <inheritdoc />
     /// <summary>
     /// Test command that deletes a resource with confirmation via feedback.
     /// </summary>
-    /// <seealso cref="Weaver.Interfaces.ICommand" />
+    /// <seealso cref="ICommand" />
     public sealed class DeleteCommand : ICommand
     {
         /// <inheritdoc />
@@ -29,10 +29,15 @@ namespace Mediator
         /// <inheritdoc />
         public int ParameterCount => 1;
 
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, int>? Extensions => new Dictionary<string, int>
+        {
+            { "test", 1 } // "test"  does not exist extension but expects at least 1 parameter (or variable)
+        };
+
+
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
-        /// <inheritdoc />
-        public IReadOnlyDictionary<string, int>? Extensions => null;
         /// <inheritdoc />
         /// 
         public CommandResult Execute(params string[] args)
