@@ -24,55 +24,46 @@ namespace Mediator
 
         /// <inheritdoc />
         public string Name => "delete";
-
         /// <inheritdoc />
         public string Description => "Deletes a resource by name.";
-
         /// <inheritdoc />
         public int ParameterCount => 1;
 
-        /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, int>? Extensions => null; // No need for 'feedback' extension now
-
-        /// <summary>
-        /// Executes the delete command.
-        /// </summary>
+        public IReadOnlyDictionary<string, int>? Extensions => null;
+        /// <inheritdoc />
+        /// 
         public CommandResult Execute(params string[] args)
         {
+            if (args.Length == 0)
+                return CommandResult.Fail("Missing target file.");
+
             var target = args[0];
 
-            // Build a feedback request using IFeedback
-            var feedback = new FeedbackRequest(
+            // Build a recursive feedback request
+            FeedbackRequest? feedback = null;
+            feedback = new FeedbackRequest(
                 prompt: $"Delete '{target}'? (yes/no/cancel)",
                 options: new[] { "yes", "no", "cancel" },
                 onRespond: input =>
                 {
                     switch (input.Trim().ToLowerInvariant())
                     {
-                        case "yes":
-                            return CommandResult.Ok($"Resource '{target}' deleted successfully.");
+                        case "yes": return CommandResult.Ok($"Resource '{target}' deleted successfully.");
                         case "no":
-                        case "cancel":
-                            return CommandResult.Fail("Deletion cancelled by user.");
+                        case "cancel": return CommandResult.Fail("Deletion cancelled by user.");
                         default:
-                            // Keep feedback pending for invalid input
+                            // Return a new CommandResult with the same Feedback to re-prompt
                             return new CommandResult
                             {
                                 Message = $"Unrecognized response '{input}'. Please answer yes/no/cancel.",
                                 RequiresConfirmation = true,
-                                Feedback = new FeedbackRequest(
-                                    prompt: "Please answer: yes / no / cancel",
-                                    options: new[] { "yes", "no", "cancel" },
-                                    onRespond: s =>
-                                        throw new NotImplementedException() // recursive wrapping handled by Weave
-                                )
+                                Feedback = feedback
                             };
                     }
-                }
-            );
+                });
 
             return new CommandResult
             {
@@ -83,34 +74,14 @@ namespace Mediator
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// No longer needed: all feedback is handled via IFeedback.
-        /// </summary>
-        public CommandResult InvokeExtension(string extensionName, params string[] args)
-        {
-            return extensionName.ToLowerInvariant() switch
-            {
-                "tryrun" => HandleTryRun(args),
-                "feedback" => HandleFeedback(args),
-                _ => CommandResult.Fail($"Unknown extension '{extensionName}'.")
-            };
-        }
-
-        /// <summary>
-        /// Handles the try run.
-        /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>The CommandResult</returns>
-        private CommandResult HandleTryRun(string[] args)
+        public CommandResult TryRun(params string[] args)
         {
             if (args.Length == 0)
-                return CommandResult.Fail("Missing argument: target file.");
+                return CommandResult.Fail("Missing target for preview.");
 
             var target = args[0];
 
             FeedbackRequest? feedback = null;
-            var cache = feedback;
-
             feedback = new FeedbackRequest(
                 prompt: $"Preview: Are you sure you want to delete '{target}'? (yes/no/cancel)",
                 options: new[] { "yes", "no", "cancel" },
@@ -124,53 +95,21 @@ namespace Mediator
                         "cancel" => CommandResult.Fail("Deletion cancelled by user."),
                         _ => new CommandResult
                         {
-                            Message = "Please answer yes/no/cancel",
+                            Message = $"Unrecognized response '{input}'. Please answer yes/no/cancel.",
                             RequiresConfirmation = true,
-                            Feedback = cache
+                            Feedback = feedback
                         }
                     };
                 });
 
             return new CommandResult
             {
-                Message = $"Are you sure you want to delete '{target}'?",
-                Feedback = feedback,
+                Message = $"Preview: Are you sure you want to delete '{target}'?",
                 RequiresConfirmation = true,
-                Success = true
-            };
-        }
-
-        /// <summary>
-        /// Handles the feedback.
-        /// </summary>
-        /// <param name="args">The arguments.</param>
-        /// <returns>The CommandResult</returns>
-        private CommandResult HandleFeedback(string[] args)
-        {
-            if (args.Length == 0)
-                return new CommandResult
-                {
-                    Message = "No input provided for feedback.",
-                    RequiresConfirmation = true
-                };
-
-            var input = args[0].Trim().ToLowerInvariant();
-
-            return input switch
-            {
-                "yes" => CommandResult.Ok("Resource deleted successfully."),
-                "no" => CommandResult.Fail("Deletion cancelled by user."),
-                "cancel" => CommandResult.Fail("Deletion cancelled by user."),
-                _ => new CommandResult
-                {
-                    Message = $"Unrecognized response '{input}'. Please answer yes/no/cancel.",
-                    RequiresConfirmation = true,
-                    Feedback = new FeedbackRequest(
-                        prompt: "Please answer: yes / no / cancel",
-                        options: new[] { "yes", "no", "cancel" },
-                        onRespond: null!)
-                }
+                Feedback = feedback,
+                Success = false
             };
         }
     }
+
 }

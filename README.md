@@ -161,7 +161,6 @@ class ICommand {
     + int ParameterCount
     + Dictionary<string, int> Extensions
     + CommandResult Execute(string[] args)
-    + CommandResult InvokeExtension(string extensionName, string[] args)
     + CommandResult? TryRun(string[] args)
 }
 

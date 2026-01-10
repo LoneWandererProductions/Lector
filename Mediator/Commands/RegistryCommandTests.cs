@@ -1,25 +1,42 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Commands
  * FILE:        RegistryCommandTests.cs
  * PURPOSE:     Some basic test cases for SetValueCommand and GetValueCommand.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.Core;
+using Weaver.Core.Commands;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
-namespace Mediator
+namespace Mediator.Commands
 {
+    /// <summary>
+    /// Check evaluate command tests.
+    /// </summary>
     [TestClass]
     public class RegistryCommandTests
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
         private IVariableRegistry _registry = null!;
+
+        /// <summary>
+        /// The set value
+        /// </summary>
         private SetValueCommand _setValue = null!;
+
+        /// <summary>
+        /// The get value
+        /// </summary>
         private GetValueCommand _getValue = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
@@ -28,6 +45,9 @@ namespace Mediator
             _getValue = new GetValueCommand(_registry);
         }
 
+        /// <summary>
+        /// Tests the set value and get value int.
+        /// </summary>
         [TestMethod]
         public void TestSetValueAndGetValue_Int()
         {
@@ -41,6 +61,9 @@ namespace Mediator
             Assert.AreEqual(EnumTypes.Wint, getResult.Type);
         }
 
+        /// <summary>
+        /// Tests the set value and get value string.
+        /// </summary>
         [TestMethod]
         public void TestSetValueAndGetValue_String()
         {
@@ -53,6 +76,9 @@ namespace Mediator
             Assert.AreEqual(EnumTypes.Wstring, getResult.Type);
         }
 
+        /// <summary>
+        /// Tests the get value non existing key.
+        /// </summary>
         [TestMethod]
         public void TestGetValue_NonExistingKey()
         {
@@ -63,6 +89,9 @@ namespace Mediator
             Assert.IsNull(getResult.Value);
         }
 
+        /// <summary>
+        /// Tests the set value invalid int.
+        /// </summary>
         [TestMethod]
         public void TestSetValue_InvalidInt()
         {
@@ -71,6 +100,9 @@ namespace Mediator
             StringAssert.Contains(result.Message, "Invalid int value");
         }
 
+        /// <summary>
+        /// Tests the type of the set value invalid.
+        /// </summary>
         [TestMethod]
         public void TestSetValue_InvalidType()
         {

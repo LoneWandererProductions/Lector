@@ -7,6 +7,8 @@
  */
 
 using Weaver.Core;
+using Weaver.Core.Commands;
+using Weaver.Core.Extensions;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ParseEngine;
@@ -272,12 +274,23 @@ namespace Weaver
                 if (error != null)
                     return error;
 
-                // Pass **command args** to the executor, **extension args** to the extension
-                var result = ext?.Invoke(cmd, parsed.ExtensionArgs, cmd.Execute, parsed.Args)
-                             ?? cmd.InvokeExtension(parsed.Extension, parsed.Args);
+                CommandResult result;
+
+                if (ext != null)
+                {
+                    // Pass **command args** to the executor, **extension args** to the extension
+                    result = ext.Invoke(cmd, parsed.ExtensionArgs, cmd.Execute, parsed.Args);
+                }
+                else
+                {
+                    // In the past we would call an obsolete InvokeExtension method here.
+                    // No extension found — return error (instead of calling obsolete InvokeExtension)
+                    return CommandResult.Fail($"Unknown extension '{parsed.Extension}' for command '{cmd.Name}'.");
+                }
 
                 return HandleFeedback(result, cmd);
             }
+
 
             // 4️⃣ Normal execution
             var execResult = cmd.Execute(parsed.Args);

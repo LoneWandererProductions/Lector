@@ -112,10 +112,5 @@ namespace CoreBuilder.Rules
             var messages = string.Join("\n", results.Select(d => d.ToString()));
             return CommandResult.Ok(messages, results);
         }
-
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string extensionName, params string[] args)
-            => CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }

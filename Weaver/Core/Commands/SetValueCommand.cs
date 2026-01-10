@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.Core
+ * PROJECT:     Weaver.Core.Commands
  * FILE:        SetValueCommand.cs
  * PURPOSE:     Sets a value and type for the Scripter Engine. Uses the internal Scripter Variable Storage.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -9,7 +9,7 @@
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Core
+namespace Weaver.Core.Commands
 {
     /// <inheritdoc />
     /// <summary>
@@ -120,12 +120,6 @@ namespace Weaver.Core
                 value,
                 type
             );
-        }
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string extensionName, params string[] args)
-        {
-            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

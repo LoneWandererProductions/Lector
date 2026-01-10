@@ -1,18 +1,21 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Parser
  * FILE:        SimpleCommandParserTests.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Really basic Parser tests for SimpleCommandParser. Does not use weaver internals yet or pretends to.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
 using Weaver.ParseEngine;
 
-namespace Mediator
+namespace Mediator.Parser
 {
     [TestClass]
     public class SimpleCommandParserTests
     {
+        /// <summary>
+        /// Parses the simple command no arguments no extension.
+        /// </summary>
         [TestMethod]
         public void Parse_SimpleCommand_NoArgs_NoExtension()
         {
@@ -26,6 +29,9 @@ namespace Mediator
             CollectionAssert.AreEqual(Array.Empty<string>(), result.ExtensionArgs);
         }
 
+        /// <summary>
+        /// Parses the command with arguments.
+        /// </summary>
         [TestMethod]
         public void Parse_CommandWithArgs()
         {
@@ -36,6 +42,9 @@ namespace Mediator
             CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt" }, result.Args);
         }
 
+        /// <summary>
+        /// Parses the namespaced command with extension.
+        /// </summary>
         [TestMethod]
         public void Parse_NamespacedCommandWithExtension()
         {
@@ -49,6 +58,9 @@ namespace Mediator
             CollectionAssert.AreEqual(new[] { "backup" }, result.ExtensionArgs);
         }
 
+        /// <summary>
+        /// Parses the arguments with quotes.
+        /// </summary>
         [TestMethod]
         public void Parse_ArgumentsWithQuotes()
         {
@@ -58,6 +70,9 @@ namespace Mediator
             CollectionAssert.AreEqual(new[] { "old.txt", "new.txt" }, result.Args);
         }
 
+        /// <summary>
+        /// Parses the invalid syntax throws.
+        /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormatException))]
         public void Parse_InvalidSyntax_Throws()
@@ -65,6 +80,9 @@ namespace Mediator
             SimpleCommandParser.Parse("invalid(");
         }
 
+        /// <summary>
+        /// Parses the command with empty extension arguments.
+        /// </summary>
         [TestMethod]
         public void Parse_CommandWithEmptyExtensionArgs()
         {

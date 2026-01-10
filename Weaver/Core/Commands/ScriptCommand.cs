@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.ScriptEngine
+ * PROJECT:     Weaver.Core.Commands
  * FILE:        ScriptCommand.cs
  * PURPOSE:     Provides a command wrapper to compile and execute Weaver scripts.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -10,7 +10,7 @@ using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
-namespace Weaver.Core
+namespace Weaver.Core.Commands
 {
     /// <inheritdoc />
     /// <summary>
@@ -71,12 +71,6 @@ namespace Weaver.Core
             }
 
             return CommandResult.Ok("Script executed successfully.");
-        }
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string extensionName, string[] args)
-        {
-            return CommandResult.Fail($"'{Name}' provides no extensions.");
         }
     }
 }

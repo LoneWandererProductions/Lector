@@ -1,21 +1,23 @@
 ﻿/*
- * PROJECT:     Weaver.ScriptEngine.Extensions
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Weaver.Core.Extensions
  * FILE:        ScriptStepperExtension.cs
  * PURPOSE:     Step Extension for Weaver scripts and ScriptCommand.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Weaver.Core.Commands;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
-namespace Weaver.Core
+namespace Weaver.Core.Extensions
 {
     /// <inheritdoc />
     /// <summary>
     /// Extension to step through a Weaver script one instruction at a time.
     /// </summary>
-    /// <seealso cref="Weaver.Interfaces.ICommandExtension" />
+    /// <seealso cref="ICommandExtension" />
     public sealed class ScriptStepperExtension : ICommandExtension
     {
         /// <inheritdoc />

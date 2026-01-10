@@ -1,15 +1,19 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Scripting
  * FILE:        ScriptEngineTests.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Simple Script Engine tests.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Mediator.Helper;
 using Weaver.ScriptEngine;
 
-namespace Mediator
+namespace Mediator.Scripting
 {
+    /// <summary>
+    /// basic tests for the Script Engine.
+    /// </summary>
     [TestClass]
     public class ScriptEngineTests
     {
@@ -40,7 +44,7 @@ namespace Mediator
             var tokens = lexer.Tokenize();
 
             // Parse
-            var parser = new Parser(tokens);
+            var parser = new Weaver.ScriptEngine.Parser(tokens);
             var lines = parser.ParseIntoNodes(); // returns List<ScriptLine>
 
             var blocks = Lowering.ScriptLowerer(lines).ToList();
@@ -56,7 +60,7 @@ namespace Mediator
 
             // Arrange execution context
             var executedCommands = new List<string>();
-            var context = new ScriptExecutionContext();
+            var context = new ScriptContext();
 
             // Register commands
             context.RegisterCommand("command1", new DelegateCommand(() => executedCommands.Add("command1 executed")));

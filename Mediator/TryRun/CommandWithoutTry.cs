@@ -1,7 +1,7 @@
-/*
+﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
- * FILE:        CommandWithTry.cs
+ * PROJECT:     Mediator.TryRun
+ * FILE:        CommandWithoutTry.cs
  * PURPOSE:     Test Extension integration with commands.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -10,12 +10,16 @@ using Weaver;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Mediator
+namespace Mediator.TryRun
 {
-    public sealed class CommandWithTry : ICommand
+    /// <summary>
+    /// Sample Command without TryRun implementation.
+    /// </summary>
+    /// <seealso cref="Weaver.Interfaces.ICommand" />
+    public sealed class CommandWithoutTry : ICommand
     {
         /// <inheritdoc />
-        public string Name => "withTry";
+        public string Name => "noTry";
 
         /// <inheritdoc />
         public string Description => "test";
@@ -32,16 +36,5 @@ namespace Mediator
         /// <inheritdoc />
         public CommandResult Execute(params string[] args)
             => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string ext, params string[] args)
-            => CommandResult.Fail("no ext");
-
-        /// <inheritdoc />
-        /// <summary>
-        /// Here is the important part:
-        /// </summary>
-        public CommandResult TryRun(params string[] args)
-            => new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
     }
 }

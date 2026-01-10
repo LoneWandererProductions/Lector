@@ -1,16 +1,16 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Commands
  * FILE:        EvaluateCommandTests.cs
  * PURPOSE:     Tests for the EvaluateCommand.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.Core;
+using Weaver.Core.Commands;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
-namespace Mediator
+namespace Mediator.Commands
 {
     /// <summary>
     /// Evaluate command tests.

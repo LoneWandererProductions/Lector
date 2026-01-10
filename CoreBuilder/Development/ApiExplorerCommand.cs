@@ -184,9 +184,5 @@ namespace CoreBuilder.Development
         {
             return modifiers.Any(m => m.Text == "public");
         }
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string extensionName, params string[] args)
-            => CommandResult.Fail($"'{Name}' has no extensions.");
     }
 }

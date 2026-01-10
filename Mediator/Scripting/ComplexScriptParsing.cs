@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Scripting
  * FILE:        ComplexScriptParsing.cs
  * PURPOSE:     Tests the Parser’s correct categorization of tokens
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -9,7 +9,7 @@
 using Weaver.ScriptEngine;
 using System.Diagnostics;
 
-namespace Mediator
+namespace Mediator.Scripting
 {
     [TestClass]
     public class ComplexScriptParsing
@@ -39,7 +39,7 @@ namespace Mediator
             var tokens = lexer.Tokenize();
 
 
-            var parser = new Parser(tokens);
+            var parser = new Weaver.ScriptEngine.Parser(tokens);
             var lines = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(lines).ToList();

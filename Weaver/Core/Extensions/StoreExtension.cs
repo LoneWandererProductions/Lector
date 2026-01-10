@@ -1,6 +1,6 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.Core
+ * PROJECT:     Weaver.Core.Extensions
  * FILE:        StoreExtension.cs
  * PURPOSE:     Global extension to store results of a command into the variable registry.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -9,7 +9,7 @@
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Core
+namespace Weaver.Core.Extensions
 {
     /// <summary>
     /// Provides help information for a command using the .help extension.

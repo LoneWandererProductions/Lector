@@ -1,16 +1,15 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Mediator
+ * PROJECT:     Mediator.Commands
  * FILE:        StoreExtensionTests.cs
  * PURPOSE:     Tests for the .store() global extension.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Weaver;
 using Weaver.Messages;
 
-namespace Mediator
+namespace Mediator.Commands
 {
     /// <summary>
     /// Tests for the StoreExtension global extension.
@@ -18,8 +17,14 @@ namespace Mediator
     [TestClass]
     public sealed class StoreExtensionTests
     {
+        /// <summary>
+        /// The weave
+        /// </summary>
         private Weave? _weave;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {

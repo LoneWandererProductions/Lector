@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.Core
+ * PROJECT:     Weaver.Core.Commands
  * FILE:        EvaluateCommand.cs
  * PURPOSE:     Does double duty as internal command and extension to evaluate expressions. It can be either used as calculator or expression evaluator.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -10,12 +10,12 @@ using System.Globalization;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Core
+namespace Weaver.Core.Commands
 {
     /// <summary>
     /// Simple Commmand to evaluate expressions or do simple calculations.
     /// </summary>
-    /// <seealso cref="Weaver.Interfaces.ICommand" />
+    /// <seealso cref="ICommand" />
     internal class EvaluateCommand : ICommand
     {
         /// <inheritdoc />
@@ -136,12 +136,6 @@ namespace Weaver.Core
             };
 
             return CommandResult.Ok(message, result, type);
-        }
-
-        /// <inheritdoc />
-        public CommandResult InvokeExtension(string extensionName, string[] args)
-        {
-            return CommandResult.Fail($"'{Name}' has no extensions.");
         }
     }
 }

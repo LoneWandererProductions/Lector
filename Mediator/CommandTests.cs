@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Mediator
  * FILE:        CommandTests.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Sample Command implementation for testing.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -93,40 +93,6 @@ namespace Mediator
             Assert.IsFalse(result.Success); // It's just preview, not confirmed
             Assert.IsNotNull(result.Feedback);
             Assert.AreEqual("Delete 'file.txt'? (yes/no/cancel)", result.Feedback!.Prompt);
-        }
-
-        [TestMethod]
-        public void DeleteCommand_InvokeExtension_Feedback_Yes()
-        {
-            var feedback = _deleteCommand.Execute("file.txt").Feedback!;
-            var result = _deleteCommand.InvokeExtension("feedback", "yes");
-            Assert.IsTrue(result.Success);
-            Assert.AreEqual("Resource deleted successfully.", result.Message);
-        }
-
-        [TestMethod]
-        public void DeleteCommand_InvokeExtension_Feedback_No()
-        {
-            var result = _deleteCommand.InvokeExtension("feedback", "no");
-            Assert.IsFalse(result.Success);
-            Assert.AreEqual("Deletion cancelled by user.", result.Message);
-        }
-
-        [TestMethod]
-        public void DeleteCommand_InvokeExtension_Feedback_Invalid()
-        {
-            var result = _deleteCommand.InvokeExtension("feedback", "maybe");
-            Assert.IsFalse(result.Success);
-            Assert.IsNotNull(result.Feedback);
-            Assert.AreEqual("Please answer: yes / no / cancel", result.Feedback!.Prompt);
-        }
-
-        [TestMethod]
-        public void DeleteCommand_InvokeExtension_Feedback_Cancel()
-        {
-            var result = _deleteCommand.InvokeExtension("feedback", "cancel");
-            Assert.IsFalse(result.Success);
-            Assert.AreEqual("Deletion cancelled by user.", result.Message);
         }
     }
 }

@@ -11,7 +11,7 @@ using Weaver;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 
-namespace Mediator
+namespace Mediator.Scripting
 {
     /// <summary>
     /// Tests for ScriptExecutor and registry logic.
@@ -39,7 +39,7 @@ namespace Mediator
             ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
@@ -106,7 +106,7 @@ namespace Mediator
     ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes).ToList();
@@ -147,7 +147,7 @@ namespace Mediator
             ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
@@ -209,7 +209,7 @@ namespace Mediator
             ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
@@ -251,7 +251,7 @@ namespace Mediator
     ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
@@ -288,7 +288,7 @@ namespace Mediator
     ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
@@ -334,7 +334,7 @@ namespace Mediator
     ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
             var blocks = Lowering.ScriptLowerer(nodes);
 
@@ -370,7 +370,7 @@ namespace Mediator
     ";
 
             var lexer = new Lexer(script);
-            var parser = new Parser(lexer.Tokenize());
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
 
             var blocks = Lowering.ScriptLowerer(nodes);
