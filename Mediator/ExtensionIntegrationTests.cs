@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Mediator.Core;
 using Weaver;
 
 namespace Mediator

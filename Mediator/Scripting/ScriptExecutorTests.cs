@@ -19,7 +19,14 @@ namespace Mediator.Scripting
     [TestClass]
     public class ScriptExecutorTests
     {
+        /// <summary>
+        /// The weave
+        /// </summary>
         private Weave _weave = null!;
+
+        /// <summary>
+        /// The executor
+        /// </summary>
         private ScriptExecutor _executor = null!;
 
         /// <summary>
@@ -63,6 +70,9 @@ namespace Mediator.Scripting
             );
         }
 
+        /// <summary>
+        /// Tests the simple registry flow.
+        /// </summary>
         [TestMethod]
         public void TestSimpleRegistryFlow()
         {
@@ -179,6 +189,62 @@ namespace Mediator.Scripting
             Assert.IsTrue(result4.Success);
         }
 
+        /// <summary>
+        /// Tests the multiple do while loops.
+        /// </summary>
+        [TestMethod]
+        public void TestMultipleDoWhileLoops()
+        {
+            const string script = @"
+        setValue(a, 0, Wint);
+        setValue(b, 0, Wint);
+
+        do { setValue(a, a+1, Wint); } while(a < 2);
+        do { setValue(b, b+2, Wint); } while(b < 4);
+
+        getValue(a);
+        getValue(b);
+    ";
+
+            var lexer = new Lexer(script);
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
+            var nodes = parser.ParseIntoNodes();
+            var blocks = Lowering.ScriptLowerer(nodes);
+
+            foreach (var line in blocks)
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+
+            var statements = blocks
+                .Where(line => line.Statement != null)
+                .Select(line => (line.Category, line.Statement!))
+                .ToList();
+
+            var executor = new ScriptExecutor(_weave, statements, true);
+
+            CommandResult? lastA = null;
+            CommandResult? lastB = null;
+
+            while (!executor.IsFinished)
+            {
+                var r = executor.ExecuteNext();
+
+                // capture getValue results
+                if (r.Message.Contains("Retrieved key 'a'"))
+                    lastA = r;
+                if (r.Message.Contains("Retrieved key 'b'"))
+                    lastB = r;
+            }
+
+            Assert.IsNotNull(lastA, "Expected a final CommandResult for 'a'");
+            Assert.IsNotNull(lastB, "Expected a final CommandResult for 'b'");
+
+            Assert.AreEqual("2", lastA!.Value!.ToString(), "Variable a should increment to 2");
+            Assert.AreEqual("4", lastB!.Value!.ToString(), "Variable b should increment to 4");
+        }
+
+        /// <summary>
+        /// Tests the script finish.
+        /// </summary>
         [TestMethod]
         public void Test_ScriptFinish()
         {
@@ -194,6 +260,9 @@ namespace Mediator.Scripting
             Assert.IsTrue(_executor.IsFinished, "Script should finish completely.");
         }
 
+        /// <summary>
+        /// Tests the do while exit loop properly.
+        /// </summary>
         [TestMethod]
         public void TestDoWhile_ExitLoopProperly()
         {
@@ -238,6 +307,9 @@ namespace Mediator.Scripting
             Assert.AreEqual("3", last.Value!.ToString(), "Counter should have incremented to 3");
         }
 
+        /// <summary>
+        /// Tests if condition true executes body.
+        /// </summary>
         [TestMethod]
         public void TestIfCondition_TrueExecutesBody()
         {
@@ -275,6 +347,9 @@ namespace Mediator.Scripting
             Assert.AreEqual("42", last.Value!.ToString(), "IF true branch should execute and set x=42");
         }
 
+        /// <summary>
+        /// Tests if condition false skips body.
+        /// </summary>
         [TestMethod]
         public void TestIfCondition_FalseSkipsBody()
         {
@@ -317,6 +392,9 @@ namespace Mediator.Scripting
             Assert.AreEqual("0", lastResult.Value!.ToString(), "Counter should remain 0 because the if-body was skipped");
         }
 
+        /// <summary>
+        /// Tests if else executes correct branch.
+        /// </summary>
         [TestMethod]
         public void TestIfElse_ExecutesCorrectBranch()
         {
@@ -362,6 +440,58 @@ namespace Mediator.Scripting
             Assert.AreEqual("2", result.Value!.ToString(), "Counter should be 2 because the else branch executed");
         }
 
+        /// <summary>
+        /// Tests the nested if else.
+        /// </summary>
+        [TestMethod]
+        public void TestNestedIfElse()
+        {
+            const string script = @"
+    setValue(x, 0, Wint);
+    if(true)
+    {
+        setValue(x, 1, Wint);
+        if(false)
+        {
+            setValue(x, 2, Wint);
+        }
+        else
+        {
+            setValue(x, 3, Wint);
+        }
+    }
+    getValue(x);
+    ";
+
+            var lexer = new Lexer(script);
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
+            var nodes = parser.ParseIntoNodes();
+            var blocks = Lowering.ScriptLowerer(nodes);
+
+            var statements = blocks
+                .Where(line => line.Statement != null)
+                .Select(line => (line.Category, line.Statement!))
+                .ToList();
+
+            var executor = new ScriptExecutor(_weave, statements);
+
+            CommandResult? result = null;
+            while (!executor.IsFinished)
+            {
+                var r = executor.ExecuteNext();
+                if (r.Value != null)
+                    result = r;
+            }
+
+            Assert.IsNotNull(result, "Expected a CommandResult from getValue(x)");
+            Assert.AreEqual("3", result.Value!.ToString(), "Nested else branch should execute correctly");
+        }
+
+
+
+        /// <summary>
+        /// Tests the goto missing label fails gracefully.
+        /// </summary>
         [TestMethod]
         public void TestGoto_MissingLabelFailsGracefully()
         {
@@ -391,5 +521,67 @@ namespace Mediator.Scripting
             Assert.IsFalse(last.Success);
             StringAssert.Contains(last.Message, "not found", "Goto to missing label should fail");
         }
+
+        /// <summary>
+        /// Tests the rewrite variable assignment to command.
+        /// </summary>
+        [TestMethod]
+        public void TestRewrite_VariableAssignmentToCommand()
+        {
+            const string script = @"
+        x = getValue(score);
+    ";
+
+            var lexer = new Lexer(script);
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
+            var nodes = parser.ParseIntoNodes();
+
+            var blocks = Lowering.ScriptLowerer(nodes).ToList();
+
+            foreach (var line in blocks)
+                Trace.WriteLine($"{line.Category.PadRight(16)} : {line.Statement}");
+
+            // Look for rewritten output
+            var rewritten = blocks
+                .Where(b => b.Category == "Command_Rewrite")
+                .Select(b => b.Statement)
+                .ToList();
+
+            Assert.AreEqual(1, rewritten.Count, "Expected one rewritten command.");
+            StringAssert.Contains(rewritten[0], "Store(x)");
+            StringAssert.Contains(rewritten[0], "getValue(");
+        }
+
+        /// <summary>
+        /// Tests the rewrite arithmetic to evaluate command.
+        /// </summary>
+        [TestMethod]
+        public void TestRewrite_ArithmeticToEvaluateCommand()
+        {
+            const string script = @"
+        x = 2+3;
+    ";
+
+            var lexer = new Lexer(script);
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
+            var nodes = parser.ParseIntoNodes();
+
+            var blocks = Lowering.ScriptLowerer(nodes).ToList();
+
+            foreach (var line in blocks)
+                Trace.WriteLine($"{line.Category.PadRight(16)} : {line.Statement}");
+
+            var rewritten = blocks
+                .Where(b => b.Category == "Command_Rewrite")
+                .Select(b => b.Statement)
+                .ToList();
+
+            Assert.AreEqual(1, rewritten.Count, "Expected one rewritten arithmetic assignment.");
+            StringAssert.Contains(rewritten[0], "EvaluateCommand(");
+            StringAssert.Contains(rewritten[0], "2+3");
+            StringAssert.Contains(rewritten[0], ", x");
+        }
+
+
     }
 }

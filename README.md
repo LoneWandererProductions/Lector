@@ -246,6 +246,7 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
 - Minor interface updates were required for ICommandExtension to support multi-argument invocation.  
 - Some legacy extensions were updated to comply with new interface signature.  
 - Variable registry and expression evaluation robustness improved, especially for chained commands and extensions.
+- work on some syntax sugar for the Script engine to make it more user friendly.
 
 ---
 

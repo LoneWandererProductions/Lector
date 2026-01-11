@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Diagnostics;
 using Weaver.Interfaces;
 using Weaver.Messages;
 

@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Diagnostics;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -44,6 +45,11 @@ namespace Weaver.ScriptEngine
         private int _position;
 
         /// <summary>
+        /// The debug
+        /// </summary>
+        private readonly bool _debug;
+
+        /// <summary>
         /// The pending feedback
         /// </summary>
         private FeedbackRequest? _pendingFeedback;
@@ -52,6 +58,9 @@ namespace Weaver.ScriptEngine
         /// Only store the start index of do-while loops
         /// </summary>
         private readonly Stack<int> _doWhileStack = new();
+
+        //private readonly Stack<(int BodyStart, int WhileIndex)> _doWhileStack = new();
+
 
         /// <summary>
         /// Current instruction index.
@@ -62,17 +71,19 @@ namespace Weaver.ScriptEngine
         public int InstructionPointer => _position;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ScriptExecutor"/> class.
+        /// Initializes a new instance of the <see cref="ScriptExecutor" /> class.
         /// </summary>
         /// <param name="weave">The weave.</param>
         /// <param name="statements">The statements.</param>
-        public ScriptExecutor(Weave weave, List<(string Category, string)> statements)
+        /// <param name="debug">if set to <c>true</c> [debug].</param>
+        public ScriptExecutor(Weave weave, List<(string Category, string)> statements, bool debug = false)
         {
             //now weave also holds all the variables and evaluator commands we need.
             _weave = weave;
             _evaluator = new ExpressionEvaluator(_weave.Runtime.Variables);
             _statements = statements ?? new List<(string Category, string)>();
             _position = 0;
+            _debug = debug;
 
             _labelPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -96,7 +107,6 @@ namespace Weaver.ScriptEngine
         /// <returns>CommandResult from Weave.</returns>
         public CommandResult ExecuteNext(string? feedbackInput = null, int? maxIterations = null)
         {
-            // Resume pending feedback
             if (_pendingFeedback != null)
             {
                 if (feedbackInput == null)
@@ -124,6 +134,9 @@ namespace Weaver.ScriptEngine
                     continue;
                 }
 
+                // Debug everything
+                if (_debug) DebugLine(category, stmt);
+
                 switch (category)
                 {
                     case "Goto":
@@ -134,97 +147,73 @@ namespace Weaver.ScriptEngine
                             _position++;
                             return CommandResult.Fail($"Label '{stmt}' not found.");
                         }
-
                         continue;
 
                     case "Label":
-                        _position++; // labels are just markers
+                        _position++;
                         continue;
 
                     case "Do_Open":
-                        _doWhileStack.Push(_position);
+                        // Push the index of the first statement in the loop body
+                        _doWhileStack.Push(_position + 1);
+                        Trace.WriteLine($"Do_Open at {_position}, push {_position + 1}");
                         _position++;
                         continue;
 
                     case "While_Condition":
                         if (_doWhileStack.Count == 0)
                         {
+                            Trace.WriteLine($"--- Warning: While_Condition without Do_Open at Pos={_position} ---");
                             _position++;
                             continue;
                         }
 
-                        // Evaluate the condition
-                        var loopStart = _doWhileStack.Peek();
-                        var condResult = _evaluator.Evaluate(stmt!);
+                        int bodyStart = _doWhileStack.Peek();  // <- Peek, not Pop!
+                        bool cond = _evaluator.Evaluate(stmt!);
 
-                        if (condResult)
-                            _position = loopStart + 1; // loop again
+                        Trace.WriteLine($"While_Condition at {_position}, bodyStart={bodyStart}, cond={cond}");
+
+                        if (cond)
+                        {
+                            _position = bodyStart; // repeat loop
+                        }
                         else
                         {
-                            _doWhileStack.Pop();
-                            _position++; // exit loop
+                            _doWhileStack.Pop();   // done with loop
+                            _position++;           // move past While_Condition
                         }
 
+                        continue;
+
+                    case "Do_End":
+                        _position++; // just move past, no stack changes
                         continue;
 
                     case "If_Condition":
+                        bool ifcond = _evaluator.Evaluate(stmt!);
+                        _position++;
+                        if (!ifcond)
                         {
-                            var cond = _evaluator.Evaluate(stmt!);
-                            _position++; // move past the If_Condition node
-
-                            if (!cond)
+                            int depth = 0;
+                            while (_position < _statements.Count)
                             {
-                                // Skip the "true" branch to Else_Open or If_End
-                                var depth = 0;
-                                while (_position < _statements.Count)
-                                {
-                                    var (cat, _) = _statements[_position];
-
-                                    if (cat == "If_Condition" || cat == "Do_Condition")
-                                    {
-                                        depth++;
-                                        _position++;
-                                    }
-                                    else if (cat == "Else_Open" && depth == 0)
-                                    {
-                                        // Jump into the else block
-                                        _position++; // move past Else_Open marker to first else command
-                                        break;
-                                    }
-                                    else if (cat == "If_End" && depth == 0)
-                                    {
-                                        // No else, skip past If_End
-                                        _position++;
-                                        break;
-                                    }
-                                    else if (cat == "CloseBrace" && depth > 0)
-                                    {
-                                        depth--;
-                                        _position++;
-                                    }
-                                    else
-                                    {
-                                        _position++;
-                                    }
-                                }
+                                var (cat, _) = _statements[_position];
+                                if (cat == "If_Condition") { depth++; _position++; }
+                                else if (cat == "If_End" && depth == 0) { _position++; break; }
+                                else if (cat == "Else_Open" && depth == 0) { _position++; break; }
+                                else if ((cat == "If_End" || cat == "Else_End") && depth > 0) { depth--; _position++; }
+                                else { _position++; }
                             }
-
-                            // If condition was true, execution continues naturally into the "true" block
-                            continue;
                         }
+                        continue;
 
                     case "Else_Open":
-                        // Simply skip the marker; execution continues into else block
+                    case "If_End":
+                    case "Else_End":
                         _position++;
                         continue;
 
-                    case "If_End":
-                    case "Else_End":
-                        _position++; // just move past markers
-                        continue;
-
-
-                    default: // "Command", "Assignment", etc.
+                    default:
                         var result = _weave.ProcessInput(stmt!);
                         if (result.Feedback != null)
                         {
@@ -243,6 +232,16 @@ namespace Weaver.ScriptEngine
                 Message = "Script finished.",
                 Feedback = null
             };
+        }
+
+        /// <summary>
+        /// Debugs the line.
+        /// </summary>
+        /// <param name="category">The category.</param>
+        /// <param name="stmt">The statement.</param>
+        private void DebugLine(string category, string stmt)
+        {
+            Trace.WriteLine($"{"Parser:" + category.PadRight(16)} : {stmt ?? "<null>"} | Pos={_position} | Stack=[{string.Join(",", _doWhileStack)}]");
         }
     }
 }
