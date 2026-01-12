@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Data;
 using Weaver.Interfaces;
 
 namespace Weaver.ScriptEngine
@@ -90,11 +91,25 @@ namespace Weaver.ScriptEngine
         public double EvaluateNumeric(string expression)
         {
             if (string.IsNullOrWhiteSpace(expression))
-                throw new ArgumentException("Expression cannot be empty.", nameof(expression));
+                throw new ArgumentException(nameof(expression));
 
-            var dt = new System.Data.DataTable();
-            var value = dt.Compute(expression, string.Empty);
-            return Convert.ToDouble(value);
+            var dt = new DataTable();
+
+            if (_registry != null)
+            {
+                var all = _registry.GetAll();
+                foreach (var kv in all)
+                    dt.Columns.Add(kv.Key, typeof(double));
+
+                var row = dt.NewRow();
+                foreach (var kv in all)
+                    row[kv.Key] = Convert.ToDouble(kv.Value.Value);
+
+                dt.Rows.Add(row);
+            }
+
+            // Now compute expression with variables injected
+            return Convert.ToDouble(dt.Compute(expression, ""));
         }
 
         /// <summary>

@@ -128,7 +128,8 @@ namespace Weaver.ScriptEngine
 
                 var (category, stmt) = _statements[_position];
 
-                if (string.IsNullOrWhiteSpace(stmt))
+                // Only skip empty COMMANDS, never control opcodes
+                if (category == "Command" && string.IsNullOrWhiteSpace(stmt))
                 {
                     _position++;
                     continue;

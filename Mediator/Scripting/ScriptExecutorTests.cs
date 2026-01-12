@@ -215,8 +215,7 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
-                .Select(line => (line.Category, line.Statement!))
+                .Select(line => (line.Category, line.Statement))
                 .ToList();
 
             var executor = new ScriptExecutor(_weave, statements, true);
