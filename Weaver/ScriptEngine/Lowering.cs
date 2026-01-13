@@ -2,9 +2,14 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine
  * FILE:        Lowering.cs
- * PURPOSE:     Converts the ScriptNode tree into a linear sequence for execution
+ * PURPOSE:     Converts the ScriptNode tree into a linear sequence for execution.
+ *              Optional but recommended it replaces some syntax sugar into correctly executable commands.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
+
+using System.Text.RegularExpressions;
+using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace Weaver.ScriptEngine
 {
@@ -18,11 +23,15 @@ namespace Weaver.ScriptEngine
         /// Includes pseudo-categories like Do_Open, Do_End, If_Open, If_End, Else_Open, Else_End.
         /// </summary>
         /// <param name="nodes">The nodes.</param>
+        /// <param name="registry">Optional variable registry for early substitution.</param>
         /// <param name="rewrite">A debug switch for rewrite.</param>
+        /// <param name="branchPath">Branch path for tracking nested structures.</param>
         /// <returns>Execution blocks.</returns>
-        /// <exception cref="System.Exception">Unsupported assignment expression: '{expr}'</exception>
         public static IEnumerable<(string Category, string? Statement)> ScriptLowerer(
-            IEnumerable<ScriptNode> nodes, bool? rewrite = true, string branchPath = "")
+            IEnumerable<ScriptNode> nodes,
+            IVariableRegistry? registry = null,
+            bool? rewrite = true,
+            string branchPath = "")
         {
             foreach (var node in nodes)
             {
@@ -47,13 +56,19 @@ namespace Weaver.ScriptEngine
 
                             if (rewrite ?? true)
                             {
+                                string rewrittenExpr = expr;
+
+                                // Replace registry variables if possible
+                                if (registry != null)
+                                    rewrittenExpr = ReplaceRegistryVariables(expr, registry);
+
                                 if (IsCommandCall(expr))
                                 {
                                     yield return ("Command_Rewrite", $"{expr}.Store({varName})");
                                 }
                                 else if (IsSimpleExpression(expr))
                                 {
-                                    yield return ("Command_Rewrite", $"EvaluateCommand({expr}, {varName})");
+                                    yield return ("Command_Rewrite", $"EvaluateCommand({rewrittenExpr}, {varName})");
                                 }
                                 else
                                 {
@@ -75,7 +90,7 @@ namespace Weaver.ScriptEngine
                         // Open true branch
                         yield return ("If_Open", branchPath + "T");
 
-                        foreach (var child in ScriptLowerer(ifn.TrueBranch, rewrite, branchPath + "T"))
+                        foreach (var child in ScriptLowerer(ifn.TrueBranch, registry, rewrite, branchPath + "T"))
                             yield return child;
 
                         yield return ("If_End", branchPath + "T");
@@ -84,7 +99,7 @@ namespace Weaver.ScriptEngine
                         {
                             yield return ("Else_Open", branchPath + "F");
 
-                            foreach (var child in ScriptLowerer(ifn.FalseBranch, rewrite, branchPath + "F"))
+                            foreach (var child in ScriptLowerer(ifn.FalseBranch, registry, rewrite, branchPath + "F"))
                                 yield return child;
 
                             yield return ("Else_End", branchPath + "F");
@@ -95,7 +110,7 @@ namespace Weaver.ScriptEngine
                     case DoWhileNode dw:
                         yield return ("Do_Open", null);
 
-                        foreach (var child in ScriptLowerer(dw.Body, rewrite, branchPath))
+                        foreach (var child in ScriptLowerer(dw.Body, registry, rewrite, branchPath))
                             yield return child;
 
                         yield return ("Do_End", null);
@@ -105,6 +120,31 @@ namespace Weaver.ScriptEngine
             }
         }
 
+        /// <summary>
+        /// Replaces known registry variables in a simple expression with their literal values.
+        /// </summary>
+        private static string ReplaceRegistryVariables(string expr, IVariableRegistry registry)
+        {
+            foreach (var kv in registry.GetAll())
+            {
+                var name = kv.Key;
+                var vm = kv.Value;
+
+                string replacement = vm.Type switch
+                {
+                    EnumTypes.Wint => vm.Int64.ToString(),
+                    EnumTypes.Wdouble => vm.Double.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    EnumTypes.Wbool => vm.Bool ? "1" : "0",
+                    EnumTypes.Wstring => $"\"{vm.String}\"",
+                    _ => throw new InvalidOperationException($"Unsupported EnumType {vm.Type}")
+                };
+
+                // Replace whole-word occurrences only to avoid partial matches
+                expr = Regex.Replace(expr, $@"\b{name}\b", replacement);
+            }
+
+            return expr;
+        }
 
         /// <summary>
         /// Determines whether [is command call] [the specified expr].
@@ -115,7 +155,6 @@ namespace Weaver.ScriptEngine
         /// </returns>
         private static bool IsCommandCall(string expr)
         {
-            // Simple: starts with identifier and ends in (...)
             int paren = expr.IndexOf('(');
             return paren > 0 && expr.EndsWith(")");
         }
@@ -129,16 +168,12 @@ namespace Weaver.ScriptEngine
         /// </returns>
         private static bool IsSimpleExpression(string expr)
         {
-            // no nested parentheses allowed
-            if (expr.Contains("(")) return false;
-            if (expr.Contains(")")) return false;
+            if (expr.Contains("(") || expr.Contains(")"))
+                return false;
 
-            // allow digits, identifiers, basic operators
             foreach (char c in expr)
-            {
-                if (!char.IsLetterOrDigit(c) && "+-*/ ".IndexOf(c) < 0)
+                if (!char.IsLetterOrDigit(c) && "+-*/<>=!&| ".IndexOf(c) < 0)
                     return false;
-            }
 
             return true;
         }

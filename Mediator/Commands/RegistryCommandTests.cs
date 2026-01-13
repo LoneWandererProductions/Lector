@@ -57,7 +57,7 @@ namespace Mediator.Commands
 
             var getResult = _getValue.Execute("counter");
             Assert.IsTrue(getResult.Success);
-            Assert.AreEqual(42, getResult.Value);
+            Assert.AreEqual((long)42, getResult.Value);
             Assert.AreEqual(EnumTypes.Wint, getResult.Type);
         }
 

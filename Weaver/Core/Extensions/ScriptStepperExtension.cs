@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Microsoft.Win32;
 using Weaver.Core.Commands;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -20,6 +21,11 @@ namespace Weaver.Core.Extensions
     /// <seealso cref="ICommandExtension" />
     public sealed class ScriptStepperExtension : ICommandExtension
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
+        private IVariableRegistry _registry;
+
         /// <inheritdoc />
         public string Name => "Step";
 
@@ -28,6 +34,11 @@ namespace Weaver.Core.Extensions
 
         /// <inheritdoc />
         public string Namespace => WeaverResources.GlobalNamespace;
+
+        public ScriptStepperExtension(IVariableRegistry registry)
+        {
+            _registry = registry;
+        }
 
         /// <inheritdoc />
         public CommandResult Invoke(
@@ -47,7 +58,7 @@ namespace Weaver.Core.Extensions
             WeaverProgram program;
             try
             {
-                program = WeaverProgram.Compile(script);
+                program = WeaverProgram.Compile(script, _registry);
             }
             catch (Exception ex)
             {

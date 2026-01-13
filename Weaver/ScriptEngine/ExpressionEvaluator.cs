@@ -8,6 +8,7 @@
 
 using System.Data;
 using Weaver.Interfaces;
+using Weaver.Messages;
 
 namespace Weaver.ScriptEngine
 {
@@ -98,17 +99,39 @@ namespace Weaver.ScriptEngine
             if (_registry != null)
             {
                 var all = _registry.GetAll();
+
+                // Define DataTable columns
                 foreach (var kv in all)
                     dt.Columns.Add(kv.Key, typeof(double));
 
+                // Insert the row with proper type conversion
                 var row = dt.NewRow();
+
                 foreach (var kv in all)
-                    row[kv.Key] = Convert.ToDouble(kv.Value.Value);
+                {
+                    VMValue vm = kv.Value;
+
+                    double numericValue = vm.Type switch
+                    {
+                        EnumTypes.Wint => vm.Int64,
+                        EnumTypes.Wdouble => vm.Double,
+                        EnumTypes.Wbool => vm.Bool ? 1.0 : 0.0,
+                        EnumTypes.Wstring => double.TryParse(vm.String, out var p)
+                                                ? p
+                                                : throw new InvalidCastException(
+                                                    $"Cannot convert string '{vm.String}' to double for variable '{kv.Key}'."
+                                                  ),
+                        _ => throw new InvalidOperationException(
+                                $"Unsupported EnumType '{vm.Type}' for numeric evaluation."
+                             )
+                    };
+
+                    row[kv.Key] = numericValue;
+                }
 
                 dt.Rows.Add(row);
             }
 
-            // Now compute expression with variables injected
             return Convert.ToDouble(dt.Compute(expression, ""));
         }
 

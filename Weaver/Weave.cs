@@ -100,20 +100,24 @@ namespace Weaver
             var print = new PrintCommand();
             Register(print);
 
-            //our custom calculator command, needs the evaluator.
+            // Our custom calculator command, needs the evaluator.
             _evaluator = new ExpressionEvaluator(Runtime.Variables);
             Register(new EvaluateCommand(_evaluator, Runtime.Variables));
 
-            //register all variable commands with the runtime registry
+            // Register all variable commands with the runtime registry
             Register(new SetValueCommand(Runtime.Variables));
             Register(new GetValueCommand(Runtime.Variables));
             Register(new DeleteValueCommand(Runtime.Variables));
             Register(new MemoryCommand(Runtime.Variables));
+            Register(new ScriptCommand(Runtime.Variables));
 
-            _extensions.Add(new HelpExtension());
-            _extensions.Add(new TryRunExtension());
-            _extensions.Add(new StoreExtension(Runtime.Variables));
+            // Register built-in extensions using RegisterExtension (unifies code path & enforces duplicate checks)
+            RegisterExtension(new HelpExtension());
+            RegisterExtension(new TryRunExtension());
+            RegisterExtension(new StoreExtension(Runtime.Variables));
+            RegisterExtension(new ScriptStepperExtension(Runtime.Variables));
         }
+
 
         /// <summary>
         /// Registers a command in the engine.

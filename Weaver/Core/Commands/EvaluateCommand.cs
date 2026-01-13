@@ -64,7 +64,6 @@ namespace Weaver.Core.Commands
             // If no expression, maybe store previous pipeline value or return null
             if (string.IsNullOrWhiteSpace(expression))
             {
-                // Allow empty input if .store() will handle it
                 return CommandResult.Ok(null);
             }
 
@@ -73,30 +72,40 @@ namespace Weaver.Core.Commands
             {
                 foreach (var variable in _registry.GetAll())
                 {
-                    if (variable.Value.Value == null)
+                    var key = variable.Key;
+                    var (valueObj, valueType) = variable.Value;
+
+                    if (valueObj == null)
                         continue;
 
-                    var key = variable.Key;
-                    var val = variable.Value.Value.ToString() ?? "0";
-                    expression = expression.Replace(key, val, StringComparison.OrdinalIgnoreCase);
+                    string replacement = valueType switch
+                    {
+                        EnumTypes.Wint => Convert.ToInt64(valueObj).ToString(),
+                        EnumTypes.Wdouble => Convert.ToDouble(valueObj).ToString(CultureInfo.InvariantCulture),
+                        EnumTypes.Wbool => Convert.ToBoolean(valueObj) ? "1" : "0",
+                        EnumTypes.Wstring => valueObj.ToString() ?? "",
+                        _ => valueObj.ToString() ?? ""
+                    };
+
+                    expression = expression.Replace(key, replacement, StringComparison.OrdinalIgnoreCase);
                 }
             }
 
             object? result;
             EnumTypes type;
 
-            var isBooleanExpr = _evaluator.IsBooleanExpression(expression);
+            bool isBooleanExpr = _evaluator.IsBooleanExpression(expression);
 
             try
             {
                 if (isBooleanExpr)
                 {
-                    result = _evaluator.Evaluate(expression);
+                    result = _evaluator.Evaluate(expression); // returns bool
                     type = EnumTypes.Wbool;
                 }
                 else
                 {
-                    result = _evaluator.EvaluateNumeric(expression);
+                    result = _evaluator.EvaluateNumeric(expression); // returns double
                     type = EnumTypes.Wdouble;
                 }
             }
@@ -120,6 +129,7 @@ namespace Weaver.Core.Commands
                 }
 
                 _registry.Set(targetVar, result!, type);
+
                 return CommandResult.Ok(
                     $"Stored '{result}' in '{targetVar}'.",
                     result,
@@ -128,7 +138,7 @@ namespace Weaver.Core.Commands
             }
 
             // Return computed result
-            var message = type switch
+            string message = type switch
             {
                 EnumTypes.Wbool => result?.ToString() ?? "false",
                 EnumTypes.Wdouble => Convert.ToDouble(result).ToString(CultureInfo.InvariantCulture),
@@ -137,5 +147,6 @@ namespace Weaver.Core.Commands
 
             return CommandResult.Ok(message, result, type);
         }
+
     }
 }

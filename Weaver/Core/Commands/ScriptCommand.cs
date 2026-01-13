@@ -18,6 +18,11 @@ namespace Weaver.Core.Commands
     /// </summary>
     internal class ScriptCommand : ICommand
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
+        private IVariableRegistry _registry;
+
         /// <inheritdoc />
         public string Name => "RunScript";
 
@@ -33,6 +38,15 @@ namespace Weaver.Core.Commands
 
         /// <inheritdoc />
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScriptCommand"/> class.
+        /// </summary>
+        /// <param name="registry">The registry.</param>
+        public ScriptCommand(IVariableRegistry registry)
+        {
+            _registry = registry;
+        }
 
         /// <inheritdoc />
         public CommandResult Execute(string[] args)
@@ -52,7 +66,7 @@ namespace Weaver.Core.Commands
 
             try
             {
-                program = WeaverProgram.Compile(script);
+                program = WeaverProgram.Compile(script, _registry);
             }
             catch (Exception ex)
             {

@@ -209,7 +209,7 @@ namespace Mediator.Scripting
             var lexer = new Lexer(script);
             var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
             var nodes = parser.ParseIntoNodes();
-            var blocks = Lowering.ScriptLowerer(nodes);
+            var blocks = Lowering.ScriptLowerer(nodes, _weave.Runtime.Variables);
 
             foreach (var line in blocks)
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");

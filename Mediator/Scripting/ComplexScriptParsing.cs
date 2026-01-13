@@ -103,7 +103,7 @@ namespace Mediator.Scripting
             var parser = new Weaver.ScriptEngine.Parser(tokens);
             var lines = parser.ParseIntoNodes();
 
-            var blocks = Lowering.ScriptLowerer(lines, false).ToList();
+            var blocks = Lowering.ScriptLowerer(lines, null, false).ToList();
 
             foreach (var line in blocks)
             {
