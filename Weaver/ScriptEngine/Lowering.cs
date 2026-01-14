@@ -7,6 +7,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+//TODO the node exit for DoWhile is currently not implemented in the ScriptExecutor
+
 using System.Text.RegularExpressions;
 using Weaver.Interfaces;
 using Weaver.Messages;

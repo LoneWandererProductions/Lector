@@ -11,6 +11,8 @@ using System.Text;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
+//TODO needs rework to support more complex expressions, parentheses, operator precedence, etc.
+
 namespace Weaver.ScriptEngine
 {
     /// <inheritdoc />
