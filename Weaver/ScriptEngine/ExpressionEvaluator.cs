@@ -7,6 +7,7 @@
  */
 
 using System.Data;
+using System.Text;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -40,28 +41,23 @@ namespace Weaver.ScriptEngine
             if (string.IsNullOrWhiteSpace(expression))
                 throw new ArgumentException("Expression cannot be empty.", nameof(expression));
 
-            // Tokenize for simple comparison (e.g., "x == 5")
+            expression = expression.Trim();
+
+            // direct boolean literals
+            if (expression.Equals("true", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (expression.Equals("false", StringComparison.OrdinalIgnoreCase))
+                return false;
+
             var tokens = expression.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
+            // (existing operator handling)
             if (tokens.Length == 3)
             {
                 var left = GetValue(tokens[0]);
                 var op = tokens[1];
                 var right = GetValue(tokens[2]);
-
-                // Convert to bool if logical operator
-                if (op == ScriptConstants.LogicalAnd || op == ScriptConstants.LogicalOr)
-                {
-                    var leftBool = Convert.ToBoolean(left);
-                    var rightBool = Convert.ToBoolean(right);
-
-                    return op switch
-                    {
-                        ScriptConstants.LogicalAnd => leftBool && rightBool,
-                        ScriptConstants.LogicalOr => leftBool || rightBool,
-                        _ => throw new ArgumentException($"Unsupported operator: {op}")
-                    };
-                }
 
                 return op switch
                 {
@@ -77,62 +73,154 @@ namespace Weaver.ScriptEngine
                 };
             }
 
-            // Unary NOT support (e.g., "not x")
-            if (tokens.Length == 2 && tokens[0].Equals(ScriptConstants.LogicalNot, StringComparison.OrdinalIgnoreCase))
+            // unary NOT
+            if (tokens.Length == 2 && tokens[0].Equals("not", StringComparison.OrdinalIgnoreCase))
             {
                 var val = GetValue(tokens[1]);
                 return !Convert.ToBoolean(val);
             }
 
-            // Fallback to numeric evaluation.
+            // fallback numeric
             return EvaluateNumeric(expression) != 0;
         }
 
         /// <inheritdoc />
         public double EvaluateNumeric(string expression)
         {
-            if (string.IsNullOrWhiteSpace(expression))
-                throw new ArgumentException(nameof(expression));
+            var tokens = Tokenize(expression);
+            var rpn = ToRpn(tokens);
+            return EvaluateRpn(rpn);
+        }
+        private IEnumerable<string> Tokenize(string expr)
+        {
+            var token = new StringBuilder();
 
-            var dt = new DataTable();
-
-            if (_registry != null)
+            foreach (var c in expr)
             {
-                var all = _registry.GetAll();
+                if (char.IsWhiteSpace(c))
+                    continue;
 
-                // Define DataTable columns
-                foreach (var kv in all)
-                    dt.Columns.Add(kv.Key, typeof(double));
-
-                // Insert the row with proper type conversion
-                var row = dt.NewRow();
-
-                foreach (var kv in all)
+                if (char.IsLetterOrDigit(c) || c == '.')
                 {
-                    VMValue vm = kv.Value;
-
-                    double numericValue = vm.Type switch
-                    {
-                        EnumTypes.Wint => vm.Int64,
-                        EnumTypes.Wdouble => vm.Double,
-                        EnumTypes.Wbool => vm.Bool ? 1.0 : 0.0,
-                        EnumTypes.Wstring => double.TryParse(vm.String, out var p)
-                                                ? p
-                                                : throw new InvalidCastException(
-                                                    $"Cannot convert string '{vm.String}' to double for variable '{kv.Key}'."
-                                                  ),
-                        _ => throw new InvalidOperationException(
-                                $"Unsupported EnumType '{vm.Type}' for numeric evaluation."
-                             )
-                    };
-
-                    row[kv.Key] = numericValue;
+                    token.Append(c);
                 }
-
-                dt.Rows.Add(row);
+                else
+                {
+                    if (token.Length > 0)
+                    {
+                        yield return token.ToString();
+                        token.Clear();
+                    }
+                    yield return c.ToString();
+                }
             }
 
-            return Convert.ToDouble(dt.Compute(expression, ""));
+            if (token.Length > 0)
+                yield return token.ToString();
+        }
+        private List<string> ToRpn(IEnumerable<string> tokens)
+        {
+            var output = new List<string>();
+            var ops = new Stack<string>();
+
+            int Precedence(string op) => op switch
+            {
+                "+" or "-" => 1,
+                "*" or "/" => 2,
+                _ => 0
+            };
+
+            foreach (var token in tokens)
+            {
+                if (double.TryParse(token, out _) || IsNumericVariable(token))
+                {
+                    output.Add(token);
+                }
+                else if ("+-*/".Contains(token))
+                {
+                    while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(token))
+                        output.Add(ops.Pop());
+                    ops.Push(token);
+                }
+                else if (token == "(")
+                {
+                    ops.Push(token);
+                }
+                else if (token == ")")
+                {
+                    while (ops.Peek() != "(")
+                        output.Add(ops.Pop());
+                    ops.Pop();
+                }
+            }
+
+            while (ops.Count > 0)
+                output.Add(ops.Pop());
+
+            return output;
+        }
+
+        private double EvaluateRpn(List<string> rpn)
+        {
+            var stack = new Stack<double>();
+
+            foreach (var token in rpn)
+            {
+                if (double.TryParse(token, out var num))
+                {
+                    stack.Push(num);
+                }
+                else if (IsNumericVariable(token))
+                {
+                    stack.Push(GetNumericValue(token)); // lookup registry
+                }
+                else
+                {
+                    var b = stack.Pop();
+                    var a = stack.Pop();
+
+                    stack.Push(token switch
+                    {
+                        "+" => a + b,
+                        "-" => a - b,
+                        "*" => a * b,
+                        "/" => a / b,
+                        _ => throw new Exception("Unknown operator")
+                    });
+                }
+            }
+
+            return stack.Pop();
+        }
+
+        private bool IsNumericVariable(string token)
+        {
+            if (_registry == null)
+                return false;
+
+            return _registry.TryGet(token, out var val, out var type)
+                   && (type == EnumTypes.Wint || type == EnumTypes.Wdouble || type == EnumTypes.Wbool);
+        }
+
+        private double GetNumericValue(string token)
+        {
+            if (_registry != null && _registry.TryGet(token, out var val, out var type))
+            {
+                return val switch
+                {
+                    int i => i,
+                    long l => l,
+                    double d => d,
+                    float f => f,
+                    bool b => b ? 1 : 0,
+                    _ => throw new InvalidOperationException($"Cannot convert value of type {val.GetType()} to number")
+                };
+            }
+
+            if (double.TryParse(token, out var num))
+                return num;
+
+            throw new InvalidOperationException($"Invalid numeric token: {token}");
         }
 
         /// <summary>

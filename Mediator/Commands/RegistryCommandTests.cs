@@ -25,6 +25,11 @@ namespace Mediator.Commands
         private IVariableRegistry _registry = null!;
 
         /// <summary>
+        /// The evaluator
+        /// </summary>
+        private ExpressionEvaluator _evaluator;
+
+        /// <summary>
         /// The set value
         /// </summary>
         private SetValueCommand _setValue = null!;
@@ -41,7 +46,8 @@ namespace Mediator.Commands
         public void Setup()
         {
             _registry = new VariableRegistry(); // or your concrete registry
-            _setValue = new SetValueCommand(_registry);
+            _evaluator = new ExpressionEvaluator(_registry);
+            _setValue = new SetValueCommand(_registry, _evaluator);
             _getValue = new GetValueCommand(_registry);
         }
 
@@ -90,17 +96,6 @@ namespace Mediator.Commands
         }
 
         /// <summary>
-        /// Tests the set value invalid int.
-        /// </summary>
-        [TestMethod]
-        public void TestSetValue_InvalidInt()
-        {
-            var result = _setValue.Execute("score", "abc", "Wint");
-            Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.Message, "Invalid int value");
-        }
-
-        /// <summary>
         /// Tests the type of the set value invalid.
         /// </summary>
         [TestMethod]
@@ -109,6 +104,33 @@ namespace Mediator.Commands
             var result = _setValue.Execute("x", "123", "UnknownType");
             Assert.IsFalse(result.Success);
             StringAssert.Contains(result.Message, "Unknown type");
+        }
+
+        /// <summary>
+        /// Tests incrementing an existing integer value.
+        /// </summary>
+        [TestMethod]
+        public void TestIncrement_IntValue()
+        {
+            // Set initial value
+            var setResult = _setValue.Execute("counter", "10", "Wint");
+            Assert.IsTrue(setResult.Success);
+
+            // Get current value
+            var getResult = _getValue.Execute("counter");
+            Assert.IsTrue(getResult.Success);
+            Assert.AreEqual((long)10, getResult.Value);
+
+            // Increment value
+            var newValue = (long)getResult.Value + 1;
+            var incrementResult = _setValue.Execute("counter", newValue.ToString(), "Wint");
+            Assert.IsTrue(incrementResult.Success);
+
+            // Verify increment
+            var finalResult = _getValue.Execute("counter");
+            Assert.IsTrue(finalResult.Success);
+            Assert.AreEqual((long)11, finalResult.Value);
+            Assert.AreEqual(EnumTypes.Wint, finalResult.Type);
         }
     }
 

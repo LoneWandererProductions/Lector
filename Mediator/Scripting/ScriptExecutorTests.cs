@@ -260,21 +260,20 @@ namespace Mediator.Scripting
         }
 
         /// <summary>
-        /// Tests the do while exit loop properly.
+        /// Tests that a do-while loop increments the counter and exits correctly.
         /// </summary>
         [TestMethod]
         public void TestDoWhile_ExitLoopProperly()
         {
             const string script = @"
-            do
-            {
-                setValue(counter, 1, Wint); // just increment manually
-                setValue(counter, 2, Wint);
-                setValue(counter, 3, Wint);
-            }
-            while(counter < 3);
-            getValue(counter);
-            ";
+        setValue(counter, 0, Wint);      // start counter at 0
+        do
+        {
+            setValue(counter, counter + 1, Wint); // increment properly
+        }
+        while(counter < 3);
+        getValue(counter);
+    ";
 
             var lexer = new Lexer(script);
             var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());

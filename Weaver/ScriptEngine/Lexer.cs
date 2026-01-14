@@ -26,9 +26,24 @@ namespace Weaver.ScriptEngine
             ScriptConstants.While
         };
 
+        /// <summary>
+        /// The input
+        /// </summary>
         private readonly string _input;
+
+        /// <summary>
+        /// The col
+        /// </summary>
         private int _col = 1;
+
+        /// <summary>
+        /// The line
+        /// </summary>
         private int _line = 1;
+
+        /// <summary>
+        /// The position
+        /// </summary>
         private int _pos;
 
         /// <summary>
@@ -37,7 +52,8 @@ namespace Weaver.ScriptEngine
         /// <param name="input">The script source text to tokenize.</param>
         public Lexer(string input)
         {
-            _input = input;
+            // normalize line endings
+            _input = input.Replace("\r\n", "\n");
         }
 
         /// <summary>
@@ -55,69 +71,55 @@ namespace Weaver.ScriptEngine
                 var line = _line;
                 var col = _col;
 
-                var c = Peek();
+                if (IsAtEnd())
+                    break;
 
-                if (c == '\0')
+                // Check for inline comment
+                if (Peek() == '/' && Peek(1) == '/')
                 {
-                    Advance(); // skip null chars
+                    // Skip to end of line
+                    while (!IsAtEnd() && Peek() != '\n')
+                        Advance();
                     continue;
                 }
 
-                // Identifier or keyword
-                if (char.IsLetter(c) || CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.LetterNumber)
+                var c = Peek();
+
+                // Identifiers / keywords
+                if (char.IsLetter(c) || char.IsDigit(c) || c == '_')
                 {
-                    var ident = ReadWhile(ch =>
-                        char.IsLetterOrDigit(ch) || ch == '_' ||
-                        CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.LetterNumber);
-
+                    var ident = ReadWhile(ch => char.IsLetterOrDigit(ch) || ch == '_');
                     var type = Keywords.Contains(ident) ? GetKeywordTokenType(ident) : TokenType.Identifier;
-
                     tokens.Add(new Token { Type = type, Lexeme = ident, Line = line, Column = col });
+                    continue;
                 }
-                // Number literal
-                else if (char.IsDigit(c))
+
+                // Numbers
+                if (char.IsDigit(c))
                 {
                     var number = ReadWhile(char.IsDigit);
                     tokens.Add(new Token { Type = TokenType.Number, Lexeme = number, Line = line, Column = col });
+                    continue;
                 }
-                // String literal
-                else if (c == '"')
+
+                // Strings
+                if (c == '"')
                 {
-                    Advance(); // Skip opening quote
-                    var stringBuilder = new StringBuilder();
+                    Advance(); // skip opening "
+                    var sb = new StringBuilder();
                     while (!IsAtEnd() && Peek() != '"')
                     {
-                        stringBuilder.Append(Peek());
+                        sb.Append(Peek());
                         Advance();
                     }
 
-                    if (!IsAtEnd() && Peek() == '"')
-                    {
-                        Advance(); // Skip closing quote
-                        tokens.Add(new Token
-                        {
-                            Type = TokenType.String,
-                            Lexeme = stringBuilder.ToString(),
-                            Line = line,
-                            Column = col
-                        });
-                    }
-                    else
-                    {
-                        tokens.Add(new Token
-                        {
-                            Type = TokenType.Unknown,
-                            Lexeme = "\"" + stringBuilder,
-                            Line = line,
-                            Column = col
-                        });
-                    }
+                    if (!IsAtEnd()) Advance(); // skip closing "
+                    tokens.Add(new Token { Type = TokenType.String, Lexeme = sb.ToString(), Line = line, Column = col });
+                    continue;
                 }
-                // Operators, punctuation, comments, etc.
-                else
-                {
-                    HandleSingleOrDoubleCharToken(c, tokens, line, col);
-                }
+
+                // Operators, braces, punctuation
+                HandleSingleOrDoubleCharToken(c, tokens, line, col);
             }
 
             return tokens;
