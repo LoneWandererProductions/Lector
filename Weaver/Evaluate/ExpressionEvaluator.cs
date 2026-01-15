@@ -1,6 +1,6 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     Weaver.ScriptEngine
+ * PROJECT:     Weaver.Evaluate
  * FILE:        ExpressionEvaluator.cs
  * PURPOSE:     Evaluates simple expressions (numeric, logical, registry-aware).
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -10,10 +10,11 @@ using System.Data;
 using System.Text;
 using Weaver.Interfaces;
 using Weaver.Messages;
+using Weaver.ScriptEngine;
 
 //TODO needs rework to support more complex expressions, parentheses, operator precedence, etc.
 
-namespace Weaver.ScriptEngine
+namespace Weaver.Evaluate
 {
     /// <inheritdoc />
     /// <summary>

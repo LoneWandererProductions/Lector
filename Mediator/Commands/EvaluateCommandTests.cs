@@ -7,6 +7,7 @@
  */
 
 using Weaver.Core.Commands;
+using Weaver.Evaluate;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
 

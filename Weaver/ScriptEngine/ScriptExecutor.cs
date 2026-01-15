@@ -9,6 +9,7 @@
 //TODO the node exit for DoWhile is currently not implemented in the ScriptExecutor
 
 using System.Diagnostics;
+using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
 

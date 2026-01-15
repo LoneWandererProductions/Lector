@@ -8,6 +8,7 @@
 
 using Weaver.ScriptEngine;
 using Weaver.Messages;
+using Weaver.Evaluate;
 
 namespace Mediator.Scripting
 {
@@ -53,6 +54,80 @@ namespace Mediator.Scripting
 
             // Assert
             Assert.AreEqual(30, result);
+        }
+
+        /// <summary>
+        /// Evaluates the boolean literals works.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_Boolean_Literals_Works()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            Assert.IsTrue(evaluator.Evaluate("true"));
+            Assert.IsFalse(evaluator.Evaluate("false"));
+        }
+
+        /// <summary>
+        /// Evaluates the logical not works.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_Logical_Not_Works()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            Assert.IsTrue(evaluator.Evaluate("not false"));
+            Assert.IsFalse(evaluator.Evaluate("not true"));
+        }
+
+
+        /// <summary>
+        /// Evaluates the comparison operators works.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_Comparison_Operators_Works()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            Assert.IsTrue(evaluator.Evaluate("5 == 5"));
+            Assert.IsFalse(evaluator.Evaluate("5 != 5"));
+            Assert.IsTrue(evaluator.Evaluate("5 != 3"));
+            Assert.IsTrue(evaluator.Evaluate("7 > 3"));
+            Assert.IsFalse(evaluator.Evaluate("2 > 3"));
+            Assert.IsTrue(evaluator.Evaluate("3 < 5"));
+            Assert.IsFalse(evaluator.Evaluate("10 < 5"));
+            Assert.IsTrue(evaluator.Evaluate("5 >= 5"));
+            Assert.IsTrue(evaluator.Evaluate("6 >= 5"));
+            Assert.IsTrue(evaluator.Evaluate("5 <= 5"));
+            Assert.IsTrue(evaluator.Evaluate("4 <= 5"));
+        }
+
+        /// <summary>
+        /// Evaluates the complex expression works.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_Complex_Expression_Works()
+        {
+            var registry = new VariableRegistry();
+            registry.Set("x", 5, EnumTypes.Wint);
+            registry.Set("y", 10, EnumTypes.Wint);
+            registry.Set("z", false, EnumTypes.Wbool);
+
+            var evaluator = new ExpressionEvaluator(registry);
+
+            Assert.IsTrue(evaluator.Evaluate("( x < y ) && not z"));
+            Assert.IsFalse(evaluator.Evaluate("( x > y ) || z"));
+        }
+
+        /// <summary>
+        /// Evaluates the unsupported operator throws.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void Evaluate_Unsupported_Operator_Throws()
+        {
+            var evaluator = new ExpressionEvaluator();
+            evaluator.Evaluate("5 ^^ 2"); // unsupported operator
         }
     }
 }

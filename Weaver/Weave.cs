@@ -9,6 +9,7 @@
 using Weaver.Core;
 using Weaver.Core.Commands;
 using Weaver.Core.Extensions;
+using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ParseEngine;
