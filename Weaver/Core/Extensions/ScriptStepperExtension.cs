@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Microsoft.Win32;
 using Weaver.Core.Commands;
 using Weaver.Interfaces;
 using Weaver.Messages;

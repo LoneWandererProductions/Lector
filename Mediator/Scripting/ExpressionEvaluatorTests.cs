@@ -15,6 +15,32 @@ namespace Mediator.Scripting
     [TestClass]
     public class ExpressionEvaluatorTests
     {
+
+        /// <summary>
+        /// Evaluates the numeric with int and double variables works.
+        /// </summary>
+        [TestMethod]
+        public void EvaluateDo_While()
+        {
+            // Arrange
+            var registry = new VariableRegistry();
+            registry.Set("count", 3, EnumTypes.Wint);
+
+            var evaluator = new ExpressionEvaluator(registry);
+
+            // Act
+            var result = evaluator.Evaluate("count > 3");
+
+            // Assert
+            Assert.AreEqual(false, result, "Wrong Bool");
+
+            // Act
+            result = evaluator.Evaluate("count > 2");
+
+            // Assert
+            Assert.AreEqual(true, result, "Wrong Bool");
+        }
+
         /// <summary>
         /// Evaluates the numeric with int and double variables works.
         /// </summary>

@@ -9,6 +9,7 @@
 
 //TODO the node exit for DoWhile is currently not implemented in the ScriptExecutor
 
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -110,14 +111,15 @@ namespace Weaver.ScriptEngine
                         break;
 
                     case DoWhileNode dw:
-                        yield return ("Do_Open", null);
 
+                            Trace.WriteLine($"[Lowering] DoWhileNode lowering at branchPath='{branchPath}'");
+                        yield return ("Do_Open", null);
                         foreach (var child in ScriptLowerer(dw.Body, registry, rewrite, branchPath))
                             yield return child;
-
                         yield return ("Do_End", null);
                         yield return ("While_Condition", dw.Condition);
                         break;
+
                 }
             }
         }

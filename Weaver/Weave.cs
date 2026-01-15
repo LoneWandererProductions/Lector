@@ -13,7 +13,6 @@ using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ParseEngine;
-using Weaver.ScriptEngine;
 
 namespace Weaver
 {

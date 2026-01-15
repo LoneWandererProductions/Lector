@@ -119,35 +119,50 @@ namespace Weaver.ScriptEngine
                 if (result.Feedback == null)
                     _pendingFeedback = null;
 
+                if (_debug)
+                    Trace.WriteLine($"[Debug] Resumed after feedback. Success={result.Success}, Feedback={(result.Feedback != null ? "<pending>" : "null")}, Message={result.Message}");
+
                 return result;
             }
 
-            var iterCount = 0;
+            int iterCount = 0;
 
             while (_position < _statements.Count)
             {
                 if (maxIterations.HasValue && iterCount++ >= maxIterations.Value)
+                {
+                    if (_debug)
+                        Trace.WriteLine($"[Debug] Max iteration count ({maxIterations}) reached at Pos={_position}. Aborting.");
                     return CommandResult.Fail("Max iteration count reached.");
+                }
 
                 var (category, stmt) = _statements[_position];
 
-                // Only skip empty COMMANDS, never control opcodes
+                // Skip empty commands only
                 if (category == "Command" && string.IsNullOrWhiteSpace(stmt))
                 {
+                    if (_debug)
+                        Trace.WriteLine($"[Debug] Skipping empty command at Pos={_position}.");
                     _position++;
                     continue;
                 }
 
-                // Debug everything
-                if (_debug) DebugLine(category, stmt);
+                if (_debug)
+                    DebugLine(category, stmt);
 
-                switch (category)
+                switch (category.Trim().ToUpperInvariant())
                 {
                     case "Goto":
                         if (_labelPositions.TryGetValue(stmt!, out var pos))
+                        {
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Goto '{stmt}' found at {pos}. Jumping from {_position} to {pos + 1}.");
                             _position = pos + 1;
+                        }
                         else
                         {
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Label '{stmt}' not found at Pos={_position}.");
                             _position++;
                             return CommandResult.Fail($"Label '{stmt}' not found.");
                         }
@@ -158,43 +173,51 @@ namespace Weaver.ScriptEngine
                         continue;
 
                     case "Do_Open":
-                        // Push the index of the first statement in the loop body
                         _doWhileStack.Push(_position + 1);
-                        Trace.WriteLine($"Do_Open at {_position}, push {_position + 1}");
+                        if (_debug)
+                            Trace.WriteLine($"[Debug] Do_Open at {_position}. Pushed body start {_position + 1}. Stack: [{string.Join(",", _doWhileStack)}]");
                         _position++;
                         continue;
 
                     case "While_Condition":
                         if (_doWhileStack.Count == 0)
                         {
-                            Trace.WriteLine($"--- Warning: While_Condition without Do_Open at Pos={_position} ---");
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Warning: While_Condition without Do_Open at Pos={_position}.");
                             _position++;
                             continue;
                         }
 
-                        int bodyStart = _doWhileStack.Peek();  // <- Peek, not Pop!
+                        int bodyStart = _doWhileStack.Peek();
                         bool cond = _evaluator.Evaluate(stmt!);
 
-                        Trace.WriteLine($"While_Condition at {_position}, bodyStart={bodyStart}, cond={cond}");
+                        if (_debug)
+                            Trace.WriteLine($"[Debug] While_Condition at {_position}, bodyStart={bodyStart}, cond={cond}, Stack=[{string.Join(",", _doWhileStack)}]");
 
                         if (cond)
                         {
                             _position = bodyStart; // repeat loop
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Condition true → jumping back to {bodyStart}.");
                         }
                         else
                         {
-                            _doWhileStack.Pop();   // done with loop
-                            _position++;           // move past While_Condition
+                            _doWhileStack.Pop();
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Condition false → exiting loop. Stack after pop: [{string.Join(",", _doWhileStack)}]");
+                            _position++; // move past While_Condition
                         }
-
                         continue;
 
                     case "Do_End":
-                        _position++; // just move past, no stack changes
+                        _position++;
                         continue;
 
                     case "If_Condition":
                         bool ifcond = _evaluator.Evaluate(stmt!);
+                        if (_debug)
+                            Trace.WriteLine($"[Debug] If_Condition at {_position}, cond={ifcond}");
+
                         _position++;
                         if (!ifcond)
                         {
@@ -208,6 +231,8 @@ namespace Weaver.ScriptEngine
                                 else if ((cat == "If_End" || cat == "Else_End") && depth > 0) { depth--; _position++; }
                                 else { _position++; }
                             }
+                            if (_debug)
+                                Trace.WriteLine($"[Debug] Skipped false If_Condition block. New Pos={_position}");
                         }
                         continue;
 
@@ -219,6 +244,9 @@ namespace Weaver.ScriptEngine
 
                     default:
                         var result = _weave.ProcessInput(stmt!);
+                        if (_debug)
+                            Trace.WriteLine($"[Debug] Processed command '{stmt}'. Success={result.Success}, Feedback={(result.Feedback != null ? "<pending>" : "null")}, Pos={_position}");
+
                         if (result.Feedback != null)
                         {
                             _pendingFeedback = result.Feedback;
@@ -229,6 +257,9 @@ namespace Weaver.ScriptEngine
                         return result;
                 }
             }
+
+            if (_debug)
+                Trace.WriteLine("[Debug] Script finished successfully.");
 
             return new CommandResult
             {

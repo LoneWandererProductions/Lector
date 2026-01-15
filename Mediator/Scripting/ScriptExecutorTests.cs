@@ -263,6 +263,53 @@ namespace Mediator.Scripting
         /// Tests that a do-while loop increments the counter and exits correctly.
         /// </summary>
         [TestMethod]
+        public void TestDoWhileOnce()
+        {
+            const string script = @"
+        setValue(counter, 4, Wint);      // start counter at 4
+        do
+        {
+            Print(Hello World); // simple print command
+        }
+        while(counter < 3);
+        getValue(counter);
+    ";
+
+            var lexer = new Lexer(script);
+            var parser = new Weaver.ScriptEngine.Parser(lexer.Tokenize());
+            var nodes = parser.ParseIntoNodes();
+
+            var blocks = Lowering.ScriptLowerer(nodes);
+
+            foreach (var line in blocks)
+                Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
+
+            var statements = blocks
+                .Where(line => line.Statement != null)
+                .Select(line => (line.Category, line.Statement!))
+                .ToList();
+
+            var executor = new ScriptExecutor(_weave, statements);
+
+            CommandResult? last = null;
+
+            // Run until finished or safety abort
+            var safety = 0;
+            while (!executor.IsFinished && safety++ < 50)
+            {
+                last = executor.ExecuteNext();
+                Debug.WriteLine($"Step {safety}: {last.Message}");
+            }
+
+            Assert.IsNotNull(last, "Expected a last result but got null");
+            Assert.AreEqual("4", last.Value!.ToString(), "Counter should have incremented to 3");
+        }
+
+
+        /// <summary>
+        /// Tests that a do-while loop increments the counter and exits correctly.
+        /// </summary>
+        [TestMethod]
         public void TestDoWhile_ExitLoopProperly()
         {
             const string script = @"
@@ -289,7 +336,7 @@ namespace Mediator.Scripting
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
-            var executor = new ScriptExecutor(_weave, statements);
+            var executor = new ScriptExecutor(_weave, statements, true);
 
             CommandResult? last = null;
 
