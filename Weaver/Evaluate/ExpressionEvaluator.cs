@@ -52,6 +52,20 @@ namespace Weaver.Evaluate
             if (expression.Equals("false", StringComparison.OrdinalIgnoreCase))
                 return false;
 
+            // try to interpret as a variable
+            if (_registry != null && _registry.TryGet(expression, out var vm))
+            {
+                return vm.Type switch
+                {
+                    EnumTypes.Wbool => vm.Bool,
+                    EnumTypes.Wint => vm.Int64 != 0,
+                    EnumTypes.Wdouble => vm.Double != 0.0,
+                    EnumTypes.Wstring => !string.IsNullOrEmpty(vm.String),
+                    _ => throw new ArgumentException($"Unsupported variable type: {vm.Type}")
+                };
+            }
+
+            // split into tokens
             var tokens = expression.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             // (existing operator handling)
@@ -85,6 +99,7 @@ namespace Weaver.Evaluate
             // fallback numeric
             return EvaluateNumeric(expression) != 0;
         }
+
 
         /// <inheritdoc />
         public double EvaluateNumeric(string expression)

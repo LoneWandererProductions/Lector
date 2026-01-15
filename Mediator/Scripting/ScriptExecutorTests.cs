@@ -170,7 +170,7 @@ namespace Mediator.Scripting
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
-            var executor = new ScriptExecutor(_weave, statements);
+            var executor = new ScriptExecutor(_weave, statements, true);
 
             var result1 = executor.ExecuteNext();
             DebugResult(result1, "setValue");
@@ -421,7 +421,7 @@ namespace Mediator.Scripting
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
-            var executor = new ScriptExecutor(_weave, statements);
+            var executor = new ScriptExecutor(_weave, statements, true);
 
             CommandResult? lastResult = null;
 

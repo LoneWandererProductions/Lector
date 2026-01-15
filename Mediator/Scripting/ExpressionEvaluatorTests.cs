@@ -41,6 +41,27 @@ namespace Mediator.Scripting
             Assert.AreEqual(true, result, "Wrong Bool");
         }
 
+
+        /// <summary>
+        /// Evaluates the registry handling.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_RegistryHandling()
+        {
+            // Arrange
+            var registry = new VariableRegistry();
+            registry.Set("flag", true, EnumTypes.Wbool);
+
+            var evaluator = new ExpressionEvaluator(registry);
+
+            // Act
+            var result = evaluator.Evaluate("flag");
+
+            // Assert
+            Assert.AreEqual(true, result, "Wrong Bool");
+        }
+
+
         /// <summary>
         /// Evaluates the numeric with int and double variables works.
         /// </summary>
