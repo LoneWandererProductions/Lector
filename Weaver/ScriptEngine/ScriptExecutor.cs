@@ -119,8 +119,7 @@ namespace Weaver.ScriptEngine
                 if (result.Feedback == null)
                     _pendingFeedback = null;
 
-                if (_debug)
-                    Trace.WriteLine($"[Debug] Resumed after feedback. Success={result.Success}, Feedback={(result.Feedback != null ? "<pending>" : "null")}, Message={result.Message}");
+                if (_debug) DebugInternal(result);
 
                 return result;
             }
@@ -132,27 +131,30 @@ namespace Weaver.ScriptEngine
                 if (maxIterations.HasValue && iterCount++ >= maxIterations.Value)
                 {
                     if (_debug)
-                        Trace.WriteLine($"[Debug] Max iteration count ({maxIterations}) reached at Pos={_position}. Aborting.");
+                        Trace.WriteLine($"[Internal] Max iteration count ({maxIterations}) reached at Pos={_position}. Aborting.");
                     return CommandResult.Fail("Max iteration count reached.");
                 }
 
                 var (category, stmt) = _statements[_position];
 
                 // Skip empty commands only
-                if (category == "Command" && string.IsNullOrWhiteSpace(stmt))
+                if (category == ScriptConstants.CommandToken && string.IsNullOrWhiteSpace(stmt))
                 {
                     if (_debug)
-                        Trace.WriteLine($"[Debug] Skipping empty command at Pos={_position}.");
+                        Trace.WriteLine($"[Internal] Skipping empty command at Pos={_position}.");
                     _position++;
                     continue;
                 }
 
                 if (_debug)
-                    DebugLine(category, stmt);
+                    DebugLine(category, stmt, StepType.Input, "Stack",  string.Join(",", _doWhileStack));
 
-                switch (category.Trim().ToUpperInvariant())
+                switch (category.Trim())
                 {
-                    case "Goto":
+                    case ScriptConstants.GotoToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         if (_labelPositions.TryGetValue(stmt!, out var pos))
                         {
                             if (_debug)
@@ -168,18 +170,27 @@ namespace Weaver.ScriptEngine
                         }
                         continue;
 
-                    case "Label":
+                    case ScriptConstants.LabelToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
                         _position++;
                         continue;
 
-                    case "Do_Open":
+                    case ScriptConstants.DoOpenToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         _doWhileStack.Push(_position + 1);
                         if (_debug)
                             Trace.WriteLine($"[Debug] Do_Open at {_position}. Pushed body start {_position + 1}. Stack: [{string.Join(",", _doWhileStack)}]");
                         _position++;
                         continue;
 
-                    case "While_Condition":
+                    case ScriptConstants.WhileConditionToken:
+
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         if (_doWhileStack.Count == 0)
                         {
                             if (_debug)
@@ -209,11 +220,17 @@ namespace Weaver.ScriptEngine
                         }
                         continue;
 
-                    case "Do_End":
+                    case ScriptConstants.DoEndToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         _position++;
                         continue;
 
-                    case "If_Condition":
+                    case ScriptConstants.IfConditionToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         bool ifcond = _evaluator.Evaluate(stmt!);
                         if (_debug)
                             Trace.WriteLine($"[Debug] If_Condition at {_position}, cond={ifcond}");
@@ -225,10 +242,10 @@ namespace Weaver.ScriptEngine
                             while (_position < _statements.Count)
                             {
                                 var (cat, _) = _statements[_position];
-                                if (cat == "If_Condition") { depth++; _position++; }
-                                else if (cat == "If_End" && depth == 0) { _position++; break; }
-                                else if (cat == "Else_Open" && depth == 0) { _position++; break; }
-                                else if ((cat == "If_End" || cat == "Else_End") && depth > 0) { depth--; _position++; }
+                                if (cat == ScriptConstants.IfConditionToken) { depth++; _position++; }
+                                else if (cat == ScriptConstants.IfEndToken && depth == 0) { _position++; break; }
+                                else if (cat == ScriptConstants.ElseOpenToken && depth == 0) { _position++; break; }
+                                else if ((cat == ScriptConstants.IfEndToken || cat == ScriptConstants.ElseEndToken) && depth > 0) { depth--; _position++; }
                                 else { _position++; }
                             }
                             if (_debug)
@@ -236,16 +253,24 @@ namespace Weaver.ScriptEngine
                         }
                         continue;
 
-                    case "Else_Open":
-                    case "If_End":
-                    case "Else_End":
+                    case ScriptConstants.ElseOpenToken:
+                    case ScriptConstants.IfEndToken:
+                    case ScriptConstants.ElseEndToken:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         _position++;
                         continue;
 
                     default:
+                        if (_debug)
+                            DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
+
                         var result = _weave.ProcessInput(stmt!);
                         if (_debug)
-                            Trace.WriteLine($"[Debug] Processed command '{stmt}'. Success={result.Success}, Feedback={(result.Feedback != null ? "<pending>" : "null")}, Pos={_position}");
+                            DebugLine(category, stmt, StepType.Output, "Result", $"Success ={ result.Success}, Feedback ={ (result.Feedback != null ? "<pending>" : "null")}, Pos ={ _position}");
+
+
 
                         if (result.Feedback != null)
                         {
@@ -259,7 +284,7 @@ namespace Weaver.ScriptEngine
             }
 
             if (_debug)
-                Trace.WriteLine("[Debug] Script finished successfully.");
+                Trace.WriteLine("[Internal] Script finished successfully.");
 
             return new CommandResult
             {
@@ -270,13 +295,34 @@ namespace Weaver.ScriptEngine
         }
 
         /// <summary>
+        /// Debugs the internal.
+        /// </summary>
+        /// <param name="result">The result.</param>
+        private void DebugInternal(CommandResult result)
+        {
+            Trace.WriteLine($"[Internal] Resumed after feedback. Success={result.Success}, Feedback={(result.Feedback != null ? "<pending>" : "null")}, Message={result.Message}");
+        }
+
+        /// <summary>
         /// Debugs the line.
         /// </summary>
         /// <param name="category">The category.</param>
         /// <param name="stmt">The statement.</param>
-        private void DebugLine(string category, string stmt)
+        private void DebugLine(string category, string stmt, StepType step, string extra, string info)
         {
-            Trace.WriteLine($"{"Parser:" + category.PadRight(16)} : {stmt ?? "<null>"} | Pos={_position} | Stack=[{string.Join(",", _doWhileStack)}]");
+            switch (step)
+            {
+                case StepType.Input:
+                    Trace.WriteLine($"{"[Input] " + category} : {stmt ?? "<null>"} | Pos={_position} | {extra}=[{info}]");
+                    break;
+                case StepType.Execute:
+                    Trace.WriteLine($"{"[Execute] " + category} : {stmt ?? "<null>"} | Pos={_position} | {extra}=[{info}]");
+                    break;
+                case StepType.Output:
+                    break;
+                case StepType.Internal:
+                    break;
+            }
         }
     }
 }

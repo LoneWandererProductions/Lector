@@ -41,15 +41,15 @@ namespace Weaver.ScriptEngine
                 switch (node)
                 {
                     case LabelNode ln:
-                        yield return ("Label", ln.Name);
+                        yield return (ScriptConstants.LabelToken, ln.Name);
                         break;
 
                     case GotoNode gn:
-                        yield return ("Goto", gn.Target);
+                        yield return (ScriptConstants.GotoToken, gn.Target);
                         break;
 
                     case CommandNode cn:
-                        yield return ("Command", cn.Command);
+                        yield return (ScriptConstants.CommandToken, cn.Command);
                         break;
 
                     case AssignmentNode an:
@@ -67,11 +67,11 @@ namespace Weaver.ScriptEngine
 
                                 if (IsCommandCall(expr))
                                 {
-                                    yield return ("Command_Rewrite", $"{expr}.Store({varName})");
+                                    yield return (ScriptConstants.CommandRewriteToken, $"{expr}.Store({varName})");
                                 }
                                 else if (IsSimpleExpression(expr))
                                 {
-                                    yield return ("Command_Rewrite", $"EvaluateCommand({rewrittenExpr}, {varName})");
+                                    yield return (ScriptConstants.CommandRewriteToken, $"EvaluateCommand({rewrittenExpr}, {varName})");
                                 }
                                 else
                                 {
@@ -80,7 +80,7 @@ namespace Weaver.ScriptEngine
                             }
                             else
                             {
-                                yield return ("Assignment", $"{varName} = {expr}");
+                                yield return (ScriptConstants.AssignmentToken, $"{varName} = {expr}");
                             }
 
                             break;
@@ -88,36 +88,35 @@ namespace Weaver.ScriptEngine
 
                     case IfNode ifn:
                         // Emit condition
-                        yield return ("If_Condition", ifn.Condition);
+                        yield return (ScriptConstants.IfConditionToken, ifn.Condition);
 
                         // Open true branch
-                        yield return ("If_Open", branchPath + "T");
+                        yield return (ScriptConstants.IfOpenToken, branchPath + "T");
 
                         foreach (var child in ScriptLowerer(ifn.TrueBranch, registry, rewrite, branchPath + "T"))
                             yield return child;
 
-                        yield return ("If_End", branchPath + "T");
+                        yield return (ScriptConstants.IfEndToken, branchPath + "T");
 
                         if (ifn.FalseBranch != null)
                         {
-                            yield return ("Else_Open", branchPath + "F");
+                            yield return (ScriptConstants.ElseOpenToken, branchPath + "F");
 
                             foreach (var child in ScriptLowerer(ifn.FalseBranch, registry, rewrite, branchPath + "F"))
                                 yield return child;
 
-                            yield return ("Else_End", branchPath + "F");
+                            yield return (ScriptConstants.ElseEndToken, branchPath + "F");
                         }
 
                         break;
 
                     case DoWhileNode dw:
 
-                            Trace.WriteLine($"[Lowering] DoWhileNode lowering at branchPath='{branchPath}'");
-                        yield return ("Do_Open", null);
+                        yield return (ScriptConstants.DoOpenToken, null);
                         foreach (var child in ScriptLowerer(dw.Body, registry, rewrite, branchPath))
                             yield return child;
-                        yield return ("Do_End", null);
-                        yield return ("While_Condition", dw.Condition);
+                        yield return (ScriptConstants.DoEndToken, null);
+                        yield return (ScriptConstants.WhileConditionToken, dw.Condition);
                         break;
 
                 }

@@ -55,13 +55,17 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             List<(string Category, string)> statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
             _executor = new ScriptExecutor(_weave, statements);
         }
 
+        /// <summary>
+        /// Debugs the result.
+        /// </summary>
+        /// <param name="result">The result.</param>
+        /// <param name="step">The step.</param>
         private static void DebugResult(CommandResult result, string step)
         {
             Debug.WriteLine(
@@ -125,7 +129,6 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -166,7 +169,6 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -305,7 +307,6 @@ namespace Mediator.Scripting
             Assert.AreEqual("4", last.Value!.ToString(), "Counter should have incremented to 3");
         }
 
-
         /// <summary>
         /// Tests that a do-while loop increments the counter and exits correctly.
         /// </summary>
@@ -328,11 +329,14 @@ namespace Mediator.Scripting
 
             var blocks = Lowering.ScriptLowerer(nodes);
 
+
+            Trace.WriteLine("Lowered Script:");
             foreach (var line in blocks)
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
+            Trace.WriteLine("Executing Script:");
+
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -345,7 +349,7 @@ namespace Mediator.Scripting
             while (!executor.IsFinished && safety++ < 50)
             {
                 last = executor.ExecuteNext();
-                Debug.WriteLine($"Step {safety}: {last.Message}");
+                //Debug.WriteLine($"Step {safety}: {last.Message}");
             }
 
             Assert.IsNotNull(last, "Expected a last result but got null");
@@ -377,7 +381,6 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -417,7 +420,6 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -514,7 +516,6 @@ namespace Mediator.Scripting
             var blocks = Lowering.ScriptLowerer(nodes);
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 
@@ -554,7 +555,6 @@ namespace Mediator.Scripting
                 Trace.WriteLine($"{line.Category.PadRight(12)} : {line.Statement}");
 
             var statements = blocks
-                .Where(line => line.Statement != null)
                 .Select(line => (line.Category, line.Statement!))
                 .ToList();
 

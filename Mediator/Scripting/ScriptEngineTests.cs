@@ -69,7 +69,7 @@ namespace Mediator.Scripting
 
             // Act: Execute each command line
             Console.WriteLine("\nExecuting commands:");
-            foreach (var line in blocks.Where(line => line.Statement != null))
+            foreach (var line in blocks)
             {
                 if (context.TryGetCommand(line.Statement, out var cmd))
                 {
