@@ -200,7 +200,11 @@ namespace Weaver.ScriptEngine
                         }
 
                         int bodyStart = _doWhileStack.Peek();
+
                         bool cond = _evaluator.Evaluate(stmt!);
+                        //Todo Error is here
+                        //Trace.WriteLine($"[Debug] EVAL: '{stmt}' → {cond}. counter={_weave.Runtime.Variables.Get("counter")}");
+
 
                         if (_debug)
                             Trace.WriteLine($"[Debug] While_Condition at {_position}, bodyStart={bodyStart}, cond={cond}, Stack=[{string.Join(",", _doWhileStack)}]");

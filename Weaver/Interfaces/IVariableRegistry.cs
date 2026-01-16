@@ -23,6 +23,12 @@ namespace Weaver.Interfaces
         IReadOnlyDictionary<string, VMValue> GetAll();
 
         /// <summary>
+        /// Getets the specified key as string for Debug Purposes.
+        /// </summary>
+        /// <param name="key">The key as string.</param>
+        string Get(string key);
+
+        /// <summary>
         /// Sets a value in the registry.
         /// </summary>
         /// <param name="key">Variable key.</param>

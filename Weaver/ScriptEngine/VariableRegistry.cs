@@ -42,6 +42,12 @@ namespace Weaver.ScriptEngine
         private readonly Dictionary<string, VMValue> _registry = new();
 
         /// <inheritdoc />
+        public string Get(string key)
+        {
+            return _registry[key].ToString();
+        }
+
+        /// <inheritdoc />
         public void Set(string key, VMValue value)
         {
             _registry[key] = value;

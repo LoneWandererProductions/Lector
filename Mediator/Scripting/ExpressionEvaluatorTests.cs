@@ -167,6 +167,29 @@ namespace Mediator.Scripting
         }
 
         /// <summary>
+        /// Exposes the broken evaluator behavior with no-space expressions.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate_Comparison_NoSpaces_Fails_InExistingEvaluator()
+        {
+            // Arrange
+            var registry = new VariableRegistry();
+            registry.Set("counter", 3, EnumTypes.Wint);
+
+            var evaluator = new ExpressionEvaluator(registry);
+
+            // Act
+            // This is what fails: current evaluator splits on spaces
+            bool result1 = evaluator.Evaluate("counter<3");
+            bool result2 = evaluator.Evaluate("counter>2");
+
+            // Assert
+            // Correct logical expectations
+            Assert.IsFalse(result1, "Expected counter<3 to be false");
+            Assert.IsTrue(result2, "Expected counter>2 to be true");
+        }
+
+        /// <summary>
         /// Evaluates the unsupported operator throws.
         /// </summary>
         [TestMethod]

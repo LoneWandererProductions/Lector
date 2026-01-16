@@ -5,7 +5,6 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RunSettingsFilePath>D:\Users\peter\Source\Repos\Lector\Mediator\bin\Debug\net9.0\fine-code-coverage\coverage-tool-output\Mediator-fcc-mscodecoverage-generated.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>
