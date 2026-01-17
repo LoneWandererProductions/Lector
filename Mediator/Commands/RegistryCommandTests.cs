@@ -134,5 +134,4 @@ namespace Mediator.Commands
             Assert.AreEqual(EnumTypes.Wint, finalResult.Type);
         }
     }
-
 }

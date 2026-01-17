@@ -20,7 +20,7 @@ namespace Weaver.Interfaces
         /// Gets all.
         /// </summary>
         /// <returns>The registry itself</returns>
-        IReadOnlyDictionary<string, VMValue> GetAll();
+        IReadOnlyDictionary<string, VmValue> GetAll();
 
         /// <summary>
         /// Getets the specified key as string for Debug Purposes.
@@ -33,7 +33,7 @@ namespace Weaver.Interfaces
         /// </summary>
         /// <param name="key">Variable key.</param>
         /// <param name="value">Value to store.</param>
-        void Set(string key, VMValue value);
+        void Set(string key, VmValue value);
 
         /// <summary>
         /// Attempts to get a value from the registry.
@@ -41,7 +41,7 @@ namespace Weaver.Interfaces
         /// <param name="key">Variable key.</param>
         /// <param name="value">Output value.</param>
         /// <returns><c>true</c> if the key exists; otherwise, <c>false</c>.</returns>
-        bool TryGet(string key, out VMValue value);
+        bool TryGet(string key, out VmValue value);
 
         /// <summary>
         /// Sets the specified key.

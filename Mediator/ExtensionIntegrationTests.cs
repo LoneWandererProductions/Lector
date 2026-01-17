@@ -57,7 +57,8 @@ namespace Mediator
 
             Assert.IsNotNull(result, "Result should not be null");
             Assert.IsTrue(result.Success, "Help extension always succeeds");
-            Assert.IsTrue(result.Message.Contains("Deletes a resource"), "Help message should include command description");
+            Assert.IsTrue(result.Message.Contains("Deletes a resource"),
+                "Help message should include command description");
             Assert.IsNull(result.Feedback, "Help should not require feedback");
 
             result = _weaver.ProcessInput("help(delete)");
@@ -73,7 +74,6 @@ namespace Mediator
             var result = _weaver.ProcessInput("nonexistent().help()");
 
             Assert.IsNotNull(result, "Result should not be null");
-
         }
     }
 }

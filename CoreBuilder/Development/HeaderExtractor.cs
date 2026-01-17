@@ -156,7 +156,8 @@ namespace CoreBuilder.Development
             FeedbackRequest? feedback = null;
 
             feedback = new FeedbackRequest(
-                prompt: $"The following files are missing headers:\n\n{previewList}\n\nProceed with header insertion? (yes/no)",
+                prompt:
+                $"The following files are missing headers:\n\n{previewList}\n\nProceed with header insertion? (yes/no)",
                 options: new[] { "yes", "no" },
                 onRespond: input =>
                 {
@@ -176,7 +177,8 @@ namespace CoreBuilder.Development
 
             return new CommandResult
             {
-                Message = $"Preview of header insertion complete. Files missing headers:\n\n{previewList}\n\nAwaiting user confirmation.",
+                Message =
+                    $"Preview of header insertion complete. Files missing headers:\n\n{previewList}\n\nAwaiting user confirmation.",
                 Feedback = feedback,
                 RequiresConfirmation = true,
                 Success = false
@@ -215,10 +217,10 @@ namespace CoreBuilder.Development
         private static string ExtractNamespace(string content)
         {
             foreach (var parts in from line in content.Split('\n')
-                                  select line.Trim()
+                     select line.Trim()
                      into trimmed
-                                  where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
-                                  select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
+                     where trimmed.StartsWith("namespace ", StringComparison.InvariantCultureIgnoreCase)
+                     select trimmed.Split(new[] { ' ', '{' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 return parts.Length > 1 ? parts[1] : "UnknownNamespace";
             }

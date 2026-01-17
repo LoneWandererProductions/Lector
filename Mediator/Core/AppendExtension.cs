@@ -27,7 +27,8 @@ namespace Mediator.Core
         public string Namespace => "Test";
 
         /// <inheritdoc />
-        public CommandResult Invoke(ICommand command, string[] extensionArgs, Func<string[], CommandResult> executor, string[] commandArgs)
+        public CommandResult Invoke(ICommand command, string[] extensionArgs, Func<string[], CommandResult> executor,
+            string[] commandArgs)
         {
             // Execute the original command with proper command args
             var result = executor(commandArgs);

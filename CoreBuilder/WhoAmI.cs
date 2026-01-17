@@ -26,7 +26,8 @@ namespace CoreBuilder
         public string Name => "WhoAmI";
 
         /// <inheritdoc />
-        public string Description => "Displays hostname, user and IP information. Supports the Who extension, Example: whoami().who(ip,hostname) or whoami().who(ip)";
+        public string Description =>
+            "Displays hostname, user and IP information. Supports the Who extension, Example: whoami().who(ip,hostname) or whoami().who(ip)";
 
         /// <inheritdoc />
         public string Namespace => "System";

@@ -15,7 +15,6 @@ namespace Mediator.Scripting
     [TestClass]
     public class ExpressionEvaluatorTests
     {
-
         /// <summary>
         /// Evaluates the numeric with int and double variables works.
         /// </summary>

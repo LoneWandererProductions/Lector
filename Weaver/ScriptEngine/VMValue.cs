@@ -1,11 +1,12 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine
- * FILE:        VMValue.cs
+ * FILE:        VmValue.cs
  * PURPOSE:     Struct that contains all possible VM value types for VariableRegistry.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using System.Globalization;
 using Weaver.Messages;
 
 namespace Weaver.ScriptEngine
@@ -13,7 +14,7 @@ namespace Weaver.ScriptEngine
     /// <summary>
     /// Smallest unit that contains all possible VM value types for VariableRegistry.
     /// </summary>
-    public readonly struct VMValue
+    public readonly struct VmValue
     {
         /// <summary>
         /// Gets the type.
@@ -31,7 +32,7 @@ namespace Weaver.ScriptEngine
         public double Double { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this <see cref="VMValue"/> is bool.
+        /// Gets a value indicating whether this <see cref="VmValue"/> is bool.
         /// </summary>
         public bool Bool { get; }
 
@@ -41,9 +42,9 @@ namespace Weaver.ScriptEngine
         public string? String { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VMValue"/> struct.
+        /// Initializes a new instance of the <see cref="VmValue"/> struct.
         /// </summary>
-        private VMValue(EnumTypes type, long i, double d, bool b, string? s)
+        private VmValue(EnumTypes type, long i, double d, bool b, string? s)
         {
             Type = type;
             Int64 = i;
@@ -55,25 +56,25 @@ namespace Weaver.ScriptEngine
         /// <summary>
         /// Froms the int.
         /// </summary>
-        public static VMValue FromInt(long value) =>
+        public static VmValue FromInt(long value) =>
             new(EnumTypes.Wint, value, default, default, null);
 
         /// <summary>
         /// Froms the double.
         /// </summary>
-        public static VMValue FromDouble(double value) =>
+        public static VmValue FromDouble(double value) =>
             new(EnumTypes.Wdouble, default, value, default, null);
 
         /// <summary>
         /// Froms the bool.
         /// </summary>
-        public static VMValue FromBool(bool value) =>
+        public static VmValue FromBool(bool value) =>
             new(EnumTypes.Wbool, default, default, value, null);
 
         /// <summary>
-        /// Froms the string.
+        /// From string.
         /// </summary>
-        public static VMValue FromString(string? value) =>
+        public static VmValue FromString(string? value) =>
             new(EnumTypes.Wstring, default, default, default, value);
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Weaver.ScriptEngine
             return Type switch
             {
                 EnumTypes.Wint => Int64.ToString(),
-                EnumTypes.Wdouble => Double.ToString(),
+                EnumTypes.Wdouble => Double.ToString(CultureInfo.InvariantCulture),
                 EnumTypes.Wbool => Bool.ToString(),
                 EnumTypes.Wstring => String ?? "<null>",
                 _ => "<unknown>"

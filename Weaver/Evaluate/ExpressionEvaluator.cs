@@ -41,6 +41,7 @@ namespace Weaver.Evaluate
         {
             _registry = registry;
         }
+
         /// <inheritdoc />
         /// <exception cref="ArgumentException">Invalid or unsupported expression.</exception>
         public bool Evaluate(string expression)
@@ -149,6 +150,7 @@ namespace Weaver.Evaluate
             var rpn = ToRpn(tokens);
             return EvaluateRpn(rpn);
         }
+
         private IEnumerable<string> Tokenize(string expr)
         {
             var token = new StringBuilder();
@@ -191,6 +193,7 @@ namespace Weaver.Evaluate
                         break;
                     }
                 }
+
                 if (matchedMulti)
                     continue;
 

@@ -54,9 +54,9 @@ namespace Mediator.TryRun
             // ---------------------------------------------
             var resultTry = extension.Invoke(
                 cmdWithTry,
-                new[] { "fileA" },       // extensionArgs
-                ExecutorWithTry,         // executor
-                new[] { "fileA" }        // commandArgs
+                new[] { "fileA" }, // extensionArgs
+                ExecutorWithTry, // executor
+                new[] { "fileA" } // commandArgs
             );
 
             Assert.IsTrue(resultTry.RequiresConfirmation);
@@ -74,7 +74,7 @@ namespace Mediator.TryRun
                 cmdWithoutTry,
                 new[] { "fileB" },
                 ExecutorWithoutTry,
-                new[] { "fileB" }        // commandArgs
+                new[] { "fileB" } // commandArgs
             );
 
             Assert.IsTrue(resultNoTry.RequiresConfirmation);

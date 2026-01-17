@@ -23,7 +23,7 @@ namespace Weaver.Core.Extensions
         /// <summary>
         /// The registry
         /// </summary>
-        private IVariableRegistry _registry;
+        private readonly IVariableRegistry _registry;
 
         /// <inheritdoc />
         public string Name => "Step";

@@ -138,7 +138,7 @@ namespace Weaver.Core.Commands
             }
 
             // Return computed result
-            string message = type switch
+            var message = type switch
             {
                 EnumTypes.Wbool => result?.ToString() ?? "false",
                 EnumTypes.Wdouble => Convert.ToDouble(result).ToString(CultureInfo.InvariantCulture),
@@ -147,6 +147,5 @@ namespace Weaver.Core.Commands
 
             return CommandResult.Ok(message, result, type);
         }
-
     }
 }
