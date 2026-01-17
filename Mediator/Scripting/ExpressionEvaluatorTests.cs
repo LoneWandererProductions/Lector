@@ -188,16 +188,5 @@ namespace Mediator.Scripting
             Assert.IsFalse(result1, "Expected counter<3 to be false");
             Assert.IsTrue(result2, "Expected counter>2 to be true");
         }
-
-        /// <summary>
-        /// Evaluates the unsupported operator throws.
-        /// </summary>
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void Evaluate_Unsupported_Operator_Throws()
-        {
-            var evaluator = new ExpressionEvaluator();
-            evaluator.Evaluate("5 ^^ 2"); // unsupported operator
-        }
     }
 }

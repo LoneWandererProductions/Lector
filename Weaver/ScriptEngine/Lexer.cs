@@ -332,6 +332,32 @@ namespace Weaver.ScriptEngine
                     }
 
                     break;
+                case '&':
+                    if (Peek(1) == '&')
+                    {
+                        Advance(2);
+                        tokens.Add(Token(TokenType.LogicalAnd, ScriptConstants.LogicalAnd, line, col));
+                    }
+                    else
+                    {
+                        Advance();
+                        tokens.Add(Token(TokenType.BitAnd, "&", line, col));
+                    }
+                    break;
+
+                case '|':
+                    if (Peek(1) == '|')
+                    {
+                        Advance(2);
+                        tokens.Add(Token(TokenType.LogicalOr, ScriptConstants.LogicalOr, line, col));
+                    }
+                    else
+                    {
+                        Advance();
+                        tokens.Add(Token(TokenType.BitOr, "|", line, col));
+                    }
+                    break;
+
                 default:
                     var unknownChar = c;
                     Advance();

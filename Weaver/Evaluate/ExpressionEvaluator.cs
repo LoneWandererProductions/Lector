@@ -7,6 +7,7 @@
  */
 
 using System.Text;
+using System.Text.RegularExpressions;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
@@ -27,6 +28,11 @@ namespace Weaver.Evaluate
         /// </summary>
         private readonly IVariableRegistry? _registry;
 
+        private static readonly string[] MultiOps =
+        {
+            "==", "!=", ">=", "<="
+        };
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ExpressionEvaluator"/> class.
         /// </summary>
@@ -35,7 +41,6 @@ namespace Weaver.Evaluate
         {
             _registry = registry;
         }
-
         /// <inheritdoc />
         /// <exception cref="ArgumentException">Invalid or unsupported expression.</exception>
         public bool Evaluate(string expression)
@@ -65,15 +70,52 @@ namespace Weaver.Evaluate
                 };
             }
 
-            // split into tokens
-            var tokens = expression.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            // (existing operator handling)
-            if (tokens.Length == 3)
+            // Unary NOT (handle both "not x" and "not(x)")
+            if (expression.StartsWith("not", StringComparison.OrdinalIgnoreCase))
             {
-                var left = GetValue(tokens[0]);
-                var op = tokens[1];
-                var right = GetValue(tokens[2]);
+                var remainder = expression.Substring(3).TrimStart();
+                if (remainder.StartsWith("(") && remainder.EndsWith(")"))
+                    remainder = remainder.Substring(1, remainder.Length - 2);
+
+                return !Evaluate(remainder);
+            }
+
+            // --- NEW FIX: detect boolean operators safely ---
+            var boolRegex = new Regex(@"\b(and|or)\b|&&|\|\|", RegexOptions.IgnoreCase);
+
+            if (boolRegex.IsMatch(expression))
+            {
+                // split but KEEP operators
+                var tokens = boolRegex.Split(expression)
+                    .Select(x => x.Trim())
+                    .Where(x => x.Length > 0)
+                    .ToArray();
+
+                if (tokens.Length == 3)
+                {
+                    var left = Evaluate(tokens[0]);
+                    var op = tokens[1].ToLowerInvariant();
+                    var right = Evaluate(tokens[2]);
+
+                    return op switch
+                    {
+                        "and" => left && right,
+                        "or" => left || right,
+                        "&&" => left && right,
+                        "||" => left || right,
+                        _ => throw new ArgumentException($"Unsupported logical operator: {op}")
+                    };
+                }
+            }
+
+            // --- comparison operators ---
+            var parts = Tokenize(expression).ToArray();
+
+            if (parts.Length == 3)
+            {
+                var left = GetValue(parts[0]);
+                var op = parts[1];
+                var right = GetValue(parts[2]);
 
                 return op switch
                 {
@@ -89,17 +131,16 @@ namespace Weaver.Evaluate
                 };
             }
 
-            // unary NOT
-            if (tokens.Length == 2 && tokens[0].Equals("not", StringComparison.OrdinalIgnoreCase))
+            // unary NOT with tokens
+            if (parts.Length == 2 && parts[0].Equals("not", StringComparison.OrdinalIgnoreCase))
             {
-                var val = GetValue(tokens[1]);
+                var val = GetValue(parts[1]);
                 return !Convert.ToBoolean(val);
             }
 
             // fallback numeric
             return EvaluateNumeric(expression) != 0;
         }
-
 
         /// <inheritdoc />
         public double EvaluateNumeric(string expression)
@@ -111,30 +152,57 @@ namespace Weaver.Evaluate
         private IEnumerable<string> Tokenize(string expr)
         {
             var token = new StringBuilder();
+            int i = 0;
 
-            foreach (var c in expr)
+            while (i < expr.Length)
             {
-                if (char.IsWhiteSpace(c))
-                    continue;
+                char c = expr[i];
 
+                if (char.IsWhiteSpace(c))
+                {
+                    i++;
+                    continue;
+                }
+
+                // numeric or identifier
                 if (char.IsLetterOrDigit(c) || c == '.')
                 {
                     token.Append(c);
+                    i++;
+                    continue;
                 }
-                else
+
+                // Flush current token
+                if (token.Length > 0)
                 {
-                    if (token.Length > 0)
-                    {
-                        yield return token.ToString();
-                        token.Clear();
-                    }
-                    yield return c.ToString();
+                    yield return token.ToString();
+                    token.Clear();
                 }
+
+                // Multi-char operator detection
+                bool matchedMulti = false;
+                foreach (var op in MultiOps)
+                {
+                    if (expr.AsSpan(i).StartsWith(op))
+                    {
+                        yield return op;
+                        i += op.Length;
+                        matchedMulti = true;
+                        break;
+                    }
+                }
+                if (matchedMulti)
+                    continue;
+
+                // Single char operator
+                yield return c.ToString();
+                i++;
             }
 
             if (token.Length > 0)
                 yield return token.ToString();
         }
+
         private List<string> ToRpn(IEnumerable<string> tokens)
         {
             var output = new List<string>();
