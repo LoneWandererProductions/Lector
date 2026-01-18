@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		.gitignore = .gitignore
 		LICENSE = LICENSE
 		README.md = README.md
+		Todo.txt = Todo.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBuilder", "CoreBuilder\CoreBuilder.csproj", "{32BCE846-723D-3321-AAB7-99B0E367C12E}"

@@ -1,0 +1,261 @@
+using System.Text;
+using System.Text.RegularExpressions;
+using Weaver.Interfaces;
+using Weaver.Messages;
+using Weaver.ScriptEngine;
+
+namespace Weaver.Evaluate
+{
+    internal sealed class ExpressionEvaluator : IEvaluator
+    {
+        private readonly IVariableRegistry? _registry;
+
+        public ExpressionEvaluator(IVariableRegistry? registry = null)
+        {
+            _registry = registry;
+        }
+
+        public bool Evaluate(string expression)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+                throw new ArgumentException("Expression cannot be empty.", nameof(expression));
+
+            expression = expression.Trim();
+
+            // direct boolean literals
+            if (expression.Equals("true", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (expression.Equals("false", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            // try to interpret as a variable
+            if (_registry != null && _registry.TryGet(expression, out var vm))
+            {
+                return vm.Type switch
+                {
+                    EnumTypes.Wbool => vm.Bool,
+                    EnumTypes.Wint => vm.Int64 != 0,
+                    EnumTypes.Wdouble => vm.Double != 0.0,
+                    EnumTypes.Wstring => !string.IsNullOrEmpty(vm.String),
+                    _ => throw new ArgumentException($"Unsupported variable type: {vm.Type}")
+                };
+            }
+
+            // Unary NOT (handle both "not x" and "not(x)")
+            if (expression.StartsWith("not", StringComparison.OrdinalIgnoreCase))
+            {
+                var remainder = expression.Substring(3).TrimStart();
+                if (remainder.StartsWith("(") && remainder.EndsWith(")"))
+                    remainder = remainder.Substring(1, remainder.Length - 2);
+
+                return !Evaluate(remainder);
+            }
+
+            // --- NEW FIX: detect boolean operators safely ---
+            var boolRegex = new Regex(@"\b(and|or)\b|&&|\|\|", RegexOptions.IgnoreCase);
+
+            if (boolRegex.IsMatch(expression))
+            {
+                var tokensForBool = boolRegex.Split(expression)
+                    .Select(x => x.Trim())
+                    .Where(x => x.Length > 0)
+                    .ToArray();
+
+                if (tokensForBool.Length == 3)
+                {
+                    var left = Evaluate(tokensForBool[0]);
+                    var op = tokensForBool[1].ToLowerInvariant();
+                    var right = Evaluate(tokensForBool[2]);
+
+                    return op switch
+                    {
+                        "and" => left && right,
+                        "or" => left || right,
+                        "&&" => left && right,
+                        "||" => left || right,
+                        _ => throw new ArgumentException($"Unsupported logical operator: {op}")
+                    };
+                }
+            }
+
+            // --- comparison operators ---
+            var lexer = new Lexer(expression);
+            var tokens = lexer.Tokenize();
+
+            if (tokens.Count == 3)
+            {
+                var left = GetValue(tokens[0].Lexeme);
+                var op = tokens[1].Lexeme;
+                var right = GetValue(tokens[2].Lexeme);
+
+                return op switch
+                {
+                    ScriptConstants.EqualEqual => Equals(left, right),
+                    ScriptConstants.BangEqual => !Equals(left, right),
+                    ScriptConstants.Greater => Compare(left, right) > 0,
+                    ScriptConstants.Less => Compare(left, right) < 0,
+                    ScriptConstants.GreaterEqual => Compare(left, right) >= 0,
+                    ScriptConstants.LessEqual => Compare(left, right) <= 0,
+                    ScriptConstants.LogicalAnd => Convert.ToBoolean(left) && Convert.ToBoolean(right),
+                    ScriptConstants.LogicalOr => Convert.ToBoolean(left) || Convert.ToBoolean(right),
+                    _ => throw new ArgumentException($"Unsupported operator: {op}")
+                };
+            }
+
+            // unary NOT with tokens
+            if (tokens.Count == 2 && tokens[0].Lexeme.Equals("not", StringComparison.OrdinalIgnoreCase))
+            {
+                var val = GetValue(tokens[1].Lexeme);
+                return !Convert.ToBoolean(val);
+            }
+
+            // fallback numeric
+            return EvaluateNumeric(expression) != 0;
+        }
+
+        public double EvaluateNumeric(string expression)
+        {
+            var lexer = new Lexer(expression);
+            var tokenList = lexer.Tokenize();
+            var rpn = ToRpn(tokenList);
+            return EvaluateRpn(rpn);
+        }
+
+        private List<string> ToRpn(List<Token> tokens)
+        {
+            var output = new List<string>();
+            var ops = new Stack<string>();
+
+            int Precedence(string op) => op switch
+            {
+                "+" or "-" => 1,
+                "*" or "/" => 2,
+                _ => 0
+            };
+
+            foreach (var token in tokens)
+            {
+                var tok = token.Lexeme;
+
+                if (double.TryParse(tok, out _) || IsNumericVariable(tok))
+                {
+                    output.Add(tok);
+                }
+                else if ("+-*/".Contains(tok))
+                {
+                    while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(tok))
+                        output.Add(ops.Pop());
+                    ops.Push(tok);
+                }
+                else if (tok == "(")
+                {
+                    ops.Push(tok);
+                }
+                else if (tok == ")")
+                {
+                    while (ops.Peek() != "(")
+                        output.Add(ops.Pop());
+                    ops.Pop();
+                }
+            }
+
+            while (ops.Count > 0)
+                output.Add(ops.Pop());
+
+            return output;
+        }
+
+        private double EvaluateRpn(List<string> rpn)
+        {
+            var stack = new Stack<double>();
+
+            foreach (var token in rpn)
+            {
+                if (double.TryParse(token, out var num))
+                {
+                    stack.Push(num);
+                }
+                else if (IsNumericVariable(token))
+                {
+                    stack.Push(GetNumericValue(token));
+                }
+                else
+                {
+                    var b = stack.Pop();
+                    var a = stack.Pop();
+
+                    stack.Push(token switch
+                    {
+                        "+" => a + b,
+                        "-" => a - b,
+                        "*" => a * b,
+                        "/" => a / b,
+                        _ => throw new Exception("Unknown operator")
+                    });
+                }
+            }
+
+            return stack.Pop();
+        }
+
+        private bool IsNumericVariable(string token)
+        {
+            if (_registry == null) return false;
+
+            return _registry.TryGet(token, out var val, out var type)
+                   && (type == EnumTypes.Wint || type == EnumTypes.Wdouble || type == EnumTypes.Wbool);
+        }
+
+        private double GetNumericValue(string token)
+        {
+            if (_registry != null && _registry.TryGet(token, out var val, out var type))
+            {
+                return val switch
+                {
+                    int i => i,
+                    long l => l,
+                    double d => d,
+                    float f => f,
+                    bool b => b ? 1 : 0,
+                    _ => throw new InvalidOperationException($"Cannot convert value of type {val.GetType()} to number")
+                };
+            }
+
+            if (double.TryParse(token, out var num)) return num;
+
+            throw new InvalidOperationException($"Invalid numeric token: {token}");
+        }
+
+        private object GetValue(string token)
+        {
+            if (double.TryParse(token, out var num))
+                return num;
+
+            if (_registry != null && _registry.TryGet(token, out var val, out _))
+                return val!;
+
+            return token;
+        }
+
+        private static int Compare(object a, object b)
+        {
+            var da = Convert.ToDouble(a);
+            var db = Convert.ToDouble(b);
+            return da.CompareTo(db);
+        }
+
+        public bool IsBooleanExpression(string expression)
+        {
+            return expression.Contains(ScriptConstants.LogicalAnd, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalOr, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalNot, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.EqualEqual)
+                   || expression.Contains(ScriptConstants.BangEqual)
+                   || expression.Contains(ScriptConstants.GreaterEqual)
+                   || expression.Contains(ScriptConstants.LessEqual)
+                   || expression.Contains(ScriptConstants.Greater)
+                   || expression.Contains(ScriptConstants.Less);
+        }
+    }
+}

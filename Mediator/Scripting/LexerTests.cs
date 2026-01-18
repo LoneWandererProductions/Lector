@@ -1,19 +1,79 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator.Scripting
+ * FILE:        LexerTests.cs
+ * PURPOSE:     Full test for our lexer and expression evaluator.
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Weaver.Evaluate;
+using Weaver.Messages;
 using Weaver.ScriptEngine;
-using System.Linq;
 
 namespace Mediator.Scripting
 {
+    /// <summary>
+    /// Unit tests for the Lexer and ExpressionEvaluator components.
+    /// Validates tokenization, operator handling, literals, keywords, logical expressions, and comments.
+    /// </summary>
     [TestClass]
     public class LexerTests
     {
+        /// <summary>
+        /// Helper to create a lexer for a given input script.
+        /// </summary>
         private Lexer CreateLexer(string input) => new Lexer(input);
 
-        private string TokensToString(Lexer lexer)
+        /// <summary>
+        /// Helper to create an expression evaluator with a given variable registry.
+        /// </summary>
+        private ExpressionEvaluator CreateEvaluator(VariableRegistry registry) =>
+            new ExpressionEvaluator(registry);
+
+        /// <summary>
+        /// Tests evaluating logical expressions using variables.
+        /// Ensures that 'and', 'or', 'not' work correctly.
+        /// </summary>
+        [TestMethod]
+        public void Test_LogicalExpressionEvaluation()
         {
-            return string.Join(", ", lexer.Tokenize().Select(t => $"{t.Type}('{t.Lexeme}')"));
+            var registry = new VariableRegistry();
+            registry.Set("x", 5, EnumTypes.Wint);
+            registry.Set("y", 10, EnumTypes.Wint);
+            registry.Set("z", false, EnumTypes.Wbool);
+
+            var evaluator = CreateEvaluator(registry);
+
+            // True: (5 < 10) && not false => true
+            Assert.IsTrue(evaluator.Evaluate("( x < y ) && not z"));
+
+            // False: (5 > 10) || false => false
+            Assert.IsFalse(evaluator.Evaluate("( x > y ) || z"));
         }
 
+        /// <summary>
+        /// Verifies the lexer correctly tokenizes a logical expression.
+        /// Ensures correct splitting and mapping of operators and identifiers.
+        /// </summary>
+        [TestMethod]
+        public void Test_LexerTokensForLogicalExpression()
+        {
+            var expr = "( x < y ) && not z";
+            var lexer = CreateLexer(expr);
+            var tokens = lexer.Tokenize();
+
+            var expectedLexemes = new[] { "(", "x", "<", "y", ")", "&&", "!", "z" };
+            Assert.AreEqual(expectedLexemes.Length, tokens.Count);
+
+            for (int i = 0; i < expectedLexemes.Length; i++)
+            {
+                Assert.AreEqual(expectedLexemes[i], tokens[i].Lexeme);
+            }
+        }
+
+        /// <summary>
+        /// Tests that keywords and identifiers are correctly recognized.
+        /// </summary>
         [TestMethod]
         public void Test_KeywordsAndIdentifiers()
         {
@@ -36,6 +96,9 @@ namespace Mediator.Scripting
             CollectionAssert.AreEqual(expectedTypes, tokens.Select(t => t.Type).ToArray());
         }
 
+        /// <summary>
+        /// Tests that numbers (integers and decimals) are correctly tokenized.
+        /// </summary>
         [TestMethod]
         public void Test_Numbers()
         {
@@ -50,6 +113,9 @@ namespace Mediator.Scripting
             Assert.AreEqual("45.67", tokens[1].Lexeme);
         }
 
+        /// <summary>
+        /// Tests that string literals are correctly tokenized (quotes removed from lexeme).
+        /// </summary>
         [TestMethod]
         public void Test_Strings()
         {
@@ -64,6 +130,9 @@ namespace Mediator.Scripting
             Assert.AreEqual("world", tokens[1].Lexeme);
         }
 
+        /// <summary>
+        /// Tests recognition of single-character operators and punctuation.
+        /// </summary>
         [TestMethod]
         public void Test_SingleCharOperators()
         {
@@ -81,6 +150,9 @@ namespace Mediator.Scripting
             CollectionAssert.AreEqual(expectedTypes, tokens.Select(t => t.Type).ToArray());
         }
 
+        /// <summary>
+        /// Tests recognition of double-character operators.
+        /// </summary>
         [TestMethod]
         public void Test_DoubleCharOperators()
         {
@@ -98,6 +170,9 @@ namespace Mediator.Scripting
             CollectionAssert.AreEqual(expectedTypes, tokens.Select(t => t.Type).ToArray());
         }
 
+        /// <summary>
+        /// Ensures that comments are ignored during tokenization.
+        /// </summary>
         [TestMethod]
         public void Test_CommentsIgnored()
         {
@@ -105,15 +180,13 @@ namespace Mediator.Scripting
             var lexer = CreateLexer(script);
             var tokens = lexer.Tokenize();
 
-            // Tokens should include 'a = 5 ;' and 'b = 6 ;' but not the comment
-            var expectedLexemes = new[]
-            {
-                "a", "=", "5", ";", "b", "=", "6", ";"
-            };
-
+            var expectedLexemes = new[] { "a", "=", "5", ";", "b", "=", "6", ";" };
             CollectionAssert.AreEqual(expectedLexemes, tokens.Select(t => t.Lexeme).ToArray());
         }
 
+        /// <summary>
+        /// Tests label definition and goto statement tokenization.
+        /// </summary>
         [TestMethod]
         public void Test_LabelAndGoto()
         {
