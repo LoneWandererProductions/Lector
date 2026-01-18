@@ -23,7 +23,7 @@ namespace Weaver.ScriptEngine
         /// <summary>
         /// The registry
         /// </summary>
-        private static IVariableRegistry _registry;
+        private static IVariableRegistry? _registry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WeaverProgram" /> class.
