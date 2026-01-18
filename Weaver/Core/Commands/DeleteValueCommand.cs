@@ -9,7 +9,7 @@
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Core
+namespace Weaver.Core.Commands
 {
     /// <inheritdoc />
     /// <summary>

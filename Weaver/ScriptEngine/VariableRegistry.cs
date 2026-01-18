@@ -34,12 +34,12 @@ namespace Weaver.ScriptEngine
         /// <returns>
         /// The registry itself
         /// </returns>
-        public IReadOnlyDictionary<string, VMValue> GetAll() => _registry;
+        public IReadOnlyDictionary<string, VmValue> GetAll() => _registry;
 
         /// <summary>
         /// The registry
         /// </summary>
-        private readonly Dictionary<string, VMValue> _registry = new();
+        private readonly Dictionary<string, VmValue> _registry = new();
 
         /// <inheritdoc />
         public string Get(string key)
@@ -48,13 +48,13 @@ namespace Weaver.ScriptEngine
         }
 
         /// <inheritdoc />
-        public void Set(string key, VMValue value)
+        public void Set(string key, VmValue value)
         {
             _registry[key] = value;
         }
 
         /// <inheritdoc />
-        public bool TryGet(string key, out VMValue value)
+        public bool TryGet(string key, out VmValue value)
         {
             return _registry.TryGetValue(key, out value);
         }
@@ -75,6 +75,7 @@ namespace Weaver.ScriptEngine
                 value = vm.Int64;
                 return true;
             }
+
             value = default;
             return false;
         }
@@ -89,6 +90,7 @@ namespace Weaver.ScriptEngine
                 value = vm.Double;
                 return true;
             }
+
             value = default;
             return false;
         }
@@ -103,6 +105,7 @@ namespace Weaver.ScriptEngine
                 value = vm.Bool;
                 return true;
             }
+
             value = default;
             return false;
         }
@@ -117,6 +120,7 @@ namespace Weaver.ScriptEngine
                 value = vm.String;
                 return true;
             }
+
             value = null;
             return false;
         }
@@ -138,13 +142,13 @@ namespace Weaver.ScriptEngine
         /// <inheritdoc />
         public void Set(string key, object value, EnumTypes type)
         {
-            VMValue vm = type switch
+            VmValue vm = type switch
             {
-                EnumTypes.Wint => VMValue.FromInt(Convert.ToInt64(value)),
-                EnumTypes.Wdouble => VMValue.FromDouble(Convert.ToDouble(value)),
-                EnumTypes.Wbool => VMValue.FromBool(Convert.ToBoolean(value)),
-                EnumTypes.Wstring => VMValue.FromString(value?.ToString()),
-                _ => VMValue.FromString(value?.ToString())
+                EnumTypes.Wint => VmValue.FromInt(Convert.ToInt64(value)),
+                EnumTypes.Wdouble => VmValue.FromDouble(Convert.ToDouble(value)),
+                EnumTypes.Wbool => VmValue.FromBool(Convert.ToBoolean(value)),
+                EnumTypes.Wstring => VmValue.FromString(value?.ToString()),
+                _ => VmValue.FromString(value?.ToString())
             };
 
             _registry[key] = vm;
@@ -171,6 +175,5 @@ namespace Weaver.ScriptEngine
             type = EnumTypes.Wstring;
             return false;
         }
-
     }
 }

@@ -84,12 +84,12 @@ namespace CommonDialogs
         /// Initializes a new instance of <see cref="FolderItemViewModel" /> for a given path.
         /// </summary>
         /// <param name="path">Full path of the folder or file.</param>
-        /// <param name="parentVM">The parent vm.</param>
-        public FolderItemViewModel(string path, FolderViewModel parentVM)
+        /// <param name="parentVm">The parent vm.</param>
+        public FolderItemViewModel(string path, FolderViewModel parentVm)
         {
             Path = path;
             Header = System.IO.Path.GetFileName(path) ?? path;
-            _parentVm = parentVM;
+            _parentVm = parentVm;
             HasChildren = SafeHasChildren(path);
         }
 

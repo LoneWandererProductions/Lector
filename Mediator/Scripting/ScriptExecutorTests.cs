@@ -431,12 +431,13 @@ namespace Mediator.Scripting
             {
                 var result = executor.ExecuteNext();
                 // Only assign lastResult if a command actually ran (non-null)
-                if (result != null && result.Value != null)
+                if (result is { Value: { } })
                     lastResult = result;
             }
 
             Assert.IsNotNull(lastResult, "Expected a final CommandResult from executed command.");
-            Assert.AreEqual("0", lastResult.Value!.ToString(), "Counter should remain 0 because the if-body was skipped");
+            Assert.AreEqual("0", lastResult.Value!.ToString(),
+                "Counter should remain 0 because the if-body was skipped");
         }
 
         /// <summary>
@@ -534,7 +535,6 @@ namespace Mediator.Scripting
         }
 
 
-
         /// <summary>
         /// Tests the goto missing label fails gracefully.
         /// </summary>
@@ -626,7 +626,5 @@ namespace Mediator.Scripting
             StringAssert.Contains(rewritten[0], "2+3");
             StringAssert.Contains(rewritten[0], ", x");
         }
-
-
     }
 }

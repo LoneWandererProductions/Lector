@@ -36,6 +36,7 @@ namespace Weaver.Evaluate
         {
             _registry = registry;
         }
+
         /// <inheritdoc />
         /// <exception cref="ArgumentException">Invalid or unsupported expression.</exception>
         public bool Evaluate(string expression)

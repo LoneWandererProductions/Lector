@@ -24,8 +24,10 @@ namespace Mediator.Core
 
         /// <inheritdoc />
         public string Name => "delete";
+
         /// <inheritdoc />
         public string Description => "Deletes a resource by name.";
+
         /// <inheritdoc />
         public int ParameterCount => 1;
 
@@ -116,5 +118,4 @@ namespace Mediator.Core
             };
         }
     }
-
 }

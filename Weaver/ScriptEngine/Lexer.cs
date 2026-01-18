@@ -146,7 +146,8 @@ namespace Weaver.ScriptEngine
                     }
 
                     if (!IsAtEnd()) Advance(); // skip closing "
-                    tokens.Add(new Token { Type = TokenType.String, Lexeme = sb.ToString(), Line = line, Column = col });
+                    tokens.Add(new Token
+                        { Type = TokenType.String, Lexeme = sb.ToString(), Line = line, Column = col });
                     continue;
                 }
 
@@ -419,6 +420,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.BitAnd, "&", line, col));
                     }
+
                     break;
 
                 case '|':
@@ -432,6 +434,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                         tokens.Add(Token(TokenType.BitOr, "|", line, col));
                     }
+
                     break;
 
                 default:

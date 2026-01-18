@@ -21,7 +21,8 @@ namespace Weaver.Core.Extensions
         public string Name => WeaverResources.GlobalExtensionHelp;
 
         /// <inheritdoc />
-        public string Description => "Provides help information for a command using the .help extension, Example: command.help().";
+        public string Description =>
+            "Provides help information for a command using the .help extension, Example: command.help().";
 
         /// <inheritdoc />
         public string Namespace => WeaverResources.GlobalNamespace;
@@ -46,7 +47,7 @@ namespace Weaver.Core.Extensions
             sb.AppendLine();
 
             // 2️⃣ List available extensions (if any)
-            if (command.Extensions != null && command.Extensions.Count > 0)
+            if (command.Extensions is { Count: > 0 })
             {
                 sb.AppendLine("Available extensions:");
                 foreach (var kvp in command.Extensions)
