@@ -84,22 +84,55 @@ namespace Weaver.ScriptEngine
 
                 var c = Peek();
 
+                // Numbers (integer or float)
+                if (char.IsDigit(c))
+                {
+                    int start = _pos;
+                    bool hasDot = false;
+
+                    while (!IsAtEnd() && (char.IsDigit(Peek()) || (!hasDot && Peek() == '.')))
+                    {
+                        if (Peek() == '.')
+                            hasDot = true;
+                        Advance();
+                    }
+
+                    string number = _input.Substring(start, _pos - start);
+                    tokens.Add(new Token { Type = TokenType.Number, Lexeme = number, Line = line, Column = col });
+                    continue;
+                }
+
                 // Identifiers / keywords
                 if (char.IsLetter(c) || char.IsDigit(c) || c == '_')
                 {
                     var ident = ReadWhile(ch => char.IsLetterOrDigit(ch) || ch == '_');
-                    var type = Keywords.Contains(ident) ? GetKeywordTokenType(ident) : TokenType.Identifier;
+
+                    TokenType type;
+
+                    // Convert logical keywords to operator tokens
+                    switch (ident.ToLowerInvariant())
+                    {
+                        case "and":
+                            type = TokenType.LogicalAnd;
+                            ident = "&&";
+                            break;
+                        case "or":
+                            type = TokenType.LogicalOr;
+                            ident = "||";
+                            break;
+                        case "not":
+                            type = TokenType.Bang;
+                            ident = "!";
+                            break;
+                        default:
+                            type = Keywords.Contains(ident) ? GetKeywordTokenType(ident) : TokenType.Identifier;
+                            break;
+                    }
+
                     tokens.Add(new Token { Type = type, Lexeme = ident, Line = line, Column = col });
                     continue;
                 }
 
-                // Numbers
-                if (char.IsDigit(c))
-                {
-                    var number = ReadWhile(char.IsDigit);
-                    tokens.Add(new Token { Type = TokenType.Number, Lexeme = number, Line = line, Column = col });
-                    continue;
-                }
 
                 // Strings
                 if (c == '"')
@@ -116,6 +149,10 @@ namespace Weaver.ScriptEngine
                     tokens.Add(new Token { Type = TokenType.String, Lexeme = sb.ToString(), Line = line, Column = col });
                     continue;
                 }
+
+                // Try multi-char operators first
+                if (TryHandleDoubleCharOperator(tokens, line, col))
+                    continue;
 
                 // Operators, braces, punctuation
                 HandleSingleOrDoubleCharToken(c, tokens, line, col);
@@ -211,6 +248,45 @@ namespace Weaver.ScriptEngine
                 ScriptConstants.While => TokenType.KeywordWhile,
                 _ => TokenType.Keyword
             };
+        }
+
+        /// <summary>
+        /// Tries the handle double character operator.
+        /// </summary>
+        /// <param name="tokens">The tokens.</param>
+        /// <param name="line">The line.</param>
+        /// <param name="col">The col.</param>
+        /// <returns></returns>
+        private bool TryHandleDoubleCharOperator(List<Token> tokens, int line, int col)
+        {
+            if (_pos + 1 >= _input.Length)
+                return false;
+
+            string two = _input.Substring(_pos, 2);
+            TokenType? type = two switch
+            {
+                "==" => TokenType.EqualEqual,
+                "!=" => TokenType.BangEqual,
+                ">=" => TokenType.GreaterEqual,
+                "<=" => TokenType.LessEqual,
+                "&&" => TokenType.LogicalAnd,
+                _ => null
+            };
+
+            if (type != null)
+            {
+                tokens.Add(new Token
+                {
+                    Type = type.Value,
+                    Lexeme = two,
+                    Line = line,
+                    Column = col
+                });
+                Advance(2);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

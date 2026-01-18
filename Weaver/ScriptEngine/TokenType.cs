@@ -49,6 +49,6 @@ namespace Weaver.ScriptEngine
         LogicalAnd = 33,
         BitAnd = 34,
         LogicalOr = 35,
-        BitOr = 36
+        BitOr = 36,
     }
 }

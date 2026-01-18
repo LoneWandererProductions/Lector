@@ -28,11 +28,6 @@ namespace Weaver.Evaluate
         /// </summary>
         private readonly IVariableRegistry? _registry;
 
-        private static readonly string[] MultiOps =
-        {
-            "==", "!=", ">=", "<="
-        };
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ExpressionEvaluator"/> class.
         /// </summary>
@@ -109,7 +104,7 @@ namespace Weaver.Evaluate
             }
 
             // --- comparison operators ---
-            var parts = Tokenize(expression).ToArray();
+            var parts = Tokenizer.Tokenize(expression).ToArray();
 
             if (parts.Length == 3)
             {
@@ -145,62 +140,9 @@ namespace Weaver.Evaluate
         /// <inheritdoc />
         public double EvaluateNumeric(string expression)
         {
-            var tokens = Tokenize(expression);
+            var tokens = Tokenizer.Tokenize(expression);
             var rpn = ToRpn(tokens);
             return EvaluateRpn(rpn);
-        }
-        private IEnumerable<string> Tokenize(string expr)
-        {
-            var token = new StringBuilder();
-            int i = 0;
-
-            while (i < expr.Length)
-            {
-                char c = expr[i];
-
-                if (char.IsWhiteSpace(c))
-                {
-                    i++;
-                    continue;
-                }
-
-                // numeric or identifier
-                if (char.IsLetterOrDigit(c) || c == '.')
-                {
-                    token.Append(c);
-                    i++;
-                    continue;
-                }
-
-                // Flush current token
-                if (token.Length > 0)
-                {
-                    yield return token.ToString();
-                    token.Clear();
-                }
-
-                // Multi-char operator detection
-                bool matchedMulti = false;
-                foreach (var op in MultiOps)
-                {
-                    if (expr.AsSpan(i).StartsWith(op))
-                    {
-                        yield return op;
-                        i += op.Length;
-                        matchedMulti = true;
-                        break;
-                    }
-                }
-                if (matchedMulti)
-                    continue;
-
-                // Single char operator
-                yield return c.ToString();
-                i++;
-            }
-
-            if (token.Length > 0)
-                yield return token.ToString();
         }
 
         private List<string> ToRpn(IEnumerable<string> tokens)

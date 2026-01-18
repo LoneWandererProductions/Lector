@@ -93,6 +93,20 @@ namespace Mediator.Commands
         }
 
         /// <summary>
+        /// Evaluates the boolean expression and operator.
+        /// </summary>
+        [TestMethod]
+        public void EvaluateBooleanExpressionAndOperator()
+        {
+            _registry?.Set("flag1", true, EnumTypes.Wbool);
+            _registry?.Set("flag2", true, EnumTypes.Wbool);
+
+            var result = _command.Execute(new string[] { "flag1 && flag2" });
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("true", result.Message);
+        }
+
+        /// <summary>
         /// Evaluates the unary not expression returns correct value.
         /// </summary>
         [TestMethod]
