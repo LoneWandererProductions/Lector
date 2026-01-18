@@ -13,12 +13,34 @@ namespace Weaver.ScriptEngine
     /// </summary>
     internal static class ScriptConstants
     {
-        // Keywords
+        /// <summary>
+        /// If Keywords.
+        /// </summary>
         internal const string If = "if";
+
+        /// <summary>
+        /// The else Keywords.
+        /// </summary>
         internal const string Else = "else";
+
+        /// <summary>
+        /// The label Keywords.
+        /// </summary>
         internal const string Label = "label";
+
+        /// <summary>
+        /// The goto Keywords.
+        /// </summary>
         internal const string Goto = "goto";
+
+        /// <summary>
+        /// The do Keywords.
+        /// </summary>
         internal const string Do = "do";
+
+        /// <summary>
+        /// The while Keywords.
+        /// </summary>
         internal const string While = "while";
 
         /// <summary>
@@ -106,8 +128,8 @@ namespace Weaver.ScriptEngine
         internal const string GreaterEqual = ">=";
         internal const string Less = "<";
         internal const string LessEqual = "<=";
-        public const string LogicalAnd = "and";
-        public const string LogicalOr = "or";
-        public const string LogicalNot = "not";
+        internal const string LogicalAnd = "and";
+        internal const string LogicalOr = "or";
+        internal const string LogicalNot = "not";
     }
 }
