@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Text;
 using System.Text.RegularExpressions;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -105,7 +104,8 @@ namespace Weaver.Evaluate
             }
 
             // --- comparison operators ---
-            var parts = Tokenizer.Tokenize(expression).ToArray();
+            //var parts = Tokenizer.Tokenize(expression).ToArray();
+            var parts = Lexer.Tokenize(expression).ToArray();
 
             if (parts.Length == 3)
             {
@@ -141,7 +141,9 @@ namespace Weaver.Evaluate
         /// <inheritdoc />
         public double EvaluateNumeric(string expression)
         {
-            var tokens = Tokenizer.Tokenize(expression);
+            //var tokens = Tokenizer.Tokenize(expression);
+
+            var tokens = Lexer.Tokenize(expression);
             var rpn = ToRpn(tokens);
             return EvaluateRpn(rpn);
         }

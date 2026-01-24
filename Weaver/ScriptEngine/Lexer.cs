@@ -14,7 +14,7 @@ namespace Weaver.ScriptEngine
     /// A lexical analyzer that splits a script into its smallest meaningful components (tokens).
     /// Supports identifiers, keywords, numbers, strings, operators, and comments.
     /// </summary>
-    internal sealed class Lexer
+    public sealed class Lexer
     {
         /// <summary>
         /// Keywords recognized by the script engine.
@@ -53,6 +53,20 @@ namespace Weaver.ScriptEngine
         {
             // normalize line endings
             _input = input.Replace("\r\n", "\n");
+        }
+
+        /// <summary>
+        /// Static version: Tokenizes the input script and returns only the lexemes as a List of strings.
+        /// </summary>
+        /// <param name="input">The script source text to tokenize.</param>
+        /// <returns>List of lexemes in order of appearance.</returns>
+        public static List<string> Tokenize(string input)
+        {
+            var lexer = new Lexer(input);
+            // Rufe die private Instanzmethode auf, die List<Token> zurückgibt
+            return lexer.Tokenize()
+                        .Select(t => t.Lexeme!)
+                        .ToList();
         }
 
         /// <summary>
@@ -163,8 +177,13 @@ namespace Weaver.ScriptEngine
         }
 
         /// <summary>
-        /// Helper to generate a new <see cref="Token"/> with specified type and lexeme.
+        /// Helper to generate a new <see cref="Token" /> with specified type and lexeme.
         /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="lexeme">The lexeme.</param>
+        /// <param name="line">The line.</param>
+        /// <param name="col">The col.</param>
+        /// <returns>The token.</returns>
         private Token Token(TokenType type, string lexeme, int line, int col)
         {
             return new Token { Type = type, Lexeme = lexeme, Line = line, Column = col };
@@ -236,7 +255,7 @@ namespace Weaver.ScriptEngine
         /// Maps a keyword string to the corresponding <see cref="TokenType" />.
         /// </summary>
         /// <param name="keyword">The keyword.</param>
-        /// <returns></returns>
+        /// <returns>Type of the token.</returns>
         private TokenType GetKeywordTokenType(string keyword)
         {
             return keyword.ToLowerInvariant() switch

@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     Mediator.Helper
+ * FILE:        Tokenizer.cs
+ * PURPOSE:     Old Tokenizer for expression parsing, soon to be replaced. But here it is a test component.
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
 
-namespace Weaver.Evaluate
+using System.Text;
+
+namespace Mediator.Helper
 {
     internal static class Tokenizer
     {

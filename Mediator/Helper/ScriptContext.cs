@@ -1,6 +1,6 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     ediator.Helper
+ * PROJECT:     Mediator.Helper
  * FILE:        ScriptContext.cs
  * PURPOSE:     Helper class for command registration.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
