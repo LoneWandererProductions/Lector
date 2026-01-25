@@ -1,4 +1,5 @@
 ﻿using Mediator.Helper;
+using System.Diagnostics;
 using Weaver.Evaluate;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
@@ -18,6 +19,9 @@ namespace Mediator.Scripting
 
             var oldTokens = Tokenizer.Tokenize(expr).ToList();
             var newTokens = new Lexer(expr).Tokenize().Select(t => t.Lexeme).ToList();
+
+            Trace.WriteLine($"Old tokens: {string.Join(", ", oldTokens)}");
+            Trace.WriteLine($"New tokens: {string.Join(", ", newTokens)}");
 
             CollectionAssert.AreEqual(oldTokens, newTokens);
         }
@@ -47,13 +51,30 @@ namespace Mediator.Scripting
             var newTokensTrue = new Lexer(exprTrue).Tokenize().Select(t => t.Lexeme).ToList();
             var newTokensFalse = new Lexer(exprFalse).Tokenize().Select(t => t.Lexeme).ToList();
 
-            // Optionally: compare token streams for consistency
+            // Trace token comparisons for debug
+            Trace.WriteLine("=== Token Comparison for exprTrue ===");
+            Trace.WriteLine($"Expression: {exprTrue}");
+            Trace.WriteLine($"Old tokens: {string.Join(", ", oldTokensTrue)}");
+            Trace.WriteLine($"New tokens: {string.Join(", ", newTokensTrue)}");
+
+            Trace.WriteLine("=== Token Comparison for exprFalse ===");
+            Trace.WriteLine($"Expression: {exprFalse}");
+            Trace.WriteLine($"Old tokens: {string.Join(", ", oldTokensFalse)}");
+            Trace.WriteLine($"New tokens: {string.Join(", ", newTokensFalse)}");
+
+            // Compare token streams
             CollectionAssert.AreEqual(oldTokensTrue, newTokensTrue, "Lexer and Tokenizer lexemes do not match for exprTrue.");
             CollectionAssert.AreEqual(oldTokensFalse, newTokensFalse, "Lexer and Tokenizer lexemes do not match for exprFalse.");
 
-            // Evaluate expressions
-            Assert.IsTrue(evaluator.Evaluate(exprTrue), $"Expected '{exprTrue}' to evaluate to true.");
-            Assert.IsFalse(evaluator.Evaluate(exprFalse), $"Expected '{exprFalse}' to evaluate to false.");
+            // Evaluate expressions and trace results
+            var resultTrue = evaluator.Evaluate(exprTrue);
+            var resultFalse = evaluator.Evaluate(exprFalse);
+
+            Trace.WriteLine($"Evaluation of '{exprTrue}': {resultTrue}");
+            Trace.WriteLine($"Evaluation of '{exprFalse}': {resultFalse}");
+
+            Assert.IsTrue(resultTrue, $"Expected '{exprTrue}' to evaluate to true.");
+            Assert.IsFalse(resultFalse, $"Expected '{exprFalse}' to evaluate to false.");
         }
     }
 }

@@ -7,6 +7,7 @@
  */
 
 using System.Globalization;
+using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
@@ -68,28 +69,7 @@ namespace Weaver.Core.Commands
             }
 
             // Resolve variables from registry as before
-            if (_registry != null)
-            {
-                foreach (var variable in _registry.GetAll())
-                {
-                    var key = variable.Key;
-                    var (valueObj, valueType) = variable.Value;
-
-                    if (valueObj == null)
-                        continue;
-
-                    string replacement = valueType switch
-                    {
-                        EnumTypes.Wint => Convert.ToInt64(valueObj).ToString(),
-                        EnumTypes.Wdouble => Convert.ToDouble(valueObj).ToString(CultureInfo.InvariantCulture),
-                        EnumTypes.Wbool => Convert.ToBoolean(valueObj) ? "1" : "0",
-                        EnumTypes.Wstring => valueObj.ToString() ?? "",
-                        _ => valueObj.ToString() ?? ""
-                    };
-
-                    expression = expression.Replace(key, replacement, StringComparison.OrdinalIgnoreCase);
-                }
-            }
+            expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
 
             object? result;
             EnumTypes type;

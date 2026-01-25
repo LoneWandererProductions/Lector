@@ -128,8 +128,12 @@ namespace Weaver.ScriptEngine
         internal const string GreaterEqual = ">=";
         internal const string Less = "<";
         internal const string LessEqual = "<=";
-        internal const string LogicalAnd = "and";
-        internal const string LogicalOr = "or";
-        internal const string LogicalNot = "not";
+        internal const string LogicalAndSymbol = "&&";
+        internal const string LogicalOrSymbol = "||";
+        internal const string LogicalNotSymbol = "!";
+
+        internal const string LogicalAndWord = "and";
+        internal const string LogicalOrWord = "or";
+        internal const string LogicalNotWord = "not";
     }
 }

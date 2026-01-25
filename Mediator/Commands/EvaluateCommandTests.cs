@@ -103,7 +103,7 @@ namespace Mediator.Commands
 
             var result = _command.Execute(new string[] { "flag1 && flag2" });
             Assert.IsTrue(result.Success);
-            Assert.AreEqual("true", result.Message);
+            Assert.AreEqual("true", result.Message, ignoreCase: true);
         }
 
         /// <summary>

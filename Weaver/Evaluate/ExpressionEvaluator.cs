@@ -1,4 +1,4 @@
-/*
+﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.Evaluate
  * FILE:        ExpressionEvaluator.cs
@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using System.Text.RegularExpressions;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ScriptEngine;
@@ -52,60 +51,22 @@ namespace Weaver.Evaluate
             if (expression.Equals("false", StringComparison.OrdinalIgnoreCase))
                 return false;
 
+            // single-variable evaluation
+            if (ExpressionHelpers.TryEvaluateVariableAsBool(expression, _registry, out var single))
+                return single;
+
             // try to interpret as a variable
-            if (_registry != null && _registry.TryGet(expression, out var vm))
-            {
-                return vm.Type switch
-                {
-                    EnumTypes.Wbool => vm.Bool,
-                    EnumTypes.Wint => vm.Int64 != 0,
-                    EnumTypes.Wdouble => vm.Double != 0.0,
-                    EnumTypes.Wstring => !string.IsNullOrEmpty(vm.String),
-                    _ => throw new ArgumentException($"Unsupported variable type: {vm.Type}")
-                };
-            }
-
-            // Unary NOT (handle both "not x" and "not(x)")
-            if (expression.StartsWith("not", StringComparison.OrdinalIgnoreCase))
-            {
-                var remainder = expression.Substring(3).TrimStart();
-                if (remainder.StartsWith("(") && remainder.EndsWith(")"))
-                    remainder = remainder.Substring(1, remainder.Length - 2);
-
-                return !Evaluate(remainder);
-            }
-
-            // --- NEW FIX: detect boolean operators safely ---
-            var boolRegex = new Regex(@"\b(and|or)\b|&&|\|\|", RegexOptions.IgnoreCase);
-
-            if (boolRegex.IsMatch(expression))
-            {
-                // split but KEEP operators
-                var tokens = boolRegex.Split(expression)
-                    .Select(x => x.Trim())
-                    .Where(x => x.Length > 0)
-                    .ToArray();
-
-                if (tokens.Length == 3)
-                {
-                    var left = Evaluate(tokens[0]);
-                    var op = tokens[1].ToLowerInvariant();
-                    var right = Evaluate(tokens[2]);
-
-                    return op switch
-                    {
-                        "and" => left && right,
-                        "or" => left || right,
-                        "&&" => left && right,
-                        "||" => left || right,
-                        _ => throw new ArgumentException($"Unsupported logical operator: {op}")
-                    };
-                }
-            }
+            expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
 
             // --- comparison operators ---
             //var parts = Tokenizer.Tokenize(expression).ToArray();
             var parts = Lexer.Tokenize(expression).ToArray();
+
+            if (parts.Length == 2 && parts[0] == ScriptConstants.LogicalNotSymbol) // "!"
+            {
+                var val = GetValue(parts[1]);
+                return !Convert.ToBoolean(val);
+            }
 
             if (parts.Length == 3)
             {
@@ -121,8 +82,8 @@ namespace Weaver.Evaluate
                     ScriptConstants.Less => Compare(left, right) < 0,
                     ScriptConstants.GreaterEqual => Compare(left, right) >= 0,
                     ScriptConstants.LessEqual => Compare(left, right) <= 0,
-                    ScriptConstants.LogicalAnd => Convert.ToBoolean(left) && Convert.ToBoolean(right),
-                    ScriptConstants.LogicalOr => Convert.ToBoolean(left) || Convert.ToBoolean(right),
+                    ScriptConstants.LogicalAndSymbol => Convert.ToBoolean(left) && Convert.ToBoolean(right),
+                    ScriptConstants.LogicalOrSymbol => Convert.ToBoolean(left) || Convert.ToBoolean(right),
                     _ => throw new ArgumentException($"Unsupported operator: {op}")
                 };
             }
@@ -202,10 +163,16 @@ namespace Weaver.Evaluate
                 }
                 else if (IsNumericVariable(token))
                 {
-                    stack.Push(GetNumericValue(token)); // lookup registry
+                    stack.Push(GetNumericValue(token));
+                }
+                else if (token == ScriptConstants.LogicalNotSymbol) // "!"
+                {
+                    var val = stack.Pop();
+                    stack.Push(val == 0 ? 1 : 0);
                 }
                 else
                 {
+                    // binary operators
                     var b = stack.Pop();
                     var a = stack.Pop();
 
@@ -215,13 +182,22 @@ namespace Weaver.Evaluate
                         "-" => a - b,
                         "*" => a * b,
                         "/" => a / b,
-                        _ => throw new Exception("Unknown operator")
+                        "&&" => (a != 0 && b != 0) ? 1 : 0,
+                        "||" => (a != 0 || b != 0) ? 1 : 0,
+                        "==" => a == b ? 1 : 0,
+                        "!=" => a != b ? 1 : 0,
+                        ">" => a > b ? 1 : 0,
+                        "<" => a < b ? 1 : 0,
+                        ">=" => a >= b ? 1 : 0,
+                        "<=" => a <= b ? 1 : 0,
+                        _ => throw new Exception($"Unknown operator in RPN: {token}")
                     });
                 }
             }
 
             return stack.Pop();
         }
+
 
         private bool IsNumericVariable(string token)
         {
@@ -286,9 +262,12 @@ namespace Weaver.Evaluate
         /// <inheritdoc />
         public bool IsBooleanExpression(string expression)
         {
-            return expression.Contains(ScriptConstants.LogicalAnd, StringComparison.OrdinalIgnoreCase)
-                   || expression.Contains(ScriptConstants.LogicalOr, StringComparison.OrdinalIgnoreCase)
-                   || expression.Contains(ScriptConstants.LogicalNot, StringComparison.OrdinalIgnoreCase)
+            return expression.Contains(ScriptConstants.LogicalAndSymbol, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalOrSymbol, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalNotSymbol, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalAndWord, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalOrWord, StringComparison.OrdinalIgnoreCase)
+                   || expression.Contains(ScriptConstants.LogicalNotWord, StringComparison.OrdinalIgnoreCase)
                    || expression.Contains(ScriptConstants.EqualEqual)
                    || expression.Contains(ScriptConstants.BangEqual)
                    || expression.Contains(ScriptConstants.GreaterEqual)
@@ -296,5 +275,6 @@ namespace Weaver.Evaluate
                    || expression.Contains(ScriptConstants.Greater)
                    || expression.Contains(ScriptConstants.Less);
         }
+
     }
 }

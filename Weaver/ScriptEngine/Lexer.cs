@@ -432,7 +432,7 @@ namespace Weaver.ScriptEngine
                     if (Peek(1) == '&')
                     {
                         Advance(2);
-                        tokens.Add(Token(TokenType.LogicalAnd, ScriptConstants.LogicalAnd, line, col));
+                        tokens.Add(Token(TokenType.LogicalAnd, ScriptConstants.LogicalAndSymbol, line, col));
                     }
                     else
                     {
@@ -446,7 +446,7 @@ namespace Weaver.ScriptEngine
                     if (Peek(1) == '|')
                     {
                         Advance(2);
-                        tokens.Add(Token(TokenType.LogicalOr, ScriptConstants.LogicalOr, line, col));
+                        tokens.Add(Token(TokenType.LogicalOr, ScriptConstants.LogicalOrSymbol, line, col));
                     }
                     else
                     {
