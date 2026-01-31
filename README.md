@@ -9,6 +9,7 @@ Weave is a lightweight C# command execution engine with support for namespaces, 
 * **Command Registration:** Register commands with optional namespace and parameter support. Overload commands based on parameter count.
 * **Extensions:** Apply extensions globally or per command (e.g., `.help`, `.tryrun`, `.store`).
 * **Feedback Handling:** Supports interactive user prompts and confirmation flows.
+* **Expression Evaluator:** Comes with it's own expression evaluator for conditions and as command.
 * **Mediator Integration:** Tracks pending feedback for commands, ensuring safe resolution and cleanup.
 * **Namespace Support:** Commands and extensions can be organized per namespace for modularity.
 * **Default Storage Key:** Extensions like `store()` will use default keys (e.g., `"result"`) if no explicit target variable is provided.
