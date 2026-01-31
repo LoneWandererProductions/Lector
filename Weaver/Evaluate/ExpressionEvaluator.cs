@@ -7,7 +7,6 @@
  */
 
 using Weaver.Interfaces;
-using Weaver.Messages;
 using Weaver.ScriptEngine;
 
 //TODO needs rework to support more complex expressions, parentheses, operator precedence, etc.
@@ -25,6 +24,7 @@ namespace Weaver.Evaluate
         /// Optional variable registry.
         /// </summary>
         private readonly IVariableRegistry? _registry;
+        private readonly RpnEngine _rpn;
 
         /// <summary>
         /// The operators
@@ -57,6 +57,7 @@ namespace Weaver.Evaluate
         public ExpressionEvaluator(IVariableRegistry? registry = null)
         {
             _registry = registry;
+            _rpn = new RpnEngine(registry);
         }
 
         /// <inheritdoc />
@@ -83,20 +84,19 @@ namespace Weaver.Evaluate
             if(_registry != null) expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
 
             // --- comparison operators ---
-            //var parts = Tokenizer.Tokenize(expression).ToArray();
-            var parts = Lexer.Tokenize(expression).ToArray();
+            var tokens = Lexer.Tokenize(expression).ToArray();
 
-            if (parts.Length == 2 && parts[0] == ScriptConstants.LogicalNotSymbol) // "!"
+            if (tokens.Length == 2 && tokens[0] == ScriptConstants.LogicalNotSymbol) // "!"
             {
-                var val = GetValue(parts[1]);
+                var val = GetValue(tokens[1]);
                 return !Convert.ToBoolean(val);
             }
 
-            if (parts.Length == 3)
+            if (tokens.Length == 3)
             {
-                var left = GetValue(parts[0]);
-                var op = parts[1];
-                var right = GetValue(parts[2]);
+                var left = GetValue(tokens[0]);
+                var op = tokens[1];
+                var right = GetValue(tokens[2]);
 
                 return op switch
                 {
@@ -113,11 +113,13 @@ namespace Weaver.Evaluate
             }
 
             // unary NOT with tokens
-            if (parts.Length == 2 && parts[0].Equals("not", StringComparison.OrdinalIgnoreCase))
+            if (tokens.Length == 2 && tokens[0].Equals("not", StringComparison.OrdinalIgnoreCase))
             {
-                var val = GetValue(parts[1]);
+                var val = GetValue(tokens[1]);
                 return !Convert.ToBoolean(val);
             }
+
+            //TODO cache Tokens -> RPN conversion for performance
 
             // fallback numeric
             return EvaluateNumeric(expression) != 0;
@@ -129,136 +131,10 @@ namespace Weaver.Evaluate
             //var tokens = Tokenizer.Tokenize(expression);
 
             var tokens = Lexer.Tokenize(expression);
-            var rpn = ToRpn(tokens);
-            return EvaluateRpn(rpn);
-        }
+            //var rpn = ToRpn(tokens);
+            //return EvaluateRpn(rpn);
 
-        private List<string> ToRpn(IEnumerable<string> tokens)
-        {
-            var output = new List<string>();
-            var ops = new Stack<string>();
-
-            foreach (var token in tokens)
-            {
-                if (double.TryParse(token, out _) || IsNumericVariable(token))
-                {
-                    output.Add(token);
-                    continue;
-                }
-
-                if (token == "(")
-                {
-                    ops.Push(token);
-                    continue;
-                }
-
-                if (token == ")")
-                {
-                    while (ops.Count > 0 && ops.Peek() != "(")
-                        output.Add(ops.Pop());
-
-                    ops.Pop(); // remove "("
-                    continue;
-                }
-
-                if (!Operators.TryGetValue(token, out var op1))
-                    continue;
-
-                while (ops.Count > 0 && Operators.TryGetValue(ops.Peek(), out var op2))
-                {
-                    if ((op1.rightAssociative && op1.precedence < op2.precedence) ||
-                        (!op1.rightAssociative && op1.precedence <= op2.precedence))
-                    {
-                        output.Add(ops.Pop());
-                    }
-                    else break;
-                }
-
-                ops.Push(token);
-            }
-
-            while (ops.Count > 0)
-                output.Add(ops.Pop());
-
-            return output;
-        }
-
-        private double EvaluateRpn(List<string> rpn)
-        {
-            var stack = new Stack<double>();
-
-            foreach (var token in rpn)
-            {
-                if (double.TryParse(token, out var num))
-                {
-                    stack.Push(num);
-                }
-                else if (IsNumericVariable(token))
-                {
-                    stack.Push(GetNumericValue(token));
-                }
-                else if (token == ScriptConstants.LogicalNotSymbol) // "!"
-                {
-                    var val = stack.Pop();
-                    stack.Push(val == 0 ? 1 : 0);
-                }
-                else
-                {
-                    // binary operators
-                    var b = stack.Pop();
-                    var a = stack.Pop();
-
-                    stack.Push(token switch
-                    {
-                        "+" => a + b,
-                        "-" => a - b,
-                        "*" => a * b,
-                        "/" => a / b,
-                        "&&" => (a != 0 && b != 0) ? 1 : 0,
-                        "||" => (a != 0 || b != 0) ? 1 : 0,
-                        "==" => a == b ? 1 : 0,
-                        "!=" => a != b ? 1 : 0,
-                        ">" => a > b ? 1 : 0,
-                        "<" => a < b ? 1 : 0,
-                        ">=" => a >= b ? 1 : 0,
-                        "<=" => a <= b ? 1 : 0,
-                        _ => throw new Exception($"Unknown operator in RPN: {token}")
-                    });
-                }
-            }
-
-            return stack.Pop();
-        }
-
-
-        private bool IsNumericVariable(string token)
-        {
-            if (_registry == null)
-                return false;
-
-            return _registry.TryGet(token, out var val, out var type)
-                   && (type == EnumTypes.Wint || type == EnumTypes.Wdouble || type == EnumTypes.Wbool);
-        }
-
-        private double GetNumericValue(string token)
-        {
-            if (_registry != null && _registry.TryGet(token, out var val, out var type))
-            {
-                return val switch
-                {
-                    int i => i,
-                    long l => l,
-                    double d => d,
-                    float f => f,
-                    bool b => b ? 1 : 0,
-                    _ => throw new InvalidOperationException($"Cannot convert value of type {val.GetType()} to number")
-                };
-            }
-
-            if (double.TryParse(token, out var num))
-                return num;
-
-            throw new InvalidOperationException($"Invalid numeric token: {token}");
+            return _rpn.EvaluateRpn(tokens);
         }
 
         /// <summary>
@@ -307,6 +183,5 @@ namespace Weaver.Evaluate
                    || expression.Contains(ScriptConstants.Greater)
                    || expression.Contains(ScriptConstants.Less);
         }
-
     }
 }

@@ -13,9 +13,15 @@ namespace Weaver.Messages
     /// </summary>
     public enum EnumTypes
     {
+        /// <summary>
+        /// The string type.
+        /// </summary>
         Wstring = 0,
+
         Wint = 1,
+
         Wdouble = 2,
+
         Wbool = 3,
     }
 }

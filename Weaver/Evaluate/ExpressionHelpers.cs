@@ -88,5 +88,22 @@ namespace Weaver.Evaluate
 
             return false;
         }
+
+        /// <summary>
+        /// Determines whether [is numeric type] [the specified variable].
+        /// </summary>
+        /// <param name="variable">The variable.</param>
+        /// <param name="registry">The registry.</param>
+        /// <returns>
+        ///   <c>true</c> if [is numeric type] [the specified variable]; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsNumericType(string variable, IVariableRegistry? registry)
+        {
+            if (registry == null)
+                return false;
+
+            return registry.TryGet(variable, out var val, out var type)
+                   && (type == EnumTypes.Wint || type == EnumTypes.Wdouble || type == EnumTypes.Wbool);
+        }
     }
 }
