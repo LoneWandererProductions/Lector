@@ -18,10 +18,24 @@ namespace Weaver.Messages
         /// </summary>
         Wstring = 0,
 
+        /// <summary>
+        /// The int type.
+        /// </summary>
         Wint = 1,
 
+        /// <summary>
+        /// The wdouble
+        /// </summary>
         Wdouble = 2,
 
+        /// <summary>
+        /// The bool type.
+        /// </summary>
         Wbool = 3,
+
+        // Compound types
+        Wlist = 10,      // a list of VmValues
+        Wobject = 11,    // a dictionary of string -> VmValue
+        Wpointer = 12,   // reference to another key
     }
 }

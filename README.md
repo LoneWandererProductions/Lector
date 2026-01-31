@@ -237,6 +237,14 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
    - Improved Script compilation and execution robustness.
    - Weaverprogram implemented for future integration as it's own program and future entry for DebugHelpers.
 
+  - **Home brew Evaluator:**
+   - write my owne evaluator to replace Ms own due to performance and wrong behaviour.
+   - extensible design to allow future operators and functions to be added easily.
+   - full test coverage for all evaluator features.
+
+  - **Prepare complex Datatypes:**
+   - In the future we might support pointers, lists and objects.
+
 ### Bug Fixes
 - Fixed `FindCommand` / `FindExtension` logic to correctly delegate arguments to command and extensions.  
 - Fixed `.store()` behavior to default to `result` key when no argument provided.  
