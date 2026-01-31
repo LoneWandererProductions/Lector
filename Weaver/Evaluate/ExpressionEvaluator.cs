@@ -27,6 +27,30 @@ namespace Weaver.Evaluate
         private readonly IVariableRegistry? _registry;
 
         /// <summary>
+        /// The operators
+        /// </summary>
+        private static readonly Dictionary<string, (int precedence, bool rightAssociative, int arity)> Operators = new()
+        {
+            ["!"] = (5, true, 1),
+
+            ["*"] = (4, false, 2),
+            ["/"] = (4, false, 2),
+
+            ["+"] = (3, false, 2),
+            ["-"] = (3, false, 2),
+
+            [">"] = (2, false, 2),
+            ["<"] = (2, false, 2),
+            [">="] = (2, false, 2),
+            ["<="] = (2, false, 2),
+            ["=="] = (2, false, 2),
+            ["!="] = (2, false, 2),
+
+            ["&&"] = (1, false, 2),
+            ["||"] = (0, false, 2),
+        };
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ExpressionEvaluator"/> class.
         /// </summary>
         /// <param name="registry">Optional variable registry.</param>
@@ -56,7 +80,7 @@ namespace Weaver.Evaluate
                 return single;
 
             // try to interpret as a variable
-            expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
+            if(_registry != null) expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
 
             // --- comparison operators ---
             //var parts = Tokenizer.Tokenize(expression).ToArray();
@@ -114,35 +138,43 @@ namespace Weaver.Evaluate
             var output = new List<string>();
             var ops = new Stack<string>();
 
-            int Precedence(string op) => op switch
-            {
-                "+" or "-" => 1,
-                "*" or "/" => 2,
-                _ => 0
-            };
-
             foreach (var token in tokens)
             {
                 if (double.TryParse(token, out _) || IsNumericVariable(token))
                 {
                     output.Add(token);
+                    continue;
                 }
-                else if ("+-*/".Contains(token))
-                {
-                    while (ops.Count > 0 && Precedence(ops.Peek()) >= Precedence(token))
-                        output.Add(ops.Pop());
-                    ops.Push(token);
-                }
-                else if (token == "(")
+
+                if (token == "(")
                 {
                     ops.Push(token);
+                    continue;
                 }
-                else if (token == ")")
+
+                if (token == ")")
                 {
-                    while (ops.Peek() != "(")
+                    while (ops.Count > 0 && ops.Peek() != "(")
                         output.Add(ops.Pop());
-                    ops.Pop();
+
+                    ops.Pop(); // remove "("
+                    continue;
                 }
+
+                if (!Operators.TryGetValue(token, out var op1))
+                    continue;
+
+                while (ops.Count > 0 && Operators.TryGetValue(ops.Peek(), out var op2))
+                {
+                    if ((op1.rightAssociative && op1.precedence < op2.precedence) ||
+                        (!op1.rightAssociative && op1.precedence <= op2.precedence))
+                    {
+                        output.Add(ops.Pop());
+                    }
+                    else break;
+                }
+
+                ops.Push(token);
             }
 
             while (ops.Count > 0)

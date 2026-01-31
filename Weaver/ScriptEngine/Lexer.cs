@@ -117,7 +117,7 @@ namespace Weaver.ScriptEngine
                 }
 
                 // Identifiers / keywords
-                if (char.IsLetter(c) || char.IsDigit(c) || c == '_')
+                if (char.IsLetter(c) || c == '_')
                 {
                     var ident = ReadWhile(ch => char.IsLetterOrDigit(ch) || ch == '_');
 
@@ -256,19 +256,16 @@ namespace Weaver.ScriptEngine
         /// </summary>
         /// <param name="keyword">The keyword.</param>
         /// <returns>Type of the token.</returns>
-        private TokenType GetKeywordTokenType(string keyword)
+        private static TokenType GetKeywordTokenType(string keyword) => keyword.ToLowerInvariant() switch
         {
-            return keyword.ToLowerInvariant() switch
-            {
-                ScriptConstants.If => TokenType.KeywordIf,
-                ScriptConstants.Else => TokenType.KeywordElse,
-                ScriptConstants.Label => TokenType.Label,
-                ScriptConstants.Goto => TokenType.KeywordGoto,
-                ScriptConstants.Do => TokenType.KeywordDo,
-                ScriptConstants.While => TokenType.KeywordWhile,
-                _ => TokenType.Keyword
-            };
-        }
+            ScriptConstants.If => TokenType.KeywordIf,
+            ScriptConstants.Else => TokenType.KeywordElse,
+            ScriptConstants.Label => TokenType.Label,
+            ScriptConstants.Goto => TokenType.KeywordGoto,
+            ScriptConstants.Do => TokenType.KeywordDo,
+            ScriptConstants.While => TokenType.KeywordWhile,
+            _ => TokenType.Keyword
+        };
 
         /// <summary>
         /// Tries the handle double character operator.
@@ -276,7 +273,7 @@ namespace Weaver.ScriptEngine
         /// <param name="tokens">The tokens.</param>
         /// <param name="line">The line.</param>
         /// <param name="col">The col.</param>
-        /// <returns></returns>
+        /// <returns>Convert operators to Enum Token.</returns>
         private bool TryHandleDoubleCharOperator(List<Token> tokens, int line, int col)
         {
             if (_pos + 1 >= _input.Length)
@@ -290,6 +287,7 @@ namespace Weaver.ScriptEngine
                 ">=" => TokenType.GreaterEqual,
                 "<=" => TokenType.LessEqual,
                 "&&" => TokenType.LogicalAnd,
+                "||" => TokenType.LogicalOr,
                 _ => null
             };
 

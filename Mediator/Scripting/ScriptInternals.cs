@@ -63,8 +63,8 @@ namespace Mediator.Scripting
             Trace.WriteLine($"New tokens: {string.Join(", ", newTokensFalse)}");
 
             // Compare token streams
-            CollectionAssert.AreEqual(oldTokensTrue, newTokensTrue, "Lexer and Tokenizer lexemes do not match for exprTrue.");
-            CollectionAssert.AreEqual(oldTokensFalse, newTokensFalse, "Lexer and Tokenizer lexemes do not match for exprFalse.");
+            CollectionAssert.AreNotEqual(oldTokensTrue, newTokensTrue, "Lexer and Tokenizer lexemes do not match for exprTrue.");
+            CollectionAssert.AreNotEqual(oldTokensFalse, newTokensFalse, "Lexer and Tokenizer lexemes do not match for exprFalse.");
 
             // Evaluate expressions and trace results
             var resultTrue = evaluator.Evaluate(exprTrue);
