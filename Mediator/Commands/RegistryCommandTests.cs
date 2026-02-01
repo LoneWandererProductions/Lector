@@ -41,17 +41,22 @@ namespace Mediator.Commands
         private GetValueCommand _getValue = null!;
 
         /// <summary>
+        /// The memory clear
+        /// </summary>
+        private MemClearCommand _memClear = null!;
+
+        /// <summary>
         /// Setups this instance.
         /// </summary>
         [TestInitialize]
         public void Setup()
         {
-            _registry = new VariableRegistry(); // or your concrete registry
-            _evaluator = new ExpressionEvaluator(_registry);
-            _setValue = new SetValueCommand(_registry, _evaluator);
+            _registry = new VariableRegistry();
+            var evaluator = new ExpressionEvaluator(_registry);
+            _setValue = new SetValueCommand(_registry, evaluator);
             _getValue = new GetValueCommand(_registry);
+            _memClear = new MemClearCommand(_registry);
         }
-
         /// <summary>
         /// Tests the set value and get value int.
         /// </summary>
@@ -132,6 +137,76 @@ namespace Mediator.Commands
             Assert.IsTrue(finalResult.Success);
             Assert.AreEqual((long)11, finalResult.Value);
             Assert.AreEqual(EnumTypes.Wint, finalResult.Type);
+        }
+
+        /// <summary>
+        /// Tests the memory clear all variables.
+        /// </summary>
+        [TestMethod]
+        public void TestMemClear_AllVariables()
+        {
+            // Add some variables
+            _setValue.Execute("counter", "42", "Wint");
+            _setValue.Execute("name", "Alice", "Wstring");
+
+            // Clear all
+            var result = _memClear.Execute();
+            Assert.IsTrue(result.Success);
+            StringAssert.Contains(result.Message, "Memory was cleared");
+
+            // Verify that variables are gone
+            var getCounter = _getValue.Execute("counter");
+            Assert.IsFalse(getCounter.Success);
+            var getName = _getValue.Execute("name");
+            Assert.IsFalse(getName.Success);
+        }
+
+        /// <summary>
+        /// Tests the memory clear single variable.
+        /// </summary>
+        [TestMethod]
+        public void TestMemClear_SingleVariable()
+        {
+            // Add some variables
+            _setValue.Execute("counter", "42", "Wint");
+            _setValue.Execute("name", "Alice", "Wstring");
+
+            // Clear single variable
+            var result = _memClear.Execute("counter");
+            Assert.IsTrue(result.Success);
+            StringAssert.Contains(result.Message, "counter was cleared");
+
+            // Verify cleared variable
+            var getCounter = _getValue.Execute("counter");
+            Assert.IsFalse(getCounter.Success);
+
+            // Verify other variable still exists
+            var getName = _getValue.Execute("name");
+            Assert.IsTrue(getName.Success);
+            Assert.AreEqual("Alice", getName.Value);
+        }
+
+        /// <summary>
+        /// Tests the memory clear non existing variable.
+        /// </summary>
+        [TestMethod]
+        public void TestMemClear_NonExistingVariable()
+        {
+            var result = _memClear.Execute("doesNotExist");
+            Assert.IsFalse(result.Success);
+            StringAssert.Contains(result.Message, "doesNotExist does not exist");
+        }
+
+        /// <summary>
+        /// Tests the memory clear invalid usage.
+        /// </summary>
+        [TestMethod]
+        public void TestMemClear_InvalidUsage()
+        {
+            // More than 1 argument is invalid
+            var result = _memClear.Execute("var1", "var2");
+            Assert.IsFalse(result.Success);
+            StringAssert.Contains(result.Message, "Usage");
         }
     }
 }
