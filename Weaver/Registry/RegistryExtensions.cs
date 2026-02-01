@@ -130,5 +130,34 @@ namespace Weaver.Registry
             };
         }
 
+        /// <summary>
+        /// Tries the get pointer.
+        /// </summary>
+        /// <param name="registry">The registry.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="pointer">The pointer.</param>
+        /// <returns>Get type and Key to Pointer.</returns>
+        public static bool TryGetPointer(
+            this IVariableRegistry registry,
+            string name,
+            out EnumTypes type,
+            out string pointer)
+        {
+            type = default;
+            pointer = null;
+
+            if (registry == null || string.IsNullOrWhiteSpace(name))
+                return false;
+
+            if (!registry.TryGet(name, out var vm))
+                return false;
+
+            type = vm.Type;
+            if(string.IsNullOrEmpty(vm.String))
+                return false;
+            pointer = vm.String;
+            return true;
+        }
     }
 }
