@@ -174,14 +174,6 @@ class ICommandExtension {
     + void BeforeExecute(ICommand command, string[]? args = null)
     + void AfterExecute(ICommand command, CommandResult result)
 }
-
-class CommandExtension {
-    + string Name
-    + int ParameterCount
-    + bool IsInternal
-    + bool IsPreview
-}
-
 class CommandResult {
     + bool Success
     + bool RequiresConfirmation
