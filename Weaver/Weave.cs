@@ -110,6 +110,7 @@ namespace Weaver
             Register(new DeleteValueCommand(Runtime.Variables));
             Register(new MemoryCommand(Runtime.Variables));
             Register(new ScriptCommand(Runtime.Variables));
+            Register(new MemClearCommand(Runtime.Variables));
 
             // Register built-in extensions using RegisterExtension (unifies code path & enforces duplicate checks)
             RegisterExtension(new HelpExtension());

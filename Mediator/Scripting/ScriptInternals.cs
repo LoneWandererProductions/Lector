@@ -1,7 +1,16 @@
-﻿using Mediator.Helper;
+﻿/*
+ * COPYRIGHT:   See COPYING in the top level directory
+ * PROJECT:     ediator.Scripting
+ * FILE:        ScriptInternals.cs
+ * PURPOSE:     Tests for general script internals.
+ * PROGRAMMER:  Peter Geinitz (Wayfarer)
+ */
+
+using Mediator.Helper;
 using System.Diagnostics;
 using Weaver.Evaluate;
 using Weaver.Messages;
+using Weaver.Registry;
 using Weaver.ScriptEngine;
 
 namespace Mediator.Scripting

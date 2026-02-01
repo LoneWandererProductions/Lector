@@ -74,7 +74,7 @@ namespace Mediator.Scripting
                 if (context.TryGetCommand(line.Statement, out var cmd))
                 {
                     Console.WriteLine($"Executing: '{line.Statement}'");
-                    cmd.Execute(null);
+                    cmd?.Execute(null);
                 }
                 else
                 {

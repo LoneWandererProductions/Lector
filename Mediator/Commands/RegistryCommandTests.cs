@@ -10,7 +10,7 @@ using Weaver.Core.Commands;
 using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
-using Weaver.ScriptEngine;
+using Weaver.Registry;
 
 namespace Mediator.Commands
 {

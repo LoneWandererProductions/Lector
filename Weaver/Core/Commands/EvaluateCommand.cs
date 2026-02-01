@@ -7,9 +7,9 @@
  */
 
 using System.Globalization;
-using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
+using Weaver.Registry;
 
 namespace Weaver.Core.Commands
 {
@@ -62,14 +62,15 @@ namespace Weaver.Core.Commands
             string? expression = args.Length > 0 ? args[0] : null;
             string? targetVar = args.Length > 1 ? args[1] : null;
 
+
             // If no expression, maybe store previous pipeline value or return null
             if (string.IsNullOrWhiteSpace(expression))
             {
                 return CommandResult.Ok(null);
             }
 
-            // Resolve variables from registry as before
-            expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
+            // Resolve variables from registry as before, if registry is provided
+            if (_registry != null) expression = _registry.ReplaceVariablesInExpression(expression);
 
             object? result;
             EnumTypes type;

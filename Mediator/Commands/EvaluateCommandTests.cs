@@ -9,7 +9,7 @@
 using Weaver.Core.Commands;
 using Weaver.Evaluate;
 using Weaver.Messages;
-using Weaver.ScriptEngine;
+using Weaver.Registry;
 
 namespace Mediator.Commands
 {
@@ -127,7 +127,7 @@ namespace Mediator.Commands
         {
             _registry?.Set("x", 2, EnumTypes.Wdouble);
             _registry?.Set("y", 3, EnumTypes.Wdouble);
-            _registry.Set("z", 1, EnumTypes.Wdouble);
+            _registry?.Set("z", 1, EnumTypes.Wdouble);
 
             var result = _command.Execute(new string[] { "x + y - z" });
             Assert.IsTrue(result.Success);
@@ -142,7 +142,7 @@ namespace Mediator.Commands
         {
             _registry?.Set("score1", 5, EnumTypes.Wdouble);
             _registry?.Set("score2", 10, EnumTypes.Wdouble);
-            _registry.Set("score3", 3, EnumTypes.Wdouble);
+            _registry?.Set("score3", 3, EnumTypes.Wdouble);
 
             var result = _command.Execute(new string[] { "score1 + score2 - score3 * 2" });
             Assert.IsTrue(result.Success);

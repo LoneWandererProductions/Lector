@@ -7,7 +7,7 @@
  */
 
 using Weaver.Messages;
-using Weaver.ScriptEngine;
+using Weaver.Registry;
 
 namespace Weaver.Interfaces
 {
@@ -36,6 +36,13 @@ namespace Weaver.Interfaces
         void Set(string key, VmValue value);
 
         /// <summary>
+        /// Gets the type.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>Type of Data.</returns>
+        EnumTypes GetType(string key);
+
+        /// <summary>
         /// Attempts to get a value from the registry.
         /// </summary>
         /// <param name="key">Variable key.</param>
@@ -61,6 +68,33 @@ namespace Weaver.Interfaces
         bool TryGet(string key, out object? value, out EnumTypes type);
 
         /// <summary>
+        /// Tries the get list.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="list">The list.</param>
+        /// <returns>List of VamValues</returns>
+        bool TryGetList(string key, out IReadOnlyList<VmValue>? list);
+
+        /// <summary>
+        /// Tries the get object.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="obj">The object.</param>
+        /// <returns>Dictioanry of VmValue.</returns>
+        bool TryGetObject(string key, out IReadOnlyDictionary<string, VmValue>? obj);
+
+        /// <summary>
+        /// Tries the get pointer.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// Referenced Data.
+        /// </returns>
+        bool TryGetPointer(string key, out object? value, out EnumTypes type);
+
+        /// <summary>
         /// Removes a key from the registry.
         /// </summary>
         /// <param name="key">Variable key.</param>
@@ -70,7 +104,7 @@ namespace Weaver.Interfaces
         /// <summary>
         /// Clears all entries.
         /// </summary>
-        void Clear();
+        void ClearAll();
 
         /// <summary>
         /// Converts to string.

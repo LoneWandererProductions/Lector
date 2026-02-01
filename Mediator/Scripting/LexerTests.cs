@@ -8,6 +8,7 @@
 
 using Weaver.Evaluate;
 using Weaver.Messages;
+using Weaver.Registry;
 using Weaver.ScriptEngine;
 
 namespace Mediator.Scripting

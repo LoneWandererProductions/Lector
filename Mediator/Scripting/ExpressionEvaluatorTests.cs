@@ -6,9 +6,9 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.ScriptEngine;
 using Weaver.Messages;
 using Weaver.Evaluate;
+using Weaver.Registry;
 
 namespace Mediator.Scripting
 {

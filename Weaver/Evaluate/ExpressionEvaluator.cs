@@ -7,6 +7,7 @@
  */
 
 using Weaver.Interfaces;
+using Weaver.Registry;
 using Weaver.ScriptEngine;
 
 //TODO needs rework to support more complex expressions, parentheses, operator precedence, etc.
@@ -77,11 +78,11 @@ namespace Weaver.Evaluate
                 return false;
 
             // single-variable evaluation
-            if (ExpressionHelpers.TryEvaluateVariableAsBool(expression, _registry, out var single))
+            if (_registry != null && _registry.TryEvaluateAsBool(expression, out var single))
                 return single;
 
             // try to interpret as a variable
-            if(_registry != null) expression = ExpressionHelpers.ReplaceVariablesInExpression(expression, _registry);
+            if (_registry != null) expression = _registry.ReplaceVariablesInExpression(expression);
 
             // --- comparison operators ---
             var tokens = Lexer.Tokenize(expression).ToArray();

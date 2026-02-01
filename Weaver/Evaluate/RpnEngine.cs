@@ -7,6 +7,7 @@
  */
 
 using Weaver.Interfaces;
+using Weaver.Registry;
 using Weaver.ScriptEngine;
 
 namespace Weaver.Evaluate
@@ -76,7 +77,7 @@ namespace Weaver.Evaluate
 
             foreach (var token in tokens)
             {
-                if (double.TryParse(token, out _) || ExpressionHelpers.IsNumericType(token, _registry))
+                if (double.TryParse(token, out _) || _registry!.IsNumericType(token))
                 {
                     output.Add(token);
                     continue;
@@ -134,7 +135,7 @@ namespace Weaver.Evaluate
                 {
                     stack.Push(num);
                 }
-                else if (ExpressionHelpers.IsNumericType(token, _registry))
+                else if (_registry!.IsNumericType(token))
                 {
                     stack.Push(GetNumericValue(token));
                 }
