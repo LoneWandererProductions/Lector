@@ -28,7 +28,7 @@ namespace CoreBuilder.Rules
     public sealed class DocCommentCoverageCommand : ICodeAnalyzer, ICommand
     {
         /// <inheritdoc cref="ICodeAnalyzer" />
-        public string Namespace => "analysis";
+        public string Namespace => "Analyzer";
 
         /// <inheritdoc cref="ICodeAnalyzer" />
         public string Name => "doccoverage";

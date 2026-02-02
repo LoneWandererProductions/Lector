@@ -26,7 +26,7 @@ namespace CoreBuilder.Rules
     public sealed class DeadReferenceAnalyzer : ICommand, ICodeAnalyzer
     {
         /// <inheritdoc cref="ICodeAnalyzer" />
-        public string Namespace => "analysis";
+        public string Namespace => "Analyzer";
 
         /// <inheritdoc cref="ICodeAnalyzer" />
         public string Name => "deadrefs";
