@@ -52,7 +52,7 @@ namespace Weaver.Core.Extensions
             if (commandArgs.Length == 0)
                 return CommandResult.Fail("Missing script text.");
 
-            string script = commandArgs[0];
+            var script = commandArgs[0];
 
             WeaverProgram program;
             try

@@ -160,7 +160,7 @@ namespace Weaver.Registry
         /// </returns>
         public override string ToString()
         {
-            string valueStr = Type switch
+            var valueStr = Type switch
             {
                 EnumTypes.Wint => Int64.ToString(),
                 EnumTypes.Wdouble => Double.ToString("G17", CultureInfo.InvariantCulture),

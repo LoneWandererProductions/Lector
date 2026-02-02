@@ -34,8 +34,8 @@ namespace Weaver.Messages
         Wbool = 3,
 
         // Compound types
-        Wlist = 10,      // a list of VmValues
-        Wobject = 11,    // a dictionary of string -> VmValue
-        Wpointer = 12,   // reference to another key
+        Wlist = 10, // a list of VmValues
+        Wobject = 11, // a dictionary of string -> VmValue
+        Wpointer = 12, // reference to another key
     }
 }

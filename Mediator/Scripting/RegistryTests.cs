@@ -70,7 +70,7 @@ namespace Mediator.Scripting
             };
 
             // Add list manually to _store/_lookUp
-            int start = 0;
+            var start = 0;
             foreach (var v in list)
                 start++; // simulate storing
             _registry?.Set("myList", VmValue.FromInt(0)); // dummy type, just for registry

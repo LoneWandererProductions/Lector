@@ -179,8 +179,8 @@ namespace Mediator.Scripting
 
             // Act
             // This is what fails: current evaluator splits on spaces
-            bool result1 = evaluator.Evaluate("counter<3");
-            bool result2 = evaluator.Evaluate("counter>2");
+            var result1 = evaluator.Evaluate("counter<3");
+            var result2 = evaluator.Evaluate("counter>2");
 
             // Assert
             // Correct logical expectations

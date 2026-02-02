@@ -70,7 +70,7 @@ namespace Weaver
         /// <summary>
         /// The evaluator
         /// </summary>
-        private IEvaluator _evaluator;
+        private readonly IEvaluator _evaluator;
 
         /// <summary>
         /// The extensions
@@ -408,6 +408,7 @@ namespace Weaver
                         if (globalExt.ParameterCount != argCount)
                             return (null, CommandResult.Fail(
                                 $"Global extension '{extensionName}' expects {globalExt.ParameterCount} parameters, but got {argCount}."));
+
                         break;
                 }
 
@@ -443,12 +444,14 @@ namespace Weaver
                     if (argCount > 1)
                         return (null, CommandResult.Fail(
                             $"Extension '{found.Name}' expects zero or one parameter, but got {argCount}."));
+
                     break;
 
                 default: // exact
                     if (found.ExtensionParameterCount != argCount)
                         return (null, CommandResult.Fail(
                             $"Extension '{found.Name}' expects {found.ExtensionParameterCount} parameters, but got {argCount}."));
+
                     break;
             }
 

@@ -38,7 +38,7 @@ namespace Weaver.Registry
                 if (valueObj == null)
                     continue;
 
-                string replacement = valueType switch
+                var replacement = valueType switch
                 {
                     EnumTypes.Wint =>
                         Convert.ToInt64(valueObj).ToString(),
@@ -109,8 +109,8 @@ namespace Weaver.Registry
 
             return registry.TryGet(variable, out _, out var type)
                    && (type == EnumTypes.Wint
-                    || type == EnumTypes.Wdouble
-                    || type == EnumTypes.Wbool);
+                       || type == EnumTypes.Wdouble
+                       || type == EnumTypes.Wbool);
         }
 
         /// <summary>
@@ -154,8 +154,9 @@ namespace Weaver.Registry
                 return false;
 
             type = vm.Type;
-            if(string.IsNullOrEmpty(vm.String))
+            if (string.IsNullOrEmpty(vm.String))
                 return false;
+
             pointer = vm.String;
             return true;
         }

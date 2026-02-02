@@ -41,14 +41,17 @@ namespace Weaver.ScriptEngine
                 {
                     case LabelNode ln:
                         yield return (ScriptConstants.LabelToken, ln.Name);
+
                         break;
 
                     case GotoNode gn:
                         yield return (ScriptConstants.GotoToken, gn.Target);
+
                         break;
 
                     case CommandNode cn:
                         yield return (ScriptConstants.CommandToken, cn.Command);
+
                         break;
 
                     case AssignmentNode an:
@@ -58,7 +61,7 @@ namespace Weaver.ScriptEngine
 
                         if (rewrite ?? true)
                         {
-                            string rewrittenExpr = expr;
+                            var rewrittenExpr = expr;
 
                             // Replace registry variables if possible
                             if (registry != null)
@@ -113,10 +116,13 @@ namespace Weaver.ScriptEngine
                     case DoWhileNode dw:
 
                         yield return (ScriptConstants.DoOpenToken, null);
+
                         foreach (var child in ScriptLowerer(dw.Body, registry, rewrite, branchPath))
                             yield return child;
+
                         yield return (ScriptConstants.DoEndToken, null);
                         yield return (ScriptConstants.WhileConditionToken, dw.Condition);
+
                         break;
                 }
             }
@@ -132,7 +138,7 @@ namespace Weaver.ScriptEngine
                 var name = kv.Key;
                 var vm = kv.Value;
 
-                string replacement = vm.Type switch
+                var replacement = vm.Type switch
                 {
                     EnumTypes.Wint => vm.Int64.ToString(),
                     EnumTypes.Wdouble => vm.Double.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -157,7 +163,7 @@ namespace Weaver.ScriptEngine
         /// </returns>
         private static bool IsCommandCall(string expr)
         {
-            int paren = expr.IndexOf('(');
+            var paren = expr.IndexOf('(');
             return paren > 0 && expr.EndsWith(")");
         }
 
@@ -173,7 +179,7 @@ namespace Weaver.ScriptEngine
             if (expr.Contains("(") || expr.Contains(")"))
                 return false;
 
-            foreach (char c in expr)
+            foreach (var c in expr)
                 if (!char.IsLetterOrDigit(c) && "+-*/<>=!&| ".IndexOf(c) < 0)
                     return false;
 

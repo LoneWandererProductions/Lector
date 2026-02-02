@@ -38,7 +38,8 @@ namespace Weaver.Core.Commands
         public string Name => "memClear";
 
         /// <inheritdoc />
-        public string Description => "Clears all memory or only a defined variable.  Usage: MemClear([variable: optional])";
+        public string Description =>
+            "Clears all memory or only a defined variable.  Usage: MemClear([variable: optional])";
 
         /// <inheritdoc />
         public int ParameterCount => 0;

@@ -560,7 +560,7 @@ namespace Mediator.Scripting
 
             var executor = new ScriptExecutor(_weave, statements);
 
-            CommandResult? last = executor.ExecuteNext();
+            var last = executor.ExecuteNext();
 
             Assert.IsNotNull(last);
             Assert.IsFalse(last.Success);

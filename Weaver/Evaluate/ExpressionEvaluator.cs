@@ -25,6 +25,7 @@ namespace Weaver.Evaluate
         /// Optional variable registry.
         /// </summary>
         private readonly IVariableRegistry? _registry;
+
         private readonly RpnEngine _rpn;
 
         /// <summary>

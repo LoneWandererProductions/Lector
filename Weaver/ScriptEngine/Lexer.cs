@@ -65,8 +65,8 @@ namespace Weaver.ScriptEngine
             var lexer = new Lexer(input);
             // Rufe die private Instanzmethode auf, die List<Token> zurückgibt
             return lexer.Tokenize()
-                        .Select(t => t.Lexeme!)
-                        .ToList();
+                .Select(t => t.Lexeme!)
+                .ToList();
         }
 
         /// <summary>
@@ -101,8 +101,8 @@ namespace Weaver.ScriptEngine
                 // Numbers (integer or float)
                 if (char.IsDigit(c))
                 {
-                    int start = _pos;
-                    bool hasDot = false;
+                    var start = _pos;
+                    var hasDot = false;
 
                     while (!IsAtEnd() && (char.IsDigit(Peek()) || (!hasDot && Peek() == '.')))
                     {
@@ -111,7 +111,7 @@ namespace Weaver.ScriptEngine
                         Advance();
                     }
 
-                    string number = _input.Substring(start, _pos - start);
+                    var number = _input.Substring(start, _pos - start);
                     tokens.Add(new Token { Type = TokenType.Number, Lexeme = number, Line = line, Column = col });
                     continue;
                 }
@@ -279,7 +279,7 @@ namespace Weaver.ScriptEngine
             if (_pos + 1 >= _input.Length)
                 return false;
 
-            string two = _input.Substring(_pos, 2);
+            var two = _input.Substring(_pos, 2);
             TokenType? type = two switch
             {
                 "==" => TokenType.EqualEqual,

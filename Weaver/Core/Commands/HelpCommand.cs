@@ -39,7 +39,8 @@ namespace Weaver.Core.Commands
         public string Name => WeaverResources.GlobalCommandHelp;
 
         /// <inheritdoc />
-        public string Description => "Lists all commands or shows information about a specific command. Usage: help([commandName]).";
+        public string Description =>
+            "Lists all commands or shows information about a specific command. Usage: help([commandName]).";
 
         /// <inheritdoc />
         public int ParameterCount => 0; // we’ll allow 0 or 1 dynamically

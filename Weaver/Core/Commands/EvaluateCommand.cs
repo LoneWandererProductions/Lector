@@ -59,8 +59,8 @@ namespace Weaver.Core.Commands
         /// <inheritdoc />
         public CommandResult Execute(string[] args)
         {
-            string? expression = args.Length > 0 ? args[0] : null;
-            string? targetVar = args.Length > 1 ? args[1] : null;
+            var expression = args.Length > 0 ? args[0] : null;
+            var targetVar = args.Length > 1 ? args[1] : null;
 
 
             // If no expression, maybe store previous pipeline value or return null
@@ -75,7 +75,7 @@ namespace Weaver.Core.Commands
             object? result;
             EnumTypes type;
 
-            bool isBooleanExpr = _evaluator.IsBooleanExpression(expression);
+            var isBooleanExpr = _evaluator.IsBooleanExpression(expression);
 
             try
             {

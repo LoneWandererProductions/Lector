@@ -52,7 +52,7 @@ namespace Weaver.Core.Extensions
                 sb.AppendLine("Available extensions:");
                 foreach (var kvp in command.Extensions)
                 {
-                    string paramInfo = kvp.Value < 0 ? "variable parameters" : $"{kvp.Value} parameter(s)";
+                    var paramInfo = kvp.Value < 0 ? "variable parameters" : $"{kvp.Value} parameter(s)";
                     sb.AppendLine($" - {kvp.Key} ({paramInfo})");
                 }
             }

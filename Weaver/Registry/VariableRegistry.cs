@@ -86,8 +86,8 @@ namespace Weaver.Registry
             if (!_lookUp.TryGetValue(key, out var range)) return false;
 
             list = Enumerable.Range(range.Start, range.Length)
-                             .Select(i => _store[i])
-                             .ToList();
+                .Select(i => _store[i])
+                .ToList();
             return true;
         }
 
@@ -103,7 +103,7 @@ namespace Weaver.Registry
                 return false;
 
             var dict = new Dictionary<string, VmValue>();
-            for (int i = range.Start; i < range.End; i++)
+            for (var i = range.Start; i < range.End; i++)
             {
                 var valueVm = _store[i];
                 if (valueVm.Attribute == null)
@@ -134,16 +134,25 @@ namespace Weaver.Registry
             type = targetVm.Type;
             switch (type)
             {
-                case EnumTypes.Wint: value = targetVm.Int64; break;
-                case EnumTypes.Wdouble: value = targetVm.Double; break;
-                case EnumTypes.Wbool: value = targetVm.Bool; break;
-                case EnumTypes.Wstring: value = targetVm.String; break;
+                case EnumTypes.Wint:
+                    value = targetVm.Int64;
+                    break;
+                case EnumTypes.Wdouble:
+                    value = targetVm.Double;
+                    break;
+                case EnumTypes.Wbool:
+                    value = targetVm.Bool;
+                    break;
+                case EnumTypes.Wstring:
+                    value = targetVm.String;
+                    break;
                 case EnumTypes.Wlist:
                     if (TryGetList(targetKey, out var l2))
                     {
                         value = l2;
                         return true;
                     }
+
                     return false;
 
                 case EnumTypes.Wobject:
@@ -152,6 +161,7 @@ namespace Weaver.Registry
                         value = o2;
                         return true;
                     }
+
                     return false;
 
                 default: return false;
@@ -166,12 +176,12 @@ namespace Weaver.Registry
             var check = _lookUp.TryGetValue(key, out var range);
             if (check)
             {
-                for (int i = range.Start; i < range.End; i++)
+                for (var i = range.Start; i < range.End; i++)
                 {
                     _store.Remove(i);
                 }
-
             }
+
             _lookUp.Remove(key);
 
 
@@ -263,7 +273,7 @@ namespace Weaver.Registry
         /// <inheritdoc />
         public void Set(string key, object value, EnumTypes type)
         {
-            VmValue vm = type switch
+            var vm = type switch
             {
                 EnumTypes.Wint => VmValue.FromInt(Convert.ToInt64(value)),
                 EnumTypes.Wdouble => VmValue.FromDouble(Convert.ToDouble(value)),

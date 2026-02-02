@@ -57,6 +57,7 @@ namespace Mediator.Commands
             _getValue = new GetValueCommand(_registry);
             _memClear = new MemClearCommand(_registry);
         }
+
         /// <summary>
         /// Tests the set value and get value int.
         /// </summary>

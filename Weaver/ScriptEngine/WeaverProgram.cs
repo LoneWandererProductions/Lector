@@ -75,7 +75,7 @@ namespace Weaver.ScriptEngine
                 .Select(line => (line.Category, line.Statement!))
                 .ToList());
 
-            int iteration = 0;
+            var iteration = 0;
 
             while (!executor.IsFinished)
             {
@@ -96,6 +96,7 @@ namespace Weaver.ScriptEngine
         public ScriptExecutor GetStepper(Weave weave)
         {
             if (weave == null) throw new ArgumentNullException(nameof(weave));
+
             return new ScriptExecutor(weave, _instructions
                 .Select(line => (line.Category, line.Statement!))
                 .ToList());

@@ -66,7 +66,7 @@ namespace Mediator.Scripting
             var expectedLexemes = new[] { "(", "x", "<", "y", ")", "&&", "!", "z" };
             Assert.AreEqual(expectedLexemes.Length, tokens.Count);
 
-            for (int i = 0; i < expectedLexemes.Length; i++)
+            for (var i = 0; i < expectedLexemes.Length; i++)
             {
                 Assert.AreEqual(expectedLexemes[i], tokens[i].Lexeme);
             }

@@ -13,18 +13,18 @@ namespace Mediator.Helper
     internal static class Tokenizer
     {
         private static readonly string[] MultiOps =
-{
+        {
             "==", "!=", ">=", "<="
         };
 
         internal static IEnumerable<string> Tokenize(string expr)
         {
             var token = new StringBuilder();
-            int i = 0;
+            var i = 0;
 
             while (i < expr.Length)
             {
-                char c = expr[i];
+                var c = expr[i];
 
                 if (char.IsWhiteSpace(c))
                 {
@@ -44,26 +44,30 @@ namespace Mediator.Helper
                 if (token.Length > 0)
                 {
                     yield return token.ToString();
+
                     token.Clear();
                 }
 
                 // Multi-char operator detection
-                bool matchedMulti = false;
+                var matchedMulti = false;
                 foreach (var op in MultiOps)
                 {
                     if (expr.AsSpan(i).StartsWith(op))
                     {
                         yield return op;
+
                         i += op.Length;
                         matchedMulti = true;
                         break;
                     }
                 }
+
                 if (matchedMulti)
                     continue;
 
                 // Single char operator
                 yield return c.ToString();
+
                 i++;
             }
 

@@ -124,7 +124,7 @@ namespace Weaver.ScriptEngine
                 return result;
             }
 
-            int iterCount = 0;
+            var iterCount = 0;
 
             while (_position < _statements.Count)
             {
@@ -204,9 +204,9 @@ namespace Weaver.ScriptEngine
                             continue;
                         }
 
-                        int bodyStart = _doWhileStack.Peek();
+                        var bodyStart = _doWhileStack.Peek();
 
-                        bool cond = _evaluator.Evaluate(stmt!);
+                        var cond = _evaluator.Evaluate(stmt!);
                         //Todo Error is here
                         //Trace.WriteLine($"[Debug] EVAL: '{stmt}' → {cond}. counter={_weave.Runtime.Variables.Get("counter")}");
 
@@ -243,14 +243,14 @@ namespace Weaver.ScriptEngine
                         if (_debug)
                             DebugLine(category, stmt, StepType.Execute, "Postion", string.Join(",", _position));
 
-                        bool ifcond = _evaluator.Evaluate(stmt!);
+                        var ifcond = _evaluator.Evaluate(stmt!);
                         if (_debug)
                             Trace.WriteLine($"[Debug] If_Condition at {_position}, cond={ifcond}");
 
                         _position++;
                         if (!ifcond)
                         {
-                            int depth = 0;
+                            var depth = 0;
                             while (_position < _statements.Count)
                             {
                                 var (cat, _) = _statements[_position];
@@ -343,6 +343,9 @@ namespace Weaver.ScriptEngine
         /// </summary>
         /// <param name="category">The category.</param>
         /// <param name="stmt">The statement.</param>
+        /// <param name="step">The step.</param>
+        /// <param name="extra">The extra.</param>
+        /// <param name="info">The information.</param>
         private void DebugLine(string category, string stmt, StepType step, string extra, string info)
         {
             switch (step)

@@ -24,7 +24,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void CompareTokenizers()
         {
-            string expr = "1 + 2.5 >= 3";
+            var expr = "1 + 2.5 >= 3";
 
             var oldTokens = Tokenizer.Tokenize(expr).ToList();
             var newTokens = new Lexer(expr).Tokenize().Select(t => t.Lexeme).ToList();
@@ -49,8 +49,8 @@ namespace Mediator.Scripting
             var evaluator = new ExpressionEvaluator(registry);
 
             // Expressions to test
-            string exprTrue = "( x < y ) && not z";
-            string exprFalse = "( x > y ) || z";
+            var exprTrue = "( x < y ) && not z";
+            var exprFalse = "( x > y ) || z";
 
             // Old tokenizer produces List<Token>
             var oldTokensTrue = Tokenizer.Tokenize(exprTrue).ToList();
@@ -72,8 +72,10 @@ namespace Mediator.Scripting
             Trace.WriteLine($"New tokens: {string.Join(", ", newTokensFalse)}");
 
             // Compare token streams
-            CollectionAssert.AreNotEqual(oldTokensTrue, newTokensTrue, "Lexer and Tokenizer lexemes do not match for exprTrue.");
-            CollectionAssert.AreNotEqual(oldTokensFalse, newTokensFalse, "Lexer and Tokenizer lexemes do not match for exprFalse.");
+            CollectionAssert.AreNotEqual(oldTokensTrue, newTokensTrue,
+                "Lexer and Tokenizer lexemes do not match for exprTrue.");
+            CollectionAssert.AreNotEqual(oldTokensFalse, newTokensFalse,
+                "Lexer and Tokenizer lexemes do not match for exprFalse.");
 
             // Evaluate expressions and trace results
             var resultTrue = evaluator.Evaluate(exprTrue);
