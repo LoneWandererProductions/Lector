@@ -107,6 +107,8 @@ namespace Weaver
             // Register all variable commands with the runtime registry
             Register(new SetValueCommand(Runtime.Variables, _evaluator));
             Register(new GetValueCommand(Runtime.Variables));
+            Register(new IncCommand(Runtime.Variables));
+            Register(new DecCommand(Runtime.Variables));
             Register(new DeleteValueCommand(Runtime.Variables));
             Register(new MemoryCommand(Runtime.Variables));
             Register(new ScriptCommand(Runtime.Variables));
