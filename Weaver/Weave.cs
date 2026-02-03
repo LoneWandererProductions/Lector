@@ -6,6 +6,7 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+using Weaver.Commands;
 using Weaver.Core;
 using Weaver.Core.Commands;
 using Weaver.Core.Extensions;
@@ -103,6 +104,9 @@ namespace Weaver
             // Our custom calculator command, needs the evaluator.
             _evaluator = new ExpressionEvaluator(Runtime.Variables);
             Register(new EvaluateCommand(_evaluator, Runtime.Variables));
+
+            //Register plugin loader
+            Register(new LoadPluginCommand(this));
 
             // Register all variable commands with the runtime registry
             Register(new SetValueCommand(Runtime.Variables, _evaluator));

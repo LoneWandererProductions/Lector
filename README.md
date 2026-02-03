@@ -13,6 +13,8 @@ Weave is a lightweight C# command execution engine with support for namespaces, 
 * **Mediator Integration:** Tracks pending feedback for commands, ensuring safe resolution and cleanup.
 * **Namespace Support:** Commands and extensions can be organized per namespace for modularity.
 * **Default Storage Key:** Extensions like `store()` will use default keys (e.g., `"result"`) if no explicit target variable is provided.
+* **Plugin Loading:** Dynamically load external command assemblies at runtime. 
+  Commands implementing `ICommand` can be discovered from DLLs or directories and registered into Weave without recompilation.
 
 ---
 
@@ -74,6 +76,22 @@ Console.WriteLine(result.Message);
 ```
 
 ---
+
+### Loading Command Plugins
+
+Weave supports loading external command plugins at runtime.  
+Any assembly that contains types implementing `ICommand` can be loaded and registered dynamically.
+
+This allows Weave to extend itself without recompiling the host application.
+
+#### Load from Script
+
+If needed, plugins can be loaded directly from Weave with the `load` command:
+
+```csharp
+load("Plugins")
+load("MyCommands.dll")
+
 
 ## Weaver Script Engine
 
@@ -237,6 +255,11 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
 
   - **Prepare complex Datatypes:**
    - In the future we might support pointers, lists and objects.
+
+  - **Plugin Loader Support:**  
+  - Introduced a generic plugin loader for discovering implementations of arbitrary contracts.  
+  - Added runtime loading of `ICommand` implementations from external assemblies.  
+  - Enables Weave to extend itself dynamically via `load()` without recompilation.
 
 ### Bug Fixes
 - Fixed `FindCommand` / `FindExtension` logic to correctly delegate arguments to command and extensions.  
