@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Loader
- * FILE:        PluginLoader.cs
+ * FILE:        PluginLoading.cs
  * PURPOSE:     Generic plugin loader that loads implementations of a given contract.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
@@ -13,7 +13,7 @@ namespace Loader
     /// <summary>
     /// Generic plugin loader that loads implementations of a given contract.
     /// </summary>
-    public sealed class PluginLoader
+    public sealed class PluginLoading
     {
         /// <summary>
         /// Loads all implementations of <typeparamref name="TContract"/> from the specified directory.

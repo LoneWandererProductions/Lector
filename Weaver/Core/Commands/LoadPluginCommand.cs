@@ -18,7 +18,7 @@ namespace Weaver.Commands
     public sealed class LoadPluginCommand : ICommand
     {
         private readonly Weave _weave;
-        private readonly PluginLoader _loader = new();
+        private readonly PluginLoading _loader = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoadPluginCommand"/> class.
