@@ -1,6 +1,6 @@
 ﻿# Weave
 
-Weave is a lightweight C# command execution engine with support for namespaces, extensions, and user feedback handling. It provides a flexible way to register commands, manage execution, and handle interactive command flows.
+Weave is a lightweight C# command execution and scripting engine with support for namespaces, extensions, and user feedback handling. It provides a flexible way to register commands, manage execution, orchestrate workflows, and dynamically extend the runtime at runtime using plugin-loaded capabilities.
 
 ---
 
