@@ -91,7 +91,7 @@ If needed, plugins can be loaded directly from Weave with the `load` command:
 ```csharp
 load("Plugins")
 load("MyCommands.dll")
-
+```
 
 ## Weaver Script Engine
 
