@@ -13,8 +13,8 @@ Weave is a lightweight C# command execution engine with support for namespaces, 
 * **Mediator Integration:** Tracks pending feedback for commands, ensuring safe resolution and cleanup.
 * **Namespace Support:** Commands and extensions can be organized per namespace for modularity.
 * **Default Storage Key:** Extensions like `store()` will use default keys (e.g., `"result"`) if no explicit target variable is provided.
-* **Plugin Loading:** Dynamically load external command assemblies at runtime. 
-  Commands implementing `ICommand` can be discovered from DLLs or directories and registered into Weave without recompilation.
+* **Plugin Loading:** Dynamically load external assemblies at runtime. 
+  New `ICommand` implementations can be discovered, registered, and used immediately from both interactive input and Weaver scripts.
 
 ---
 
@@ -108,6 +108,7 @@ Weaver Script Engine is a lightweight C# script execution engine built on top of
 * Goto Labels: jump between script labels.
 * Feedback Handling: internal pause for interactive input or confirmation.
 * Debugger-Friendly: `DebugHelpers` utility for script inspection.
+* Runtime Extensibility: Scripts can load external command assemblies during execution using the `load()` command, allowing scripts to extend the language dynamically.
 
 ---
 
