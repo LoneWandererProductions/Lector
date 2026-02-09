@@ -17,7 +17,14 @@ namespace Weaver.Commands
     /// </summary>
     public sealed class LoadPluginCommand : ICommand
     {
+        /// <summary>
+        /// The weave
+        /// </summary>
         private readonly Weave _weave;
+
+        /// <summary>
+        /// The loader
+        /// </summary>
         private readonly PluginLoading _loader = new();
 
         /// <summary>
