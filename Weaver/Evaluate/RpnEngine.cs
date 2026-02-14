@@ -22,7 +22,7 @@ namespace Weaver.Evaluate
         /// <summary>
         /// The registry
         /// </summary>
-        private IVariableRegistry? _registry;
+        private readonly IVariableRegistry? _registry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RpnEngine"/> class.
