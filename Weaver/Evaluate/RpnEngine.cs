@@ -158,8 +158,9 @@ namespace Weaver.Evaluate
                         "/" => a / b,
                         "&&" => (a != 0 && b != 0) ? 1 : 0,
                         "||" => (a != 0 || b != 0) ? 1 : 0,
-                        "==" => a == b ? 1 : 0,
-                        "!=" => a != b ? 1 : 0,
+                        //add some tolerance for equality checks to avoid floating point issues
+                        "==" => Math.Abs(a - b) < 0.00001 ? 1 : 0,
+                        "!=" => Math.Abs(a - b) > 0.00001 ? 1 : 0,
                         ">" => a > b ? 1 : 0,
                         "<" => a < b ? 1 : 0,
                         ">=" => a >= b ? 1 : 0,

@@ -10,7 +10,7 @@ using Loader;
 using Weaver.Interfaces;
 using Weaver.Messages;
 
-namespace Weaver.Commands
+namespace Weaver.Core.Commands
 {
     /// <summary>
     /// Command that loads external command plugins from assemblies.

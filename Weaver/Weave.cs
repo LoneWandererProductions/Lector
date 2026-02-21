@@ -6,7 +6,6 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using Weaver.Commands;
 using Weaver.Core;
 using Weaver.Core.Commands;
 using Weaver.Core.Extensions;
