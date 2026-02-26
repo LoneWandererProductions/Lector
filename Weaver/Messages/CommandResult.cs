@@ -50,18 +50,34 @@ namespace Weaver.Messages
         /// </value>
         public string[]? Suggestions { get; init; }
 
+
+        /// <summary>
+        /// Creates a result that pauses execution and waits for user confirmation/input.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="feedback">The feedback.</param>
+        /// <returns>Drop in ready Command.</returns>
+        public static CommandResult Prompt(string message, FeedbackRequest feedback)
+            => new()
+            {
+                Success = true,
+                RequiresConfirmation = true,
+                Message = message,
+                Feedback = feedback
+            };
+
         /// <summary>
         /// Oks the specified MSG.
         /// </summary>
         /// <param name="msg">The MSG.</param>
-        /// <returns></returns>
+        /// <returns>Drop in ready Command.</returns>
         public static CommandResult Ok(string msg) => new() { Success = true, Message = msg };
 
         /// <summary>
         /// Fails the specified MSG.
         /// </summary>
         /// <param name="msg">The MSG.</param>
-        /// <returns></returns>
+        /// <returns>Drop in ready Command.</returns>
         public static CommandResult Fail(string msg) => new() { Success = false, Message = msg };
 
         /// <summary>
