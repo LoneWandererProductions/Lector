@@ -34,10 +34,15 @@ namespace CoreBuilder.Extensions
         public CommandResult Invoke(ICommand command, string[] extensionArgs, Func<string[], CommandResult> executor,
             string[] commandArgs)
         {
+            // 1. GUARD: Ensure this extension is only used on the intended command!
+            if (!command.Name.Equals("WhoAmI", StringComparison.OrdinalIgnoreCase))
+            {
+                return CommandResult.Fail($"The '.{Name}' extension can only be used with the 'WhoAmI' command.");
+            }
+
             if (extensionArgs.Length == 0)
             {
-                return CommandResult.Fail(
-                    "No parameter specified. Example: whoami().who(ip,hostname) or whoami().who(ip)");
+                return CommandResult.Fail("No parameter specified. Example: whoami().who(ip,hostname) or whoami().who(ip)");
             }
 
             try
