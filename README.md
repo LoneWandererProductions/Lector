@@ -1,20 +1,18 @@
 ﻿# Weave
 
-Weave is a lightweight C# command execution and scripting engine with support for namespaces, extensions, and user feedback handling. It provides a flexible way to register commands, manage execution, orchestrate workflows, and dynamically extend the runtime at runtime using plugin-loaded capabilities.
+Weave is a lightweight, highly extensible C# command execution and scripting engine. It provides a robust framework to register commands, orchestrate complex workflows, manage interactive user feedback, and dynamically expand capabilities at runtime using plugin-loaded assemblies.
 
 ---
 
 ## Features
 
-* **Command Registration:** Register commands with optional namespace and parameter support. Overload commands based on parameter count.
-* **Extensions:** Apply extensions globally or per command (e.g., `.help`, `.tryrun`, `.store`).
-* **Feedback Handling:** Supports interactive user prompts and confirmation flows.
-* **Expression Evaluator:** Comes with it's own expression evaluator for conditions and as command.
-* **Mediator Integration:** Tracks pending feedback for commands, ensuring safe resolution and cleanup.
-* **Namespace Support:** Commands and extensions can be organized per namespace for modularity.
-* **Default Storage Key:** Extensions like `store()` will use default keys (e.g., `"result"`) if no explicit target variable is provided.
-* **Plugin Loading:** Dynamically load external assemblies at runtime. 
-  New `ICommand` implementations can be discovered, registered, and used immediately from both interactive input and Weaver scripts.
+* **Command Registration:** Register commands with optional namespaces and parameter support. Includes automatic command overloading based on parameter count.
+* **Pipeline Extensions:** Apply extensions globally or per-command (e.g., `.help()`, `.tryrun()`, `.store()`) to modify behavior via a middleware pipeline.
+* **Interactive Feedback:** Natively supports interactive prompts, confirmation flows, and multi-stage user input without blocking the execution thread.
+* **Custom Expression Evaluator:** Features a highly optimized, homebrew expression evaluator for complex math and logical conditions using the Shunting Yard algorithm (RPN).
+* **Message Mediator:** Safely tracks pending feedback and delegates execution between the user, commands, and the script executor.
+* **Dynamic Plugin Loading:** Extend the engine dynamically. Discover, load, and register new `ICommand` implementations from external `.dll` assemblies at runtime without recompiling.
+* **Smart Storage:** Extensions like `store()` automatically fall back to default keys (e.g., `"result"`) if no explicit target variable is provided.
 
 ---
 
@@ -22,13 +20,11 @@ Weave is a lightweight C# command execution and scripting engine with support fo
 
 ### Weave Script Syntax
 
-Weave supports a simple, consistent syntax for commands and optional extensions. Commands can take zero or more parameters, and extensions can be chained after the command.
+Weave uses a simple, consistent syntax for executing commands and chaining extensions. 
 
-#### Basic Syntax
-
-* `CommandName` – The name of a registered command (required).
-* `param1 ... paramN` – Command parameters (optional, depending on the command).
-* `.ExtensionName(...)` – Optional extension for the command. Extensions modify or enhance command behavior.
+* `CommandName` – The registered command to execute (required).
+* `param1 ... paramN` – Command parameters (optional).
+* `.ExtensionName(...)` – Modifies or enhances the command's behavior (optional).
 
 #### Examples
 
@@ -39,10 +35,10 @@ help()
 // Command with parameters
 setValue("counter", 1, Wint)
 
-// Command with an extension
-setValue("counter", 1, Wint).help
+// Command chained with an extension
+setValue("counter", 1, Wint).help()
 
-// Multiple commands sequentially
+// Sequential execution
 setValue("score", 100)
 getValue("score")
 memory()
@@ -143,7 +139,7 @@ evaluate("score1 > score2 && score2 > 0"); // true
 
 ---
 
-## CoreBuilder and CoreViewer
+## Ecosystem Tools
 
 * **CoreBuilder:** code analyzers and utilities implementing `ICommand`. Can be executed from Weave, scripted, or used in UI.
 * **CoreViewer:** GUI frontend displaying analyzer output with basic interaction buttons.
@@ -235,43 +231,32 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
 ## [Unreleased]
 
 ### Improvements
-- **TryRun Extension:**  
-  - Updated interface and implementation to support both extensionArgs and original commandArgs.  
-  - Tests refactored to simulate user confirmation (yes/no) correctly.  
-  - Fixed preview message handling for commands with and without `TryRun()`.
 
-- **Global Extensions Handling:**  
-  - Corrected parameter checks for `.store()` and other global extensions.  
-  - Ensured optional and variadic parameters are correctly accepted.  
-  - Introduced `GlobalDirect` to prevent accidental overwriting of core extensions.
+**Major Features:**  
+  - Custom Homebrew Evaluator: Replaced external evaluation libraries with a high-performance, custom-built Reverse Polish Notation (RPN) engine. Fully supports complex datatypes, mathematical precedence, and logical operators natively.
 
-  - **Further work on the Script engine:**
-   - Improved Script compilation and execution robustness.
-   - Weaverprogram implemented for future integration as it's own program and future entry for DebugHelpers.
+  - Plugin Loader Support: Introduced a generic plugin loader for discovering implementations of arbitrary contracts. Weave can now dynamically load ICommand components from external assemblies at runtime via the load() command.
 
-  - **Home brew Evaluator:**
-   - write my owne evaluator to replace Ms own due to performance and wrong behaviour.
-   - extensible design to allow future operators and functions to be added easily.
-   - full test coverage for all evaluator features.
+  - Advanced Memory Architecture: Prepared the Virtual Machine memory heap to support future complex datatypes (pointers, arrays/lists, and objects) efficiently.
 
-  - **Prepare complex Datatypes:**
-   - In the future we might support pointers, lists and objects.
+**Improvements** 
+  - TryRun Extension: Updated the implementation to correctly route both extensionArgs and commandArgs. Refactored test suite to accurately simulate multi-stage user confirmation (yes/no).
 
-  - **Plugin Loader Support:**  
-  - Introduced a generic plugin loader for discovering implementations of arbitrary contracts.  
-  - Added runtime loading of `ICommand` implementations from external assemblies.  
-  - Enables Weave to extend itself dynamically via `load()` without recompilation.
+  - Global Extensions: Corrected parameter checks for .store() and other global modifiers. Introduced GlobalDirect mapping to prevent accidental overrides of core extensions.
 
-### Bug Fixes
-- Fixed `FindCommand` / `FindExtension` logic to correctly delegate arguments to command and extensions.  
-- Fixed `.store()` behavior to default to `result` key when no argument provided.  
-- Corrected `WhoAmIExtension` to use proper argument array (`extensionArgs`) instead of missing variable.  
+  - Script Engine Compilation: Improved AST Lowering and script compilation robustness. Bypassed artificial compile-time limits, allowing the execution pipeline to safely resolve complex variables and parentheses at runtime.
 
-### Notes
-- Minor interface updates were required for ICommandExtension to support multi-argument invocation.  
-- Some legacy extensions were updated to comply with new interface signature.  
-- Variable registry and expression evaluation robustness improved, especially for chained commands and extensions.
+  - Weaver Program: Established Weaverprogram as an entry point for standalone script execution and integrated deep DebugHelpers.chained commands and extensions.
 - work on some syntax sugar for the Script engine to make it more user friendly.
+
+**Bug Fixes** 
+  - Fixed FindCommand / FindExtension logic to guarantee precise argument delegation.
+
+  - Fixed .store() extension to securely default to the result key when no argument is passed.
+
+  - Patched the WhoAmIExtension to utilize the correct extensionArgs array, preventing missing variable errors.
+
+  - Resolved thread-safety and execution synchronization issues inside the variable registry and evaluation pipeline.
 
 ---
 
