@@ -29,13 +29,6 @@ namespace Weaver
             = new();
 
         /// <summary>
-        /// Stores per-command extension definitions
-        /// </summary>
-        private readonly Dictionary<(string ns, string name, int paramCount), Dictionary<string, int>>
-            _commandExtensions
-                = new();
-
-        /// <summary>
         /// Built-in extensions injected into every command
         /// </summary>
         private static readonly Dictionary<string, CommandExtension> GlobalExtensions
@@ -90,40 +83,12 @@ namespace Weaver
         /// </summary>
         public Weave()
         {
-            // Register internal commands
-            var list = new ListCommand(() => GetCommands());
-            Register(list);
-
-            var help = new HelpCommand(() => GetCommands());
-            Register(help);
-
-            var print = new PrintCommand();
-            Register(print);
-
-            // Our custom calculator command, needs the evaluator.
+            // Initialize Evaluator
             _evaluator = new ExpressionEvaluator(Runtime.Variables);
-            Register(new EvaluateCommand(_evaluator, Runtime.Variables));
 
-            //Register plugin loader
-            Register(new LoadPluginCommand(this));
-
-            // Register all variable commands with the runtime registry
-            Register(new SetValueCommand(Runtime.Variables, _evaluator));
-            Register(new GetValueCommand(Runtime.Variables));
-            Register(new IncCommand(Runtime.Variables));
-            Register(new DecCommand(Runtime.Variables));
-            Register(new DeleteValueCommand(Runtime.Variables));
-            Register(new MemoryCommand(Runtime.Variables));
-            Register(new ScriptCommand(Runtime.Variables));
-            Register(new MemClearCommand(Runtime.Variables));
-
-            // Register built-in extensions using RegisterExtension (unifies code path & enforces duplicate checks)
-            RegisterExtension(new HelpExtension());
-            RegisterExtension(new TryRunExtension());
-            RegisterExtension(new StoreExtension(Runtime.Variables));
-            RegisterExtension(new ScriptStepperExtension(Runtime.Variables));
+            // Register Default Commands and Extensions
+            RegisterDefaults();
         }
-
 
         /// <summary>
         /// Registers a command in the engine.
@@ -132,28 +97,8 @@ namespace Weaver
         /// <param name="command">The command to register.</param>
         public void Register(ICommand command)
         {
-            var mergedExtensions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-
-            // Include command-defined extensions
-            if (command.Extensions != null)
-            {
-                foreach (var kv in command.Extensions)
-                    mergedExtensions[kv.Key] = kv.Value;
-            }
-
-            // Include global extensions, skipping duplicates
-            foreach (var kv in GlobalExtensions)
-                if (!mergedExtensions.ContainsKey(kv.Key))
-                    mergedExtensions[kv.Key] = kv.Value.ParameterCount;
-
-            // Store extensions for internal lookup
-            _commandExtensions[
-                    (command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount)] =
-                mergedExtensions;
-
-            // Store the command itself
-            _commands[(command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount)] =
-                command;
+            var key = (command.Namespace.ToLowerInvariant(), command.Name.ToLowerInvariant(), command.ParameterCount);
+            _commands[key] = command;
         }
 
         /// <summary>
@@ -473,6 +418,35 @@ namespace Weaver
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Registers the defaults.
+        /// </summary>
+        private void RegisterDefaults()
+        {
+            // Core Commands
+            Register(new ListCommand(() => GetCommands()));
+            Register(new HelpCommand(() => GetCommands()));
+            Register(new PrintCommand());
+            Register(new LoadPluginCommand(this));
+            Register(new EvaluateCommand(_evaluator, Runtime.Variables));
+
+            // Variable/Memory Commands
+            Register(new SetValueCommand(Runtime.Variables, _evaluator));
+            Register(new GetValueCommand(Runtime.Variables));
+            Register(new IncCommand(Runtime.Variables));
+            Register(new DecCommand(Runtime.Variables));
+            Register(new DeleteValueCommand(Runtime.Variables));
+            Register(new MemoryCommand(Runtime.Variables));
+            Register(new ScriptCommand(Runtime.Variables));
+            Register(new MemClearCommand(Runtime.Variables));
+
+            // Extensions
+            RegisterExtension(new HelpExtension());
+            RegisterExtension(new TryRunExtension());
+            RegisterExtension(new StoreExtension(Runtime.Variables));
+            RegisterExtension(new ScriptStepperExtension(Runtime.Variables));
         }
 
         /// <summary>
