@@ -69,7 +69,7 @@ namespace Weaver.Evaluate
         /// Converts to rpn.
         /// </summary>
         /// <param name="tokens">The tokens.</param>
-        /// <returns>Reverse Polish Notation expfression.</returns>
+        /// <returns>Reverse Polish Notation expression.</returns>
         private List<string> ToRpn(IEnumerable<string> tokens)
         {
             var output = new List<string>();
@@ -80,6 +80,17 @@ namespace Weaver.Evaluate
                 if (double.TryParse(token, out _) || _registry!.IsNumericType(token))
                 {
                     output.Add(token);
+                    continue;
+                }
+
+                if (token.Equals("true", StringComparison.OrdinalIgnoreCase))
+                {
+                    output.Add("1");
+                    continue;
+                }
+                if (token.Equals("false", StringComparison.OrdinalIgnoreCase))
+                {
+                    output.Add("0");
                     continue;
                 }
 

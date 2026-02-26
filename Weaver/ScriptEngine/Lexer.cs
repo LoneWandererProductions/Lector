@@ -63,7 +63,7 @@ namespace Weaver.ScriptEngine
         public static List<string> Tokenize(string input)
         {
             var lexer = new Lexer(input);
-            // Rufe die private Instanzmethode auf, die List<Token> zurückgibt
+
             return lexer.Tokenize()
                 .Select(t => t.Lexeme!)
                 .ToList();
