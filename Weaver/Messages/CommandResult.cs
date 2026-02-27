@@ -50,7 +50,6 @@ namespace Weaver.Messages
         /// </value>
         public string[]? Suggestions { get; init; }
 
-
         /// <summary>
         /// Creates a result that pauses execution and waits for user confirmation/input.
         /// </summary>
@@ -88,7 +87,7 @@ namespace Weaver.Messages
         /// <param name="value">The value.</param>
         /// <param name="type">The type.</param>
         /// <returns>Drop in ready Command.</returns>
-        public static CommandResult Ok(string message, object? value = null, EnumTypes type = EnumTypes.Wstring)
+        public static CommandResult Ok(string message, string? value = null, EnumTypes type = EnumTypes.Wstring)
             => new() { Success = true, Message = message, Value = value, Type = type };
 
         /// <summary>
@@ -99,7 +98,7 @@ namespace Weaver.Messages
         /// <param name="value">The value.</param>
         /// <param name="type">The type.</param>
         /// <returns>Drop in ready Command.</returns>
-        public static CommandResult Fail(string message, object? value = null, EnumTypes type = EnumTypes.Wstring)
+        public static CommandResult Fail(string message, string? value = null, EnumTypes type = EnumTypes.Wstring)
             => new() { Success = false, Message = message, Value = value, Type = type };
 
         /// <summary>
@@ -119,12 +118,12 @@ namespace Weaver.Messages
         public EnumTypes Type { get; init; }
 
         /// <summary>
-        /// Gets the value.
+        /// Gets the value (or the Registry Key pointing to the value).
         /// </summary>
         /// <value>
-        /// The value.
+        /// The value to the Registry Key..
         /// </value>
-        public object? Value { get; init; }
+        public string? Value { get; init; }
 
         /// <summary>
         /// Returns a human-readable string representation of the command result.
@@ -142,14 +141,12 @@ namespace Weaver.Messages
                 ? "<none>"
                 : $"Id={Feedback.RequestId}";
 
-            var valuePart = Value == null
-                ? "<null>"
-                : $"{Value} ({Value.GetType().Name})";
+            var valuePart = Value == null ? "<null>" : $"\"{Value}\"";
 
             return
                 $"[{(Success ? "OK" : "FAIL")}] " +
                 $"Msg=\"{Message}\" | Confirm={RequiresConfirmation} | " +
-                $"Type={Type} | Value={valuePart} | " +
+                $"Type={Type} | Value (Registry Key)={valuePart} | " +
                 $"Feedback={feedback} | Suggestions=[{suggestions}]";
         }
 
