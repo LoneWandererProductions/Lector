@@ -70,7 +70,7 @@ namespace Mediator.Commands
 
             var getResult = _getValue.Execute("counter");
             Assert.IsTrue(getResult.Success);
-            Assert.AreEqual((long)42, getResult.Value);
+            Assert.AreEqual("42", getResult.Value);
             Assert.AreEqual(EnumTypes.Wint, getResult.Type);
         }
 
@@ -126,17 +126,17 @@ namespace Mediator.Commands
             // Get current value
             var getResult = _getValue.Execute("counter");
             Assert.IsTrue(getResult.Success);
-            Assert.AreEqual((long)10, getResult.Value);
+            Assert.AreEqual("10", getResult.Value);
 
             // Increment value
-            var newValue = (long)getResult.Value + 1;
+            var newValue = long.Parse(getResult.Value) + 1;
             var incrementResult = _setValue.Execute("counter", newValue.ToString(), "Wint");
             Assert.IsTrue(incrementResult.Success);
 
             // Verify increment
             var finalResult = _getValue.Execute("counter");
             Assert.IsTrue(finalResult.Success);
-            Assert.AreEqual((long)11, finalResult.Value);
+            Assert.AreEqual("11", finalResult.Value);
             Assert.AreEqual(EnumTypes.Wint, finalResult.Type);
         }
 

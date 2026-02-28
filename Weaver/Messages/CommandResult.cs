@@ -73,11 +73,27 @@ namespace Weaver.Messages
         public static CommandResult Ok(string msg) => new() { Success = true, Message = msg };
 
         /// <summary>
+        /// Oks the specified MSG.
+        /// </summary>
+        /// <param name="msg">The MSG.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>Drop in ready Command.</returns>
+        public static CommandResult Ok(string msg, EnumTypes type = EnumTypes.Wstring) => new() { Success = true, Message = msg, Type  = type};
+
+        /// <summary>
         /// Fails the specified MSG.
         /// </summary>
         /// <param name="msg">The MSG.</param>
         /// <returns>Drop in ready Command.</returns>
         public static CommandResult Fail(string msg) => new() { Success = false, Message = msg };
+
+        /// <summary>
+        /// Fails the specified MSG.
+        /// </summary>
+        /// <param name="msg">The MSG.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>Drop in ready Command.</returns>
+        public static CommandResult Fail(string msg, EnumTypes type = EnumTypes.Wstring) => new() { Success = false, Message = msg, Type = type };
 
         /// <summary>
         /// Success variant.
