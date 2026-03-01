@@ -88,6 +88,7 @@ namespace Weaver.Evaluate
                     output.Add("1");
                     continue;
                 }
+
                 if (token.Equals("false", StringComparison.OrdinalIgnoreCase))
                 {
                     output.Add("0");

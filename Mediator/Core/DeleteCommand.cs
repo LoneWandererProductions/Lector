@@ -32,7 +32,7 @@ namespace Mediator.Core
         public int ParameterCount => 1;
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, int>? Extensions => new Dictionary<string, int>
+        public IReadOnlyDictionary<string, int> Extensions => new Dictionary<string, int>
         {
             { "test", 1 } // "test"  does not exist extension but expects at least 1 parameter (or variable)
         };

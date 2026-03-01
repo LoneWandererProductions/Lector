@@ -26,7 +26,7 @@ namespace CoreBuilder
         /// <summary>
         /// The variables
         /// </summary>
-        internal IVariableRegistry Variables;
+        internal readonly IVariableRegistry Variables;
 
         /// <summary>
         /// Gets the last store key.
@@ -59,7 +59,7 @@ namespace CoreBuilder
         public int ParameterCount => 1;
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, int>? Extensions => new Dictionary<string, int>
+        public IReadOnlyDictionary<string, int> Extensions => new Dictionary<string, int>
         {
             { "who", 1 } // "who" extension expects at least 1 parameter (or variable)
         };
@@ -72,7 +72,7 @@ namespace CoreBuilder
         public CommandResult Execute(params string[] args)
         {
             // 1. Overload Logic: Use the first argument as the store key if provided
-            LastStoreKey = (args != null && args.Length > 0 && !string.IsNullOrWhiteSpace(args[0]))
+            LastStoreKey = (args is { Length: > 0 } && !string.IsNullOrWhiteSpace(args[0]))
                 ? args[0]
                 : "whoami";
 
@@ -92,7 +92,7 @@ namespace CoreBuilder
                     .Distinct()
                     .ToList();
 
-                string ipsJoined = ips.Any() ? string.Join(", ", ips) : "None";
+                var ipsJoined = ips.Any() ? string.Join(", ", ips) : "None";
 
                 // 2. Prepare the data for the Heap
                 var whoamiData = new Dictionary<string, VmValue>

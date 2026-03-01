@@ -89,7 +89,7 @@ namespace Mediator.Scripting
             DebugResult(result2, "getValue");
             Assert.IsTrue(result2.Success);
             Assert.IsNotNull(result2.Value);
-            StringAssert.Contains(result2.Value!.ToString()!, "100");
+            StringAssert.Contains(result2.Value!!, "100");
 
             var result3 = _executor.ExecuteNext();
             DebugResult(result3, "memory1");
@@ -239,8 +239,8 @@ namespace Mediator.Scripting
             Assert.IsNotNull(lastA, "Expected a final CommandResult for 'a'");
             Assert.IsNotNull(lastB, "Expected a final CommandResult for 'b'");
 
-            Assert.AreEqual("2", lastA!.Value!.ToString(), "Variable a should increment to 2");
-            Assert.AreEqual("4", lastB!.Value!.ToString(), "Variable b should increment to 4");
+            Assert.AreEqual("2", lastA!.Value!, "Variable a should increment to 2");
+            Assert.AreEqual("4", lastB!.Value!, "Variable b should increment to 4");
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace Mediator.Scripting
             }
 
             Assert.IsNotNull(last, "Expected a last result but got null");
-            Assert.AreEqual("4", last.Value!.ToString(), "Counter should have incremented to 3");
+            Assert.AreEqual("4", last.Value!, "Counter should have incremented to 3");
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace Mediator.Scripting
             }
 
             Assert.IsNotNull(last, "Expected a last result but got null");
-            Assert.AreEqual("3", last.Value!.ToString(), "Counter should have incremented to 3");
+            Assert.AreEqual("3", last.Value!, "Counter should have incremented to 3");
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace Mediator.Scripting
                 last = executor.ExecuteNext();
 
             Assert.IsNotNull(last);
-            Assert.AreEqual("42", last.Value!.ToString(), "IF true branch should execute and set x=42");
+            Assert.AreEqual("42", last.Value!, "IF true branch should execute and set x=42");
         }
 
         /// <summary>
@@ -436,7 +436,7 @@ namespace Mediator.Scripting
             }
 
             Assert.IsNotNull(lastResult, "Expected a final CommandResult from executed command.");
-            Assert.AreEqual("0", lastResult.Value!.ToString(),
+            Assert.AreEqual("0", lastResult.Value!,
                 "Counter should remain 0 because the if-body was skipped");
         }
 
@@ -485,7 +485,7 @@ namespace Mediator.Scripting
             }
 
             Assert.IsNotNull(result, "Expected a CommandResult from getValue(x)");
-            Assert.AreEqual("2", result.Value!.ToString(), "Counter should be 2 because the else branch executed");
+            Assert.AreEqual("2", result.Value!, "Counter should be 2 because the else branch executed");
         }
 
         /// <summary>
@@ -531,7 +531,7 @@ namespace Mediator.Scripting
             }
 
             Assert.IsNotNull(result, "Expected a CommandResult from getValue(x)");
-            Assert.AreEqual("3", result.Value!.ToString(), "Nested else branch should execute correctly");
+            Assert.AreEqual("3", result.Value!, "Nested else branch should execute correctly");
         }
 
 

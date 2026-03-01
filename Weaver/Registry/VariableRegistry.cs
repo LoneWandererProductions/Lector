@@ -92,6 +92,7 @@ namespace Weaver.Registry
                     {
                         _store[existingRange.Start + i] = elements[i];
                     }
+
                     return; // We are done. No allocation needed!
                 }
 
@@ -137,6 +138,7 @@ namespace Weaver.Registry
                         _store[index] = kvp.Value.WithAttribute(kvp.Key);
                         index++;
                     }
+
                     return; // Done without allocating!
                 }
 

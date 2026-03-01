@@ -59,7 +59,8 @@ namespace Weaver.ScriptEngine
 
                         if (rewrite ?? true)
                         {
-                            var rewrittenExpr = expr;
+                                //TODO eeror here no rewrite for command calls or simple expressions, but we still want to replace registry variables in those cases!
+                                var rewrittenExpr = expr;
 
                             // Replace registry variables if possible
                             if (registry != null)
@@ -72,9 +73,10 @@ namespace Weaver.ScriptEngine
                             else if (IsSimpleExpression(expr))
                             {
                                 // Pass the RAW expression. The Evaluator will fetch the variables at runtime!
-                                yield return (ScriptConstants.CommandRewriteToken, $"EvaluateCommand({expr}, {varName})");
+                                yield return (ScriptConstants.CommandRewriteToken,
+                                    $"EvaluateCommand({expr}, {varName})");
                             }
-                                else
+                            else
                             {
                                 throw new Exception($"Unsupported assignment expression: '{expr}'");
                             }
