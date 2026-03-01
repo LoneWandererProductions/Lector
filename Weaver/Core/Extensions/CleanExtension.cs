@@ -20,7 +20,7 @@ namespace Weaver.Core.Extensions
     public sealed class CleanExtension : ICommandExtension
     {
         /// <inheritdoc />
-        public string Name => "Clean";
+        public string Name => WeaverResources.GlobalExtensionClean;
         /// <inheritdoc />
         public string Description => "Wipes the last used registry entry associated with a command.";
 
@@ -47,7 +47,7 @@ namespace Weaver.Core.Extensions
                 // Depending on your IVariableRegistry, this might be a Remove or a Null set
                 if (registry.TryGetObject(key, out _))
                 {
-                    registry.Remove(key); // Assuming you have a Remove method
+                    registry.Remove(key);
                     return CommandResult.Ok($"Successfully cleaned registry key '${key}'.", key, producer.DataType);
                 }
 

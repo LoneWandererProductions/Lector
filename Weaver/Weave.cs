@@ -50,7 +50,14 @@ namespace Weaver
                 [WeaverResources.GlobalExtensionStore] = new CommandExtension
                 {
                     Name = WeaverResources.GlobalExtensionStore, ParameterCount = -1, IsInternal = true,
-                    IsPreview = true
+                    IsPreview = false
+                },
+                [WeaverResources.GlobalExtensionClean] = new CommandExtension
+                {
+                    Name = WeaverResources.GlobalExtensionClean,
+                    ParameterCount = -1,
+                    IsInternal = true,
+                    IsPreview = false
                 }
             };
 
@@ -136,6 +143,21 @@ namespace Weaver
                 return ns == null
                     ? _commands.Values.ToList() // Return a copy to prevent "Collection Modified" errors
                     : _commands.Values.Where(c => c.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all registered command extensions, optionally filtered by namespace.
+        /// </summary>
+        /// <param name="ns">The optional namespace filter.</param>
+        /// <returns>A list of registered extensions.</returns>
+        public List<ICommandExtension> GetExtensions(string? ns = null)
+        {
+            lock (_syncRoot)
+            {
+                return ns == null
+                    ? _extensions.Values.ToList()
+                    : _extensions.Values.Where(e => e.Namespace != null && e.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
 
@@ -410,8 +432,8 @@ namespace Weaver
         private void RegisterDefaults()
         {
             // Core Commands
-            Register(new ListCommand(() => GetCommands()));
-            Register(new HelpCommand(() => GetCommands()));
+            Register(new ListCommand(() => GetCommands(), () => GetExtensions()));
+            Register(new HelpCommand(() => GetCommands(), () => GetExtensions()));
             Register(new PrintCommand());
             Register(new LoadPluginCommand(this));
             Register(new EvaluateCommand(Runtime.Evaluator, Runtime.Variables));
@@ -431,6 +453,7 @@ namespace Weaver
             RegisterExtension(new TryRunExtension());
             RegisterExtension(new StoreExtension(Runtime.Variables));
             RegisterExtension(new ScriptStepperExtension(Runtime.Variables));
+            RegisterExtension(new CleanExtension());
         }
 
         /// <summary>
