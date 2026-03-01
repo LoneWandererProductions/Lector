@@ -53,41 +53,43 @@ namespace Weaver.ScriptEngine
                         break;
 
                     case AssignmentNode an:
-                    {
-                        var expr = an.Expression?.Trim() ?? "";
-                        var varName = an.Variable?.Trim() ?? "";
-
-                        if (rewrite ?? true)
                         {
-                                //TODO eeror here no rewrite for command calls or simple expressions, but we still want to replace registry variables in those cases!
-                                var rewrittenExpr = expr;
+                            var expr = an.Expression?.Trim() ?? "";
+                            var varName = an.Variable?.Trim() ?? "";
 
-                            // Replace registry variables if possible
+                            // Step 1: Replace variables first so the following logic works on actual values
+                            var processedExpr = expr;
                             if (registry != null)
-                                rewrittenExpr = ReplaceRegistryVariables(expr, registry);
-
-                            if (IsCommandCall(expr))
                             {
-                                yield return (ScriptConstants.CommandRewriteToken, $"{expr}.Store({varName})");
+                                processedExpr = ReplaceRegistryVariables(expr, registry);
                             }
-                            else if (IsSimpleExpression(expr))
+
+                            if (rewrite ?? true)
                             {
-                                // Pass the RAW expression. The Evaluator will fetch the variables at runtime!
-                                yield return (ScriptConstants.CommandRewriteToken,
-                                    $"EvaluateCommand({expr}, {varName})");
+                                // Step 2: Use processedExpr for logic and output
+                                if (IsCommandCall(processedExpr))
+                                {
+                                    yield return (ScriptConstants.CommandRewriteToken, $"{processedExpr}.Store({varName})");
+                                }
+                                else if (IsSimpleExpression(processedExpr))
+                                {
+                                    // The Evaluator gets the expression with variables already swapped for literals
+                                    yield return (ScriptConstants.CommandRewriteToken,
+                                        $"EvaluateCommand({processedExpr}, {varName})");
+                                }
+                                else
+                                {
+                                    throw new Exception($"Unsupported assignment expression: '{processedExpr}'");
+                                }
                             }
                             else
                             {
-                                throw new Exception($"Unsupported assignment expression: '{expr}'");
+                                // Step 3: Even without structural rewrite, use the substituted expression
+                                yield return (ScriptConstants.AssignmentToken, $"{varName} = {processedExpr}");
                             }
-                        }
-                        else
-                        {
-                            yield return (ScriptConstants.AssignmentToken, $"{varName} = {expr}");
-                        }
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case IfNode ifn:
                         // Emit condition
@@ -133,12 +135,20 @@ namespace Weaver.ScriptEngine
         /// </summary>
         private static string ReplaceRegistryVariables(string expr, IVariableRegistry registry)
         {
-            foreach (var kv in registry.GetAll())
-            {
-                var name = kv.Key;
-                var vm = kv.Value;
+            var variables = registry.GetAll();
+            if (variables == null || !variables.Any()) return expr;
 
-                var replacement = vm.Type switch
+            // 1. Build a pattern like: \b(var1|var2|var3)\b
+            // Join all keys with | and wrap in word boundaries
+            string pattern = $@"\b({string.Join("|", variables.Keys.Select(Regex.Escape))})\b";
+
+            // 2. Use a single Regex.Replace with a callback (MatchEvaluator)
+            return Regex.Replace(expr, pattern, match =>
+            {
+                var name = match.Value;
+                if (!variables.TryGetValue(name, out var vm)) return name;
+
+                return vm.Type switch
                 {
                     EnumTypes.Wint => vm.Int64.ToString(),
                     EnumTypes.Wdouble => vm.Double.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -146,12 +156,7 @@ namespace Weaver.ScriptEngine
                     EnumTypes.Wstring => $"\"{vm.String}\"",
                     _ => throw new InvalidOperationException($"Unsupported EnumType {vm.Type}")
                 };
-
-                // Replace whole-word occurrences only to avoid partial matches
-                expr = Regex.Replace(expr, $@"\b{name}\b", replacement);
-            }
-
-            return expr;
+            });
         }
 
         /// <summary>

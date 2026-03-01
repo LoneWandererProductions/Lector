@@ -88,8 +88,8 @@ namespace Mediator.Scripting
             var result2 = _executor.ExecuteNext();
             DebugResult(result2, "getValue");
             Assert.IsTrue(result2.Success);
-            Assert.IsNotNull(result2.Value);
-            StringAssert.Contains(result2.Value!!, "100");
+            Assert.IsNotNull(result2.Value, "Execution returned a null Value");
+            StringAssert.Contains(result2.Value, "100");
 
             var result3 = _executor.ExecuteNext();
             DebugResult(result3, "memory1");
