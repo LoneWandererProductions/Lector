@@ -7,7 +7,7 @@ Weave is a lightweight, highly extensible C# command execution and scripting eng
 ## Features
 
 * **Command Registration:** Register commands with optional namespaces and parameter support. Includes automatic command overloading based on parameter count.
-* **Pipeline Extensions:** Apply extensions globally or per-command (e.g., `.help()`, `.tryrun()`, `.store()`) to modify behavior via a middleware pipeline.
+* **Pipeline Extensions:** Apply extensions globally or per-command (e.g., `.help()`, `.tryrun()`, `.store()`, `.clean()`) to modify behavior via a middleware pipeline.
 * **Interactive Feedback:** Natively supports interactive prompts, confirmation flows, and multi-stage user input without blocking the execution thread.
 * **Custom Expression Evaluator:** Features a highly optimized, homebrew expression evaluator for complex math and logical conditions using the Shunting Yard algorithm (RPN).
 * **Message Mediator:** Safely tracks pending feedback and delegates execution between the user, commands, and the script executor.
@@ -238,6 +238,10 @@ FeedbackRequest ..> ICommandExtension : resumes execution after user input
   - Plugin Loader Support: Introduced a generic plugin loader for discovering implementations of arbitrary contracts. Weave can now dynamically load ICommand components from external assemblies at runtime via the load() command.
 
   - Advanced Memory Architecture: Prepared the Virtual Machine memory heap to support future complex datatypes (pointers, arrays/lists, and objects) efficiently.
+
+  - Refined the way Extensions and Commands interact with the Registry and Memory via Interface. If allowed the extension can access the registry and memory directly, but it is not required. This allows for more flexible extension design and better separation of concerns.
+
+  - Since now we use Memory, we have to clean it, for this a new global Extesion called `clean()` was added, it will clear the used memory of the specified command.
 
 **Improvements** 
   - TryRun Extension: Updated the implementation to correctly route both extensionArgs and commandArgs. Refactored test suite to accurately simulate multi-stage user confirmation (yes/no).
