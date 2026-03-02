@@ -19,8 +19,19 @@ namespace Mediator.Commands
     [TestClass]
     public class EvaluateCommandTests
     {
+        /// <summary>
+        /// The registry
+        /// </summary>
         private VariableRegistry? _registry;
+
+        /// <summary>
+        /// The evaluator
+        /// </summary>
         private ExpressionEvaluator? _evaluator;
+
+        /// <summary>
+        /// The command
+        /// </summary>
         private EvaluateCommand? _command;
 
         /// <summary>

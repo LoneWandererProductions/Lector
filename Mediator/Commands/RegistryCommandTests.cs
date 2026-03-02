@@ -26,11 +26,6 @@ namespace Mediator.Commands
         private IVariableRegistry _registry = null!;
 
         /// <summary>
-        /// The evaluator
-        /// </summary>
-        private ExpressionEvaluator _evaluator;
-
-        /// <summary>
         /// The set value
         /// </summary>
         private SetValueCommand _setValue = null!;
