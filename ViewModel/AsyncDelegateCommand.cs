@@ -26,7 +26,7 @@ namespace ViewModel
         /// <summary>
         ///     The predicate to determine if the command can execute.
         /// </summary>
-        private readonly Predicate<T> _canExecute;
+        private readonly Predicate<T?> _canExecute;
 
         /// <summary>
         ///     The action to execute.
@@ -63,7 +63,7 @@ namespace ViewModel
         /// </summary>
         /// <param name="parameter">The parameter for the predicate.</param>
         /// <returns>True if the command can execute, otherwise false.</returns>
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return _canExecute?.Invoke((T)parameter) ?? true;
         }

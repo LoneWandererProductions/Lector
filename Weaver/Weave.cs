@@ -9,7 +9,6 @@
 using Weaver.Core;
 using Weaver.Core.Commands;
 using Weaver.Core.Extensions;
-using Weaver.Evaluate;
 using Weaver.Interfaces;
 using Weaver.Messages;
 using Weaver.ParseEngine;
@@ -157,7 +156,8 @@ namespace Weaver
             {
                 return ns == null
                     ? _extensions.Values.ToList()
-                    : _extensions.Values.Where(e => e.Namespace != null && e.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase)).ToList();
+                    : _extensions.Values.Where(e =>
+                        e.Namespace != null && e.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
 

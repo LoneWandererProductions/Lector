@@ -50,7 +50,8 @@ namespace Mediator.Commands
             Assert.AreEqual("whoami", result.Value, "Value payload should be the registry key.");
 
             // Assert: Check the actual Registry (The Heap)
-            Assert.IsTrue(_registry.TryGetObject("whoami", out var storedObject), "Registry should contain the 'whoami' object.");
+            Assert.IsTrue(_registry.TryGetObject("whoami", out var storedObject),
+                "Registry should contain the 'whoami' object.");
             Assert.IsNotNull(storedObject, "Stored object should not be null.");
 
             // Verify specific expected fields exist in the Wobject
@@ -70,11 +71,11 @@ namespace Mediator.Commands
             var extension = new WhoAmIExtension();
 
             // Dummy executor (represents the next step in the pipeline, though the extension bypasses it here)
-            Func<string[], CommandResult> dummyExecutor = (args) => CommandResult.Ok("dummy");
+            CommandResult DummyExecutor(string[] args) => CommandResult.Ok("dummy");
 
             // Act: Call whoami().who(ip, hostname)
             var extensionArgs = new[] { "ip", "hostname" };
-            var result = extension.Invoke(command, extensionArgs, dummyExecutor, Array.Empty<string>());
+            var result = extension.Invoke(command, extensionArgs, DummyExecutor, Array.Empty<string>());
 
             // Assert: Check the output message
             Assert.IsTrue(result.Success, "Extension should succeed.");
@@ -83,7 +84,8 @@ namespace Mediator.Commands
             Assert.IsFalse(result.Message.Contains("OS:"), "Message should NOT contain OS, as it was not requested.");
 
             // Assert: Check the Registry to ensure the Wobject was updated safely
-            Assert.IsTrue(_registry.TryGetObject("whoami", out var storedObject), "Registry should still contain the 'whoami' object.");
+            Assert.IsTrue(_registry.TryGetObject("whoami", out var storedObject),
+                "Registry should still contain the 'whoami' object.");
             Assert.IsTrue(storedObject.ContainsKey("ip"), "Registry Wobject should contain the filtered 'ip'.");
         }
 
@@ -97,16 +99,17 @@ namespace Mediator.Commands
             var command = new WhoAmI(_registry);
             var cleanExtension = new CleanExtension();
 
-            Func<string[], CommandResult> dummyExecutor = (args) => CommandResult.Ok("dummy");
+            CommandResult DummyExecutor(string[] args) => CommandResult.Ok("dummy");
 
             // Step 1: Execute WhoAmI to populate the registry
             command.Execute();
 
             // Sanity Check: Ensure it is actually in the registry before we try to clean it
-            Assert.IsTrue(_registry.TryGetObject("whoami", out _), "Setup failed: Registry should contain data before cleaning.");
+            Assert.IsTrue(_registry.TryGetObject("whoami", out _),
+                "Setup failed: Registry should contain data before cleaning.");
 
             // Act: Invoke the .clean() extension
-            var result = cleanExtension.Invoke(command, Array.Empty<string>(), dummyExecutor, Array.Empty<string>());
+            var result = cleanExtension.Invoke(command, Array.Empty<string>(), DummyExecutor, Array.Empty<string>());
 
             // Assert: Verify the CleanExtension contract
             Assert.IsTrue(result.Success, "Clean extension should succeed.");
@@ -114,7 +117,8 @@ namespace Mediator.Commands
 
             // Assert: Verify the Registry (The Heap) is actually empty
             var exists = _registry.TryGetObject("whoami", out _);
-            Assert.IsFalse(exists, "The 'whoami' key MUST be completely removed from the registry after .clean() is called.");
+            Assert.IsFalse(exists,
+                "The 'whoami' key MUST be completely removed from the registry after .clean() is called.");
         }
 
         /// <summary>
@@ -128,10 +132,11 @@ namespace Mediator.Commands
             var nonProducerCommand = new Weaver.Core.Commands.IncCommand(_registry);
             var cleanExtension = new CleanExtension();
 
-            Func<string[], CommandResult> dummyExecutor = (args) => CommandResult.Ok("dummy");
+            CommandResult DummyExecutor(string[] args) => CommandResult.Ok("dummy");
 
             // Act
-            var result = cleanExtension.Invoke(nonProducerCommand, Array.Empty<string>(), dummyExecutor, Array.Empty<string>());
+            var result = cleanExtension.Invoke(nonProducerCommand, Array.Empty<string>(), DummyExecutor,
+                Array.Empty<string>());
 
             // Assert
             Assert.IsFalse(result.Success, "Clean extension should fail if the command is not an IRegistryProducer.");

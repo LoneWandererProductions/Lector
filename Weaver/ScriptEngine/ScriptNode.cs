@@ -2,7 +2,8 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine
  * FILE:        ScriptNode.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Record types representing different nodes in the script, such as labels,
+ *              gotos, commands, assignments and control flow structures.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
