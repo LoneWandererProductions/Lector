@@ -19,7 +19,7 @@ namespace Common.Dialogs
 {
     /// <inheritdoc />
     /// <summary>
-    /// ViewModel for the <see cref="T:CommonDialogs.FolderControl" /> UserControl.
+    /// ViewModel for the <see cref="T:Common.Dialogs.FolderControl" /> UserControl.
     /// Handles folder navigation, file/folder loading, and command bindings for UI interaction.
     /// Implements async loading to keep the UI responsive.
     /// </summary>

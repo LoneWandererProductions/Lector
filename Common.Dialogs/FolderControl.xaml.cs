@@ -6,10 +6,9 @@
  * PROGRAMER:   Peter Geinitz (Wayfarer)
  */
 
-using Common.Dialogs;
 using System.Windows.Controls;
 
-namespace CommonDialogs
+namespace Common.Dialogs
 {
     /// <inheritdoc cref="UserControl" />
     /// <summary>

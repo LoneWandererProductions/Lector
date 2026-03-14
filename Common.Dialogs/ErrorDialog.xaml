@@ -1,4 +1,4 @@
-﻿<Window x:Class="CommonDialogs.ErrorDialog"
+﻿<Window x:Class="Common.Dialogs.ErrorDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Error"
@@ -25,7 +25,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/CommonDialogs;component/Themes/Generic.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Common.Dialogs;component/Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

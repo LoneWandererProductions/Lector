@@ -10,7 +10,7 @@
 
 using System.Windows;
 
-namespace CommonDialogs
+namespace Common.Dialogs
 {
     /// <inheritdoc cref="Window" />
     /// <summary>
@@ -22,7 +22,7 @@ namespace CommonDialogs
     {
         /// <inheritdoc />
         /// <summary>
-        ///     Initializes a new instance of the <see cref="T:CommonDialogs.CustomErrorDialog" /> class.
+        ///     Initializes a new instance of the <see cref="T:Common.Dialogs.CustomErrorDialog" /> class.
         /// </summary>
         /// <param name="header">The header.</param>
         /// <param name="message">The message.</param>

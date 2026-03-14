@@ -1,7 +1,7 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Common.Dialogs
- * FILE:        CommonDialogsPathObject.cs
+ * FILE:        PathObject.cs
  * PURPOSE:     Helper Object for FileIoHandler
  * PROGRAMER:   Peter Geinitz (Wayfarer)
  */

@@ -10,7 +10,6 @@
 // ReSharper disable UnusedType.Global
 
 using System.IO;
-using CommonDialogs;
 using Microsoft.Win32;
 
 namespace Common.Dialogs
