@@ -6,8 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
-using CoreBuilder;
-using CoreBuilder.Extensions;
+using Core.Apps;
+using Core.Apps.Extensions;
 using Weaver.Core.Extensions;
 using Weaver.Messages;
 using Weaver.Registry;
