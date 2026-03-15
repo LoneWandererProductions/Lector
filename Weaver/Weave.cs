@@ -400,12 +400,14 @@ namespace Weaver
                         return (null,
                             CommandResult.Fail(
                                 $"Extension '{found.Name}' expects zero or one parameter, but got {argCount}."));
+
                     break;
                 default:
                     if (found.ExtensionParameterCount != argCount)
                         return (null,
                             CommandResult.Fail(
                                 $"Extension '{found.Name}' expects {found.ExtensionParameterCount} parameters, but got {argCount}."));
+
                     break;
             }
 
