@@ -1,28 +1,42 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Common.Converter
- * FILE:        ColorToNameConverter.cs
- * PURPOSE:     Convert between Color and its name as string (e.g., "Red", "Blue", etc.) for WPF bindings.
+ * FILE:        ActiveToColorConverter.cs
+ * PURPOSE:     Convert a boolean value to a color for WPF bindings.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
-
 
 using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
-using System.Linq;
 
 namespace Common.Converter
 {
     /// <summary>
-    /// Converter that converts between a Color and its name as a string for WPF bindings. It uses reflection to find the name of the color in System.Windows.Media.Colors when converting from Color to string, and uses ColorConverter to convert from string to Color.
+    /// Converter that converts a boolean value to a color for WPF bindings. It returns Gold for true (active) and Dark Gray for false (inactive).
     /// </summary>
-    /// <seealso cref="IValueConverter" />
-    public class ColorToNameConverter : IValueConverter
+    /// <seealso cref="System.Windows.Data.IValueConverter" />
+    public class ActiveToColorConverter : IValueConverter
     {
         /// <summary>
-        /// Convert from Color (ViewModel) to string (Control)
+        /// Gets or sets the active brush.
+        /// </summary>
+        /// <value>
+        /// The active brush.
+        /// </value>
+        public Brush ActiveBrush { get; set; } = new SolidColorBrush(Color.FromRgb(255, 215, 0));
+
+        /// <summary>
+        /// Gets or sets the inactive brush.
+        /// </summary>
+        /// <value>
+        /// The inactive brush.
+        /// </value>
+        public Brush InactiveBrush { get; set; } = new SolidColorBrush(Color.FromRgb(60, 60, 60));
+
+        /// <summary>
+        /// Converts a value.
         /// </summary>
         /// <param name="value">The value produced by the binding source.</param>
         /// <param name="targetType">The type of the binding target property.</param>
@@ -33,20 +47,16 @@ namespace Common.Converter
         /// </returns>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is Color color)
+            if (value is bool isActive && isActive)
             {
-                // Find the name of the color in System.Windows.Media.Colors
-                var colorProperty = typeof(Colors).GetProperties()
-                    .FirstOrDefault(p => (Color)p.GetValue(null, null) == color);
-
-                return colorProperty?.Name ?? color.ToString();
+                return ActiveBrush; // Gold for Active
             }
 
-            return string.Empty;
+            return InactiveBrush; // Dark Gray for Inactive
         }
 
         /// <summary>
-        /// Convert from string (Control) to Color (ViewModel)
+        /// Converts a value.
         /// </summary>
         /// <param name="value">The value that is produced by the binding target.</param>
         /// <param name="targetType">The type to convert to.</param>
@@ -57,19 +67,16 @@ namespace Common.Converter
         /// </returns>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string colorName && !string.IsNullOrEmpty(colorName))
+            if (value is SolidColorBrush brush)
             {
-                try
-                {
-                    return ColorConverter.ConvertFromString(colorName);
-                }
-                catch
-                {
-                    return Colors.Transparent;
-                }
+                if (ActiveBrush is SolidColorBrush active && brush.Color == active.Color)
+                    return true;
+
+                if (InactiveBrush is SolidColorBrush inactive && brush.Color == inactive.Color)
+                    return false;
             }
 
-            return Colors.Transparent;
+            return Binding.DoNothing;
         }
     }
 }

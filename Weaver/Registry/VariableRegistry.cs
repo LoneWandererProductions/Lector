@@ -6,6 +6,8 @@
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
+// ReSharper disable MemberCanBeInternal
+
 using System.Text;
 using Weaver.Interfaces;
 using Weaver.Messages;
@@ -88,7 +90,7 @@ namespace Weaver.Registry
                 // THE OPTIMIZATION: Sizes match! Just overwrite the existing memory slots.
                 if (existingRange.Length == newLength)
                 {
-                    for (int i = 0; i < newLength; i++)
+                    for (var i = 0; i < newLength; i++)
                     {
                         _store[existingRange.Start + i] = elements[i];
                     }
@@ -111,13 +113,12 @@ namespace Weaver.Registry
             _lookUp[key] = newRange;
 
             // 4. Write the actual data to the heap (_store)
-            for (int i = 0; i < newLength; i++)
+            for (var i = 0; i < newLength; i++)
             {
                 _store[newRange.Start + i] = elements[i];
             }
 
             // 5. Update the stack (_registry) to know this key is a list
-            // Note: You will need to add a `VmValue.FromList()` factory method to your struct
             _registry[key] = VmValue.FromList();
         }
 
@@ -131,7 +132,7 @@ namespace Weaver.Registry
             {
                 if (existingRange.Length == newLength)
                 {
-                    int index = existingRange.Start;
+                    var index = existingRange.Start;
                     foreach (var kvp in properties)
                     {
                         // Attach the Dictionary Key as the VmValue.Attribute!
@@ -156,7 +157,7 @@ namespace Weaver.Registry
             _lookUp[key] = newRange;
 
             // 4. Write the properties to the heap
-            int idx = newRange.Start;
+            var idx = newRange.Start;
             foreach (var kvp in properties)
             {
                 // Write it to memory, tagging it with its property name
@@ -181,11 +182,11 @@ namespace Weaver.Registry
 
                 // Option B: Return false (Let the engine handle the failure gracefully)
                 // range = default;
-                // return false; 
+                // return false;
             }
 
-            // Since _store dictionary keys in C# are ints, if you upgrade to long, 
-            // you would need to change private readonly Dictionary<int, VmValue> _store 
+            // Since _store dictionary keys in C# are ints, if you upgrade to long,
+            // you would need to change private readonly Dictionary<int, VmValue> _store
             // to Dictionary<long, VmValue> _store.
 
             range = new VmRange(_heapPointer, length);
