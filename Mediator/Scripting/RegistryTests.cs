@@ -129,5 +129,102 @@ namespace Mediator.Scripting
             _registry.ClearAll();
             Assert.IsFalse(_registry.TryGetString("b", out var _));
         }
+
+        /// <summary>
+        /// Tests the set and get list valid.
+        /// </summary>
+        [TestMethod]
+        public void TestSetAndGet_List_Valid()
+        {
+            var list = new List<VmValue>
+            {
+                VmValue.FromInt(1),
+                VmValue.FromInt(2),
+                VmValue.FromInt(3)
+            };
+
+            // Use the Registry's internal allocation logic
+            _registry.SetList("myList", list);
+
+            Assert.IsTrue(_registry.TryGetList("myList", out var retrievedList));
+            Assert.AreEqual(3, retrievedList?.Count);
+            Assert.AreEqual(1, retrievedList[0].Int64);
+        }
+
+        /// <summary>
+        /// Tests the set and get object valid.
+        /// </summary>
+        [TestMethod]
+        public void TestSetAndGet_Object_Valid()
+        {
+            var objDict = new Dictionary<string, VmValue>
+            {
+                { "x", VmValue.FromInt(10) },
+                { "y", VmValue.FromInt(20) }
+            };
+
+            // Use the Registry's internal allocation logic
+            _registry.SetObject("myObj", objDict);
+
+            Assert.IsTrue(_registry.TryGetObject("myObj", out var retrievedObj));
+            Assert.AreEqual(2, retrievedObj?.Count);
+            Assert.AreEqual(10, retrievedObj["x"].Int64);
+            Assert.AreEqual(20, retrievedObj["y"].Int64);
+        }
+
+        /// <summary>
+        /// Tests the set and get type safe extensions.
+        /// </summary>
+        [TestMethod]
+        public void TestSetAndGet_TypeSafeExtensions()
+        {
+            // Test that the explicit Typed-Getters return false for wrong types
+            _registry.Set("num", VmValue.FromInt(100));
+
+            Assert.IsFalse(_registry.TryGetDouble("num", out _), "Should fail to get Int as Double.");
+            Assert.IsFalse(_registry.TryGetBool("num", out _), "Should fail to get Int as Bool.");
+            Assert.IsFalse(_registry.TryGetString("num", out _), "Should fail to get Int as String.");
+        }
+
+        /// <summary>
+        /// Tests the pointers to compound types.
+        /// </summary>
+        [TestMethod]
+        public void TestPointers_ToCompoundTypes()
+        {
+            // Setup a List
+            var list = new List<VmValue> { VmValue.FromInt(5) };
+            _registry.SetList("myList", list);
+
+            // Create a pointer to the List
+            _registry.Set("ptrToList", VmValue.FromPointer("myList"));
+
+            // Test that TryGetPointer resolves the list correctly
+            Assert.IsTrue(_registry.TryGetPointer("ptrToList", out var val, out var type));
+            Assert.AreEqual(EnumTypes.Wlist, type);
+            Assert.IsInstanceOfType(val, typeof(IReadOnlyList<VmValue>));
+
+            var retrievedList = (IReadOnlyList<VmValue>)val!;
+            Assert.AreEqual(5, retrievedList[0].Int64);
+        }
+
+        /// <summary>
+        /// Tests the object attribute persistence.
+        /// </summary>
+        [TestMethod]
+        public void TestObject_AttributePersistence()
+        {
+            var obj = new Dictionary<string, VmValue>
+            {
+                { "key1", VmValue.FromInt(1) }
+            };
+
+            _registry.SetObject("myObj", obj);
+
+            // Verify the attribute was stored correctly in the heap
+            Assert.IsTrue(_registry.TryGetObject("myObj", out var dict));
+            Assert.IsTrue(dict!.ContainsKey("key1"));
+            Assert.AreEqual("key1", dict["key1"].Attribute);
+        }
     }
 }
