@@ -19,7 +19,7 @@ namespace Mediator.Parser
         [TestMethod]
         public void Parse_SimpleCommand_NoArgs_NoExtension()
         {
-            const string input = "echo()";
+            const string? input = "echo()";
             var result = SimpleCommandParser.Parse(input);
 
             Assert.AreEqual(string.Empty, result.Namespace);
@@ -35,7 +35,7 @@ namespace Mediator.Parser
         [TestMethod]
         public void Parse_CommandWithArgs()
         {
-            const string input = "copy(file1.txt, file2.txt)";
+            const string? input = "copy(file1.txt, file2.txt)";
             var result = SimpleCommandParser.Parse(input);
 
             Assert.AreEqual("copy", result.Name);
@@ -48,7 +48,7 @@ namespace Mediator.Parser
         [TestMethod]
         public void Parse_NamespacedCommandWithExtension()
         {
-            const string input = "system:delete(file.txt).log('backup')";
+            const string? input = "system:delete(file.txt).log('backup')";
             var result = SimpleCommandParser.Parse(input);
 
             Assert.AreEqual("system", result.Namespace);
@@ -64,7 +64,7 @@ namespace Mediator.Parser
         [TestMethod]
         public void Parse_ArgumentsWithQuotes()
         {
-            const string input = "rename(\"old.txt\", \"new.txt\")";
+            const string? input = "rename(\"old.txt\", \"new.txt\")";
             var result = SimpleCommandParser.Parse(input);
 
             CollectionAssert.AreEqual(new[] { "old.txt", "new.txt" }, result.Args);
@@ -86,7 +86,7 @@ namespace Mediator.Parser
         [TestMethod]
         public void Parse_CommandWithEmptyExtensionArgs()
         {
-            const string input = "build().run()";
+            const string? input = "build().run()";
             var result = SimpleCommandParser.Parse(input);
 
             Assert.AreEqual("build", result.Name);

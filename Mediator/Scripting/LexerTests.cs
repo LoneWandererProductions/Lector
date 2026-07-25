@@ -23,7 +23,7 @@ namespace Mediator.Scripting
         /// <summary>
         /// Helper to create a lexer for a given input script.
         /// </summary>
-        private Lexer CreateLexer(string input) => new Lexer(input);
+        private Lexer CreateLexer(string? input) => new Lexer(input);
 
         /// <summary>
         /// Helper to create an expression evaluator with a given variable registry.

@@ -1,6 +1,6 @@
 ﻿/*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     ediator.Scripting
+ * PROJECT:     Mediator.Scripting
  * FILE:        ScriptInternals.cs
  * PURPOSE:     Tests for general script internals.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
@@ -15,6 +15,9 @@ using Weaver.ScriptEngine;
 
 namespace Mediator.Scripting
 {
+    /// <summary>
+    /// Compare old and new Tokenizer.
+    /// </summary>
     [TestClass]
     public class ScriptInternals
     {

@@ -51,7 +51,7 @@ namespace Mediator.Commands
         [TestMethod]
         public void EvaluateSimpleArithmeticReturnsCorrectValue()
         {
-            var result = _command.Execute(new string[] { "1 + 2 + 3" });
+            var result = _command.Execute(new string?[] { "1 + 2 + 3" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("6", result.Message);
         }
@@ -62,7 +62,7 @@ namespace Mediator.Commands
         [TestMethod]
         public void EvaluateStoreResultInRegistryWorksCorrectly()
         {
-            var result = _command.Execute(new string[] { "4 + 5", "total" });
+            var result = _command.Execute(new string?[] { "4 + 5", "total" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("Stored '9' in 'total'.", result.Message);
 
@@ -80,7 +80,7 @@ namespace Mediator.Commands
             _registry?.Set("a", 10, EnumTypes.Wdouble);
             _registry?.Set("b", 5, EnumTypes.Wdouble);
 
-            var result = _command.Execute(new string[] { "a > b" });
+            var result = _command.Execute(new string?[] { "a > b" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("True", result.Message);
         }
@@ -94,11 +94,11 @@ namespace Mediator.Commands
             _registry?.Set("flag1", true, EnumTypes.Wbool);
             _registry?.Set("flag2", false, EnumTypes.Wbool);
 
-            var result = _command.Execute(new string[] { "flag1 and flag2" });
+            var result = _command.Execute(new string?[] { "flag1 and flag2" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("False", result.Message);
 
-            result = _command.Execute(new string[] { "flag1 or flag2" });
+            result = _command.Execute(new string?[] { "flag1 or flag2" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("True", result.Message);
         }
@@ -112,7 +112,7 @@ namespace Mediator.Commands
             _registry?.Set("flag1", true, EnumTypes.Wbool);
             _registry?.Set("flag2", true, EnumTypes.Wbool);
 
-            var result = _command.Execute(new string[] { "flag1 && flag2" });
+            var result = _command.Execute(new string?[] { "flag1 && flag2" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("true", result.Message, ignoreCase: true);
         }
@@ -125,7 +125,7 @@ namespace Mediator.Commands
         {
             _registry?.Set("flag1", true, EnumTypes.Wbool);
 
-            var result = _command.Execute(new string[] { "not flag1" });
+            var result = _command.Execute(new string?[] { "not flag1" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("False", result.Message);
         }
@@ -140,7 +140,7 @@ namespace Mediator.Commands
             _registry?.Set("y", 3, EnumTypes.Wdouble);
             _registry?.Set("z", 1, EnumTypes.Wdouble);
 
-            var result = _command.Execute(new string[] { "x + y - z" });
+            var result = _command.Execute(new string?[] { "x + y - z" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("4", result.Message);
         }
@@ -155,7 +155,7 @@ namespace Mediator.Commands
             _registry?.Set("score2", 10, EnumTypes.Wdouble);
             _registry?.Set("score3", 3, EnumTypes.Wdouble);
 
-            var result = _command.Execute(new string[] { "score1 + score2 - score3 * 2" });
+            var result = _command.Execute(new string?[] { "score1 + score2 - score3 * 2" });
             Assert.IsTrue(result.Success);
             Assert.AreEqual("9", result.Message);
         }

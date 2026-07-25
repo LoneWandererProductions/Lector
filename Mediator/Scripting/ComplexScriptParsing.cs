@@ -20,7 +20,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestComplexScriptParsing()
         {
-            const string script = @"
+            const string? script = @"
                 label Start;
                 do {
                     command1();
@@ -81,7 +81,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestComplexScriptParsing_NoRewrite()
         {
-            const string script = @"
+            const string? script = @"
                 label Start;
                 do {
                     command1();

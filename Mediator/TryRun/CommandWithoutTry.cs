@@ -34,7 +34,7 @@ namespace Mediator.TryRun
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
-        public CommandResult Execute(params string[] args)
+        public CommandResult Execute(params string?[] args)
             => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
     }
 }

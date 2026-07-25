@@ -37,7 +37,7 @@ namespace Mediator.Scripting
         {
             _weave = new Weave();
 
-            const string script = @"
+            const string? script = @"
                 setValue(score, 100, Wint);
                 getValue(score);
                 memory();
@@ -113,7 +113,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void Test_LabelAndGoto()
         {
-            const string script = @"
+            const string? script = @"
         label start;
         setValue(counter, 1, Wint);
         goto start;
@@ -150,7 +150,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestDoWhileLoop()
         {
-            const string script = @"
+            const string? script = @"
                 setValue(flag, true, Wbool);
                 do
                 {
@@ -197,7 +197,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestMultipleDoWhileLoops()
         {
-            const string script = @"
+            const string? script = @"
         setValue(a, 0, Wint);
         setValue(b, 0, Wint);
 
@@ -267,7 +267,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestDoWhileOnce()
         {
-            const string script = @"
+            const string? script = @"
         setValue(counter, 4, Wint);      // start counter at 4
         do
         {
@@ -313,7 +313,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestDoWhile_ExitLoopProperly()
         {
-            const string script = @"
+            const string? script = @"
         setValue(counter, 0, Wint);      // start counter at 0
         do
         {
@@ -362,7 +362,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestIfCondition_TrueExecutesBody()
         {
-            const string script = @"
+            const string? script = @"
         setValue(x, 0, Wint);
         if(true)
         {
@@ -401,7 +401,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestIfCondition_FalseSkipsBody()
         {
-            const string script = @"
+            const string? script = @"
         setValue(x,0,Wint);
         if(false)
         {
@@ -446,7 +446,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestIfElse_ExecutesCorrectBranch()
         {
-            const string script = @"
+            const string? script = @"
         setValue(x,0,Wint);
         if(false)
         {
@@ -494,7 +494,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestNestedIfElse()
         {
-            const string script = @"
+            const string? script = @"
     setValue(x, 0, Wint);
     if(true)
     {
@@ -541,7 +541,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestGoto_MissingLabelFailsGracefully()
         {
-            const string script = @"
+            const string? script = @"
         goto nowhere;
     ";
 
@@ -573,7 +573,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestRewrite_VariableAssignmentToCommand()
         {
-            const string script = @"
+            const string? script = @"
         x = getValue(score);
     ";
 
@@ -603,7 +603,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestRewrite_ArithmeticToEvaluateCommand()
         {
-            const string script = @"
+            const string? script = @"
         x = 2+3;
     ";
 

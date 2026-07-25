@@ -45,7 +45,7 @@ namespace Lector
         /// Normal execution of the command.
         /// Uses FeedbackRequest for confirmation.
         /// </summary>
-        public CommandResult Execute(params string[] args)
+        public CommandResult Execute(params string?[] args)
         {
             if (args.Length == 0)
                 return CommandResult.Fail("No argument provided.");
@@ -84,7 +84,7 @@ namespace Lector
         /// <summary>
         /// Optional preview mode called by extensions like .tryrun()
         /// </summary>
-        public CommandResult? TryRun(params string[] args)
+        public CommandResult? TryRun(params string?[] args)
         {
             if (args.Length == 0)
                 return null;

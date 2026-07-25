@@ -42,7 +42,7 @@ namespace Mediator.Core
 
         /// <inheritdoc />
         /// 
-        public CommandResult Execute(params string[] args)
+        public CommandResult Execute(params string?[] args)
         {
             if (args.Length == 0)
                 return CommandResult.Fail("Missing target file.");
@@ -81,7 +81,7 @@ namespace Mediator.Core
         }
 
         /// <inheritdoc />
-        public CommandResult TryRun(params string[] args)
+        public CommandResult TryRun(params string?[] args)
         {
             if (args.Length == 0)
                 return CommandResult.Fail("Missing target for preview.");

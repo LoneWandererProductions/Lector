@@ -45,9 +45,9 @@ namespace Mediator.TryRun
             var cmdWithoutTry = new CommandWithoutTry();
 
             // executor simply calls Execute on the command
-            CommandResult ExecutorWithTry(string[] args) => cmdWithTry.Execute(args);
+            CommandResult ExecutorWithTry(string?[] args) => cmdWithTry.Execute(args);
 
-            CommandResult ExecutorWithoutTry(string[] args) => cmdWithoutTry.Execute(args);
+            CommandResult ExecutorWithoutTry(string?[] args) => cmdWithoutTry.Execute(args);
 
             // ---------------------------------------------
             // CASE 1: Command IMPLEMENTS TryRun()

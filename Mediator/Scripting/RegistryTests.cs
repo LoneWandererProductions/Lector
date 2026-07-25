@@ -157,7 +157,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestSetAndGet_Object_Valid()
         {
-            var objDict = new Dictionary<string, VmValue>
+            var objDict = new Dictionary<string?, VmValue>
             {
                 { "x", VmValue.FromInt(10) },
                 { "y", VmValue.FromInt(20) }
@@ -214,7 +214,7 @@ namespace Mediator.Scripting
         [TestMethod]
         public void TestObject_AttributePersistence()
         {
-            var obj = new Dictionary<string, VmValue>
+            var obj = new Dictionary<string?, VmValue>
             {
                 { "key1", VmValue.FromInt(1) }
             };

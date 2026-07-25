@@ -28,7 +28,7 @@ namespace Mediator.Helper
         /// </summary>
         /// <param name="expr">The expr.</param>
         /// <returns>List of tokens.</returns>
-        internal static IEnumerable<string> Tokenize(string expr)
+        internal static IEnumerable<string> Tokenize(string? expr)
         {
             var token = new StringBuilder();
             var i = 0;

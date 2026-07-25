@@ -34,14 +34,14 @@ namespace Mediator.TryRun
         public CommandSignature Signature => new(Namespace, Name, ParameterCount);
 
         /// <inheritdoc />
-        public CommandResult Execute(params string[] args)
+        public CommandResult Execute(params string?[] args)
             => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
 
         /// <inheritdoc />
         /// <summary>
         /// Here is the important part:
         /// </summary>
-        public CommandResult TryRun(params string[] args)
+        public CommandResult TryRun(params string?[] args)
             => new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
     }
 }
