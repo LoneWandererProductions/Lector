@@ -10,13 +10,24 @@ using System.Text;
 
 namespace Mediator.Helper
 {
+    /// <summary>
+    /// Old tokenizer for testing.
+    /// </summary>
     internal static class Tokenizer
     {
+        /// <summary>
+        /// The multi ops
+        /// </summary>
         private static readonly string[] MultiOps =
         {
             "==", "!=", ">=", "<="
         };
 
+        /// <summary>
+        /// Tokenizes the specified expr.
+        /// </summary>
+        /// <param name="expr">The expr.</param>
+        /// <returns>List of tokens.</returns>
         internal static IEnumerable<string> Tokenize(string expr)
         {
             var token = new StringBuilder();
