@@ -33,13 +33,12 @@ namespace ViewModel
         private readonly Action<T?> _execute;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="DelegateCommand{T}" /> class.
+        /// Initializes a new instance of the <see cref="DelegateCommand{T}" /> class.
         /// </summary>
-        /// <param name="action">The action to execute.</param>
-        /// <param name="canExecute">
-        ///     A predicate to determine if the command can execute. If null, the command is always
-        ///     executable.
-        /// </param>
+        /// <param name="execute">The execute.</param>
+        /// <param name="canExecute">A predicate to determine if the command can execute. If null, the command is always
+        /// executable.</param>
+        /// <exception cref="System.ArgumentNullException">execute</exception>
         /// <exception cref="ArgumentNullException">Thrown when the action is null.</exception>
         public DelegateCommand(Action<T?> execute, Predicate<T?>? canExecute = null)
         {
@@ -74,7 +73,7 @@ namespace ViewModel
         /// <summary>
         ///     Occurs when changes occur that affect whether or not the command should execute.
         /// </summary>
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;

@@ -17,7 +17,7 @@ using ViewModel;
 
 namespace Common.Dialogs
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="ViewModelBase" />
     /// <summary>
     /// ViewModel for the <see cref="T:Common.Dialogs.FolderControl" /> UserControl.
     /// Handles folder navigation, file/folder loading, and command bindings for UI interaction.
@@ -26,15 +26,56 @@ namespace Common.Dialogs
     public sealed class FolderViewModel : ViewModelBase
     {
         /// <summary>
+        /// The start folder
+        /// </summary>
+        private string? _startFolder;
+
+        /// <summary>
         /// Collection of folders and files displayed in the TreeView.
         /// Each item is a <see cref="FolderItemViewModel"/>.
         /// </summary>
         public ObservableCollection<FolderItemViewModel> FolderItems { get; } = new();
 
         /// <summary>
+        /// Gets or sets the start folder.
+        /// </summary>
+        /// <value>
+        /// The start folder.
+        /// </value>
+        public string? StartFolder
+        {
+            get => _startFolder;
+            set
+            {
+                if (_startFolder == value) return;
+
+                _startFolder = value;
+                OnPropertyChanged(nameof(StartFolder));
+
+                if (!string.IsNullOrEmpty(value) && Directory.Exists(value))
+                    _ = LoadRootAsync(value);
+            }
+        }
+
+        /// <summary>
         /// The selected folder
         /// </summary>
         private FolderItemViewModel? _selectedFolder;
+
+        /// <summary>
+        /// The paths
+        /// </summary>
+        private string? _paths;
+
+        /// <summary>
+        /// The look up
+        /// </summary>
+        private string _lookUp = string.Empty;
+
+        /// <summary>
+        /// The show files
+        /// </summary>
+        private bool _showFiles;
 
         /// <summary>
         /// Gets or sets the selected folder.
@@ -58,32 +99,22 @@ namespace Common.Dialogs
         }
 
         /// <summary>
-        /// Gets the selected path.
-        /// </summary>
-        /// <value>
-        /// The selected path.
-        /// </value>
-        public string? SelectedPath => SelectedFolder?.Path;
-
-        /// <summary>
-        /// The paths
-        /// </summary>
-        private string? _paths;
-
-        /// <summary>
         /// Currently selected folder path.
         /// Updates whenever navigation occurs or user selects a folder.
         /// </summary>
-        public string? Paths
+        public string Paths
         {
             get => _paths;
-            set => SetProperty(ref _paths, value); // ViewModelBase provides INotifyPropertyChanged
-        }
+            set
+            {
+                if (_paths == value) return;
 
-        /// <summary>
-        /// The look up
-        /// </summary>
-        private string _lookUp = string.Empty;
+                _paths = value;
+                OnPropertyChanged(nameof(Paths));
+
+                LookUp = value;
+            }
+        }
 
         /// <summary>
         /// User input for navigating to a specific folder.
@@ -92,13 +123,14 @@ namespace Common.Dialogs
         public string LookUp
         {
             get => _lookUp;
-            set => SetProperty(ref _lookUp, value);
-        }
+            set
+            {
+                if (_lookUp == value) return;
 
-        /// <summary>
-        /// The show files
-        /// </summary>
-        private bool _showFiles;
+                _lookUp = value;
+                OnPropertyChanged(nameof(LookUp));
+            }
+        }
 
         /// <summary>
         /// Determines whether files should be displayed in addition to folders.
@@ -234,7 +266,7 @@ namespace Common.Dialogs
 
                 var newDirPath = Path.Combine(Paths, ComDlgResources.NewFolder);
                 var dirName = newDirPath;
-                int i = 1;
+                var i = 1;
 
                 while (Directory.Exists(dirName))
                     dirName = $"{newDirPath} ({i++})";
@@ -273,9 +305,9 @@ namespace Common.Dialogs
         {
             Paths = path;
 
-            string[] directories =
+            var directories =
                 Directory.Exists(path) ? Directory.GetDirectories(path) : Directory.GetLogicalDrives();
-            string[] files = ShowFiles && Directory.Exists(path) ? Directory.GetFiles(path) : Array.Empty<string>();
+            var files = ShowFiles && Directory.Exists(path) ? Directory.GetFiles(path) : Array.Empty<string>();
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -308,10 +340,10 @@ namespace Common.Dialogs
                     return null;
 
                 // Normalize path (removes trailing slashes)
-                string full = Path.GetFullPath(path);
+                var full = Path.GetFullPath(path);
 
                 // Detect root (C:\, D:\, etc.)
-                string? root = Path.GetPathRoot(full);
+                var root = Path.GetPathRoot(full);
                 if (root != null &&
                     root.Equals(full, StringComparison.OrdinalIgnoreCase))
                 {

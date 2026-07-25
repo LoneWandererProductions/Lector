@@ -10,6 +10,7 @@
  */
 
 // ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 using System;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace ViewModel
         /// <summary>
         ///     The predicate to determine if the command can execute.
         /// </summary>
-        private readonly Predicate<T?> _canExecute;
+        private readonly Predicate<T> _canExecute;
 
         /// <summary>
         ///     The action to execute.
@@ -66,7 +67,7 @@ namespace ViewModel
         public async void Execute(object? parameter)
         {
             // 1. Safe Casting: Ensure parameter is actually T
-            if (!IsValidParameter(parameter, out T validParam))
+            if (!IsValidParameter(parameter, out var validParam))
                 return;
 
             // 2. Concurrency Lock
@@ -96,8 +97,11 @@ namespace ViewModel
         /// </summary>
         /// <param name="parameter">The parameter for the predicate.</param>
         /// <returns>True if the command can execute, otherwise false.</returns>
-        public bool CanExecute(object? parameter)
+        public bool CanExecute(object parameter)
         {
+            // The command CANNOT execute if it is already running
+            if (_isExecuting) return false;
+
             return _canExecute?.Invoke((T)parameter) ?? true;
         }
 
@@ -109,10 +113,11 @@ namespace ViewModel
             CommandManager.InvalidateRequerySuggested();
         }
 
+        /// <inheritdoc />
         /// <summary>
         ///     Occurs when changes occur that affect whether or not the command should execute.
         /// </summary>
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
