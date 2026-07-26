@@ -89,8 +89,9 @@ namespace Mediator.Rules
         private static List<string> GetUnusedReferencesViaReflection(string xmlContent)
         {
             var type = typeof(DeadReferenceAnalyzer).Assembly
-                .GetType("Core.Apps.Helper.ProjectReferenceInfo")
-                ?? throw new InvalidOperationException("ProjectReferenceInfo type not found - has it moved or been renamed?");
+                           .GetType("Core.Apps.Helper.ProjectReferenceInfo")
+                       ?? throw new InvalidOperationException(
+                           "ProjectReferenceInfo type not found - has it moved or been renamed?");
 
             var instance = Activator.CreateInstance(
                 type,
@@ -100,7 +101,8 @@ namespace Mediator.Rules
                 culture: null);
 
             var method = type.GetMethod("GetUnusedReferences", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?? throw new InvalidOperationException("GetUnusedReferences method not found - has it moved or been renamed?");
+                         ?? throw new InvalidOperationException(
+                             "GetUnusedReferences method not found - has it moved or been renamed?");
 
             var result = (IEnumerable<string>)method.Invoke(instance, null)!;
             return result.ToList();

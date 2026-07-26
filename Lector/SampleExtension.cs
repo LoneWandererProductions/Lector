@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Lector
  * FILE:        SampleExtension.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Sample extension for future users.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
