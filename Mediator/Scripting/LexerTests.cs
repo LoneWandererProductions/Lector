@@ -23,13 +23,18 @@ namespace Mediator.Scripting
         /// <summary>
         /// Helper to create a lexer for a given input script.
         /// </summary>
-        private Lexer CreateLexer(string? input) => new Lexer(input);
+        private Lexer CreateLexer(string? input)
+        {
+            return new Lexer(input);
+        }
 
         /// <summary>
         /// Helper to create an expression evaluator with a given variable registry.
         /// </summary>
-        private ExpressionEvaluator CreateEvaluator(VariableRegistry registry) =>
-            new ExpressionEvaluator(registry);
+        private ExpressionEvaluator CreateEvaluator(VariableRegistry registry)
+        {
+            return new ExpressionEvaluator(registry);
+        }
 
         /// <summary>
         /// Tests evaluating logical expressions using variables.

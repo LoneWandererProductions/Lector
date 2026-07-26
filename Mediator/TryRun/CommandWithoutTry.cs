@@ -35,6 +35,8 @@ namespace Mediator.TryRun
 
         /// <inheritdoc />
         public CommandResult Execute(params string?[] args)
-            => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
+        {
+            return new CommandResult { Message = $"EXEC {args[0]}", Success = true };
+        }
     }
 }

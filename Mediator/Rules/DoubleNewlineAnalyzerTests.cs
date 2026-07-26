@@ -19,13 +19,19 @@ namespace Mediator.Rules
         /// Setups this instance.
         /// </summary>
         [TestInitialize]
-        public void Setup() => _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        public void Setup()
+        {
+            _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        }
 
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
         [TestCleanup]
-        public void Cleanup() => AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        public void Cleanup()
+        {
+            AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        }
 
         /// <summary>
         /// Analyzes the two consecutive blank lines is flagged.

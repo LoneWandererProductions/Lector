@@ -25,13 +25,19 @@ namespace Mediator.Rules
         /// Setups this instance.
         /// </summary>
         [TestInitialize]
-        public void Setup() => _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        public void Setup()
+        {
+            _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        }
 
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
         [TestCleanup]
-        public void Cleanup() => AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        public void Cleanup()
+        {
+            AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        }
 
         /// <summary>
         /// Analyzes the unused private field is flagged.
@@ -76,9 +82,6 @@ class Sample
         [TestMethod]
         public void Analyze_MultipleDeclaratorsOnOneLine_FlagsOnlyTheUnusedOne()
         {
-            // private int _used, _unused; declares two separate VariableDeclaratorSyntax
-            // nodes under one FieldDeclarationSyntax - worth pinning down that each is
-            // judged independently rather than the whole declaration being treated as one unit.
             const string code = @"
 class Sample
 {
@@ -92,6 +95,28 @@ class Sample
 
             Assert.AreEqual(1, diagnostics.Count);
             StringAssert.Contains(diagnostics[0].Message, "_unused");
+        }
+
+        /// <summary>
+        /// Analyzes an implicitly private unused field and ensures it is correctly flagged.
+        /// </summary>
+        [TestMethod]
+        public void Analyze_ImplicitPrivateField_IsFlagged()
+        {
+            // Fields without an access modifier are implicitly private.
+            // The analyzer must rely on the SemanticModel, not syntax tokens, to catch this.
+            const string code = @"
+class Sample
+{
+    int _implicitUnused;
+}";
+            var path = AnalyzerTestHelper.CreateTempCsFile(code, _tempDir);
+            var analyzer = new UnusedPrivateFieldAnalyzer();
+
+            var diagnostics = analyzer.Analyze(path, code).ToList();
+
+            Assert.AreEqual(1, diagnostics.Count);
+            StringAssert.Contains(diagnostics[0].Message, "_implicitUnused");
         }
     }
 }

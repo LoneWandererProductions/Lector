@@ -35,13 +35,17 @@ namespace Mediator.TryRun
 
         /// <inheritdoc />
         public CommandResult Execute(params string?[] args)
-            => new CommandResult { Message = $"EXEC {args[0]}", Success = true };
+        {
+            return new CommandResult { Message = $"EXEC {args[0]}", Success = true };
+        }
 
         /// <inheritdoc />
         /// <summary>
         /// Here is the important part:
         /// </summary>
         public CommandResult TryRun(params string?[] args)
-            => new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
+        {
+            return new CommandResult { Message = $"[Preview-WithTry] {args[0]}", Success = true };
+        }
     }
 }

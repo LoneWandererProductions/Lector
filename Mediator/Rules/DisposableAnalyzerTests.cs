@@ -3,13 +3,6 @@
  * PROJECT:     Mediator.Rules
  * FILE:        DisposableAnalyzerTests.cs
  * PURPOSE:     Tests for DisposableAnalyzer.
- *
- * DisposableAnalyzer's own source comment calls it a "Dummy check for demonstration":
- * it flags a variable as an undisposed IDisposable purely by checking whether its
- * *declared type name* ends in "Stream", "Reader", or "Writer" - it never checks
- * whether the type actually implements IDisposable. The last three tests below pin
- * down exactly what that trade-off costs today. If the analyzer is ever upgraded to
- * a real semantic-model check, those three assertions are the ones that should flip.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -17,16 +10,34 @@ using Core.Apps.Rules;
 
 namespace Mediator.Rules
 {
+    /// <summary>
+    /// Disposable Tests
+    /// </summary>
     [TestClass]
     public class DisposableAnalyzerTests
     {
+        /// <summary>
+        /// The temporary dir
+        /// </summary>
         private string _tempDir = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
-        public void Setup() => _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        public void Setup()
+        {
+            _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         [TestCleanup]
-        public void Cleanup() => AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        public void Cleanup()
+        {
+            AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        }
 
         /// <summary>
         /// Analyzes the stream declared outside using is flagged.
@@ -136,12 +147,9 @@ class Sample
         /// Analyzes the variable declared stream not disposed false negative.
         /// </summary>
         [TestMethod]
-        public void Analyze_VarDeclaredStreamNotDisposed_FalseNegative()
+        public void Analyze_VarDeclaredStreamNotDisposed()
         {
-            // This is the exact scenario the analyzer claims to target (an undisposed
-            // FileStream) written the idiomatic modern way. It's still missed, because
-            // the syntax-level type text for a `var` declaration is literally "var",
-            // which doesn't end in Stream/Reader/Writer.
+
             const string code = @"
 using System.IO;
 class Sample
@@ -157,7 +165,7 @@ class Sample
 
             var diagnostics = analyzer.Analyze(path, code).ToList();
 
-            Assert.AreEqual(0, diagnostics.Count, "documents current behavior: `var` hides the type name from the check");
+            Assert.AreEqual(1, diagnostics.Count, "documents current behavior: `var` hides the type name from the check");
         }
     }
 }

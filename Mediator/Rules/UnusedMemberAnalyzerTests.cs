@@ -3,11 +3,6 @@
  * PROJECT:     Mediator.Rules
  * FILE:        UnusedMemberAnalyzerTests.cs
  * PURPOSE:     Tests for UnusedMemberAnalyzer.
- *
- * Note the analyzer only looks for members carrying an *explicit* `private` keyword
- * token (m.Modifiers.Any(mod => mod.IsKind(SyntaxKind.PrivateKeyword))). A member
- * that's private by C#'s default (no modifier written at all) never matches that
- * check. The last test documents that blind spot.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -27,13 +22,19 @@ namespace Mediator.Rules
         /// Setups this instance.
         /// </summary>
         [TestInitialize]
-        public void Setup() => _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        public void Setup()
+        {
+            _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        }
 
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
         [TestCleanup]
-        public void Cleanup() => AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        public void Cleanup()
+        {
+            AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        }
 
         /// <summary>
         /// Analyzes the unused explicit private method is flagged.
@@ -97,14 +98,14 @@ class Sample
         }
 
         /// <summary>
-        /// Analyzes the unused implicitly private method is not flagged false negative.
+        /// Analyzes the unused implicitly private method and ensures it is correctly flagged.
         /// </summary>
         [TestMethod]
-        public void Analyze_UnusedImplicitlyPrivateMethod_IsNotFlagged_FalseNegative()
+        public void Analyze_UnusedImplicitlyPrivateMethod_IsFlagged()
         {
-            // Class members with no access modifier are private by default in C#,
-            // but there's no PrivateKeyword token for the analyzer to find, so this
-            // unused method - just as dead as the explicit-private case above - is missed.
+            // Class members with no access modifier are private by default in C#.
+            // By using the SemanticModel, the analyzer correctly identifies this as private
+            // even without an explicit `private` syntax token.
             const string code = @"
 class Sample
 {
@@ -116,7 +117,8 @@ class Sample
 
             var diagnostics = analyzer.Analyze(path, code).ToList();
 
-            Assert.AreEqual(0, diagnostics.Count, "documents current behavior: implicit-private members are invisible to this check");
+            Assert.AreEqual(1, diagnostics.Count);
+            StringAssert.Contains(diagnostics[0].Message, "Helper");
         }
     }
 }

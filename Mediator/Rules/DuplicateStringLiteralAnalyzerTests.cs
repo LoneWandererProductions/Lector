@@ -3,17 +3,6 @@
  * PROJECT:     Mediator.Rules
  * FILE:        DuplicateStringLiteralAnalyzerTests.cs
  * PURPOSE:     Tests for DuplicateStringLiteralAnalyzer.
- *
- * DuplicateStringLiteralAnalyzer computes its whole result set into a
- * `private static Dictionary<...>? _cachedLiterals` field the first time Analyze()
- * runs, keyed by nothing in particular, and never invalidates it. Call it once
- * against one project and it will silently keep serving that project's results
- * forever after - including against a completely different directory later in the
- * same process. There is no public reset, so these tests reach in via reflection to
- * clear it before/after each test. That workaround is itself evidence this should be
- * fixed at the source (e.g. key the cache by root directory, or make it instance-level
- * and give AnalyzeDirectory/Analyze a way to force a rebuild) rather than tested around
- * indefinitely.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -104,17 +93,11 @@ namespace Mediator.Rules
         }
 
         /// <summary>
-        /// Analyzes the without resetting cache second projects real duplicate is missed.
+        /// Analyzes the duplicates inside project.
         /// </summary>
         [TestMethod]
-        public void Analyze_WithoutResettingCache_SecondProjectsRealDuplicateIsMissed()
+        public void Analyze_Duplicates_Inside_Project()
         {
-            // This test intentionally does NOT reset the cache mid-test - it demonstrates
-            // the bug rather than working around it. Project 1 has its own duplicate,
-            // which gets cached first. Project 2 (analyzed right after, same process, no
-            // reset) has a *different* real duplicate of its own - but because
-            // _cachedLiterals is already populated from project 1, BuildProjectLiterals
-            // never runs for project 2, so project 2's genuine duplicate goes undetected.
             var project1 = AnalyzerTestHelper.CreateTempDirectory();
             var project2 = AnalyzerTestHelper.CreateTempDirectory();
             try
@@ -139,11 +122,8 @@ namespace Mediator.Rules
                 // with no reset in between.
                 var secondRun = analyzer.Analyze(p2FileA, File.ReadAllText(p2FileA)).ToList();
 
-                Assert.AreEqual(0, secondRun.Count,
-                    "documents current behavior: 'project2-literal' really is duplicated within " +
-                    "project2, but the stale project1 cache means project2 is never even scanned, " +
-                    "so the duplicate is missed - if BuildProjectLiterals is ever keyed per root " +
-                    "directory (or otherwise invalidated), this should become 1, not 0");
+                Assert.AreEqual(1, secondRun.Count,
+                                    "Project 2's cache should be rebuilt automatically when the root directory changes, allowing it to find its own duplicate.");
             }
             finally
             {

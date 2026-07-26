@@ -15,12 +15,27 @@ namespace Mediator.Rules
     {
         private string _tempDir = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
-        public void Setup() => _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        public void Setup()
+        {
+            _tempDir = AnalyzerTestHelper.CreateTempDirectory();
+        }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         [TestCleanup]
-        public void Cleanup() => AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        public void Cleanup()
+        {
+            AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
+        }
 
+        /// <summary>
+        /// Analyzes the file with copyright block comment is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_FileWithCopyrightBlockComment_IsNotFlagged()
         {
@@ -38,6 +53,9 @@ class Sample { }";
             Assert.AreEqual(0, diagnostics.Count);
         }
 
+        /// <summary>
+        /// Analyzes the file with no leading comment is flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_FileWithNoLeadingComment_IsFlagged()
         {
@@ -51,6 +69,9 @@ class Sample { }";
             StringAssert.Contains(diagnostics[0].Message, "Missing license header");
         }
 
+        /// <summary>
+        /// Analyzes the leading comment without license words is still flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_LeadingCommentWithoutLicenseWords_IsStillFlagged()
         {
@@ -64,6 +85,9 @@ class Sample { }";
             Assert.AreEqual(1, diagnostics.Count);
         }
 
+        /// <summary>
+        /// Analyzes the line comment header mentioning license is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_LineCommentHeaderMentioningLicense_IsNotFlagged()
         {
