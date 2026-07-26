@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Weaver;
 using Weaver.Interfaces;
@@ -52,15 +53,31 @@ namespace Core.Apps.Rules
             // 1. Build a syntax tree for the single file
             var tree = CSharpSyntaxTree.ParseText(fileContent, path: filePath ?? string.Empty);
 
-            // 2. Setup standard metadata references (so it knows about basic types like object, string, etc.)
+            // 2. Dynamically gather all loaded assemblies in the AppDomain as metadata references.
+            // This ensures full visibility into LINQ, WPF, runtime libraries, and cross-project types.
+            var references = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location) && File.Exists(a.Location))
+                .Select(a => a.Location)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(loc => MetadataReference.CreateFromFile(loc))
+                .Cast<MetadataReference>()
+                .ToList();
+
+            // Fallback safety if AppDomain references list is empty
+            if (references.Count == 0)
+            {
+                references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+            }
+
+            // 3. Setup compilation with comprehensive references
             var compilation = CSharpCompilation.Create(
                 assemblyName: Path.GetFileNameWithoutExtension(filePath) ?? "DynamicAssembly",
                 syntaxTrees: new[] { tree },
-                references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) },
+                references: references,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
             );
 
-            // 3. Get all diagnostics (errors, warnings, info) from the compilation step
+            // 4. Get all diagnostics (errors, warnings, info) from the compilation step
             var roslynDiagnostics = compilation.GetDiagnostics();
 
             foreach (var diag in roslynDiagnostics)
@@ -84,7 +101,7 @@ namespace Core.Apps.Rules
 
                 // Format message to include the Roslyn error code (e.g., CS0168) for context
                 string message = $"{diag.Id}: {diag.GetMessage()}";
-                const string source = "rosayln";
+                const string source = "roslyn";
 
                 yield return new Diagnostic(
                     Name,
