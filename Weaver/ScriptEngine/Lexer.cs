@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Weaver.ScriptEngine
  * FILE:        Lexer.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Lexer Implementation.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

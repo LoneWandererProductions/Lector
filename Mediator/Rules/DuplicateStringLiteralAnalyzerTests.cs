@@ -123,7 +123,7 @@ namespace Mediator.Rules
                 var secondRun = analyzer.Analyze(p2FileA, File.ReadAllText(p2FileA)).ToList();
 
                 Assert.AreEqual(1, secondRun.Count,
-                                    "Project 2's cache should be rebuilt automatically when the root directory changes, allowing it to find its own duplicate.");
+                    "Project 2's cache should be rebuilt automatically when the root directory changes, allowing it to find its own duplicate.");
             }
             finally
             {

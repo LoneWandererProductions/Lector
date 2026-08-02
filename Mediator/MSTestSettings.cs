@@ -1,8 +1,8 @@
 /*
  * COPYRIGHT:   See COPYING in the top level directory
- * PROJECT:     UnknownNamespace
+ * PROJECT:     Mediator
  * FILE:        MSTestSettings.cs
- * PURPOSE:     Your file purpose here
+ * PURPOSE:     Setting file for my Test Project.
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 

@@ -149,7 +149,6 @@ class Sample
         [TestMethod]
         public void Analyze_VarDeclaredStreamNotDisposed()
         {
-
             const string code = @"
 using System.IO;
 class Sample
@@ -165,7 +164,8 @@ class Sample
 
             var diagnostics = analyzer.Analyze(path, code).ToList();
 
-            Assert.AreEqual(1, diagnostics.Count, "documents current behavior: `var` hides the type name from the check");
+            Assert.AreEqual(1, diagnostics.Count,
+                "documents current behavior: `var` does not the type name from the check");
         }
     }
 }

@@ -92,8 +92,10 @@ class Sample
         [TestMethod]
         public void Analyze_CalledTwiceOnSameInstance_StatsAccumulateAcrossDirectCalls()
         {
-            const string codeA = "class A { void Helper() { } void Run(int n) { for (int i = 0; i < n; i++) { Helper(); } } }";
-            const string codeB = "class B { void Helper() { } void Run(int n) { for (int i = 0; i < n; i++) { Helper(); } } }";
+            const string codeA =
+                "class A { void Helper() { } void Run(int n) { for (int i = 0; i < n; i++) { Helper(); } } }";
+            const string codeB =
+                "class B { void Helper() { } void Run(int n) { for (int i = 0; i < n; i++) { Helper(); } } }";
 
             var pathA = AnalyzerTestHelper.CreateTempCsFile(codeA, _tempDir);
             var pathB = AnalyzerTestHelper.CreateTempCsFile(codeB, _tempDir);
