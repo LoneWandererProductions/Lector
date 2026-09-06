@@ -2,7 +2,7 @@
  * COPYRIGHT:   See COPYING in the top level directory
  * PROJECT:     Lector
  * FILE:        SampleExtension.cs
- * PURPOSE:     Sample extension for future users.
+ * PURPOSE:     Your file purpose here
  * PROGRAMMER:  Peter Geinitz (Wayfarer)
  */
 
@@ -34,8 +34,8 @@ namespace Lector
         /// <summary>
         /// Wraps the execution of the command. Can run before/after logic or inject feedback.
         /// </summary>
-        public CommandResult Invoke(ICommand command, string?[] extensionArgs, Func<string[], CommandResult> executor,
-            string?[] commandArgs)
+        public CommandResult Invoke(ICommand command, string[] extensionArgs, Func<string[], CommandResult> executor,
+            string[] commandArgs)
         {
             // Before hook
             BeforeExecute(command, commandArgs);
