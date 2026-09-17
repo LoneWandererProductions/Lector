@@ -6,7 +6,10 @@
         xmlns:conv="clr-namespace:Common.Converter;assembly=Common.Converter"
         xmlns:local="clr-namespace:Core.Viewer"
         mc:Ignorable="d"
-        Title="Analyzer Viewer" Height="450" Width="950">
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        Title="Analyzer Viewer" 
+        Height="450" Width="950">
 
     <Window.DataContext>
         <local:AnalyzerViewModel />
