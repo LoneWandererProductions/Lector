@@ -38,9 +38,7 @@
             <Button Content="Select Folder" Margin="5,0" Command="{Binding SelectFolderCommand}" />
 
             <!-- Folder Path Display -->
-            <Border Background="#F0F0F0"
-                    BorderBrush="#CCCCCC"
-                    BorderThickness="1"
+            <Border BorderThickness="1"
                     CornerRadius="3"
                     Padding="6,2"
                     Margin="5,0"
@@ -50,8 +48,7 @@
                            MaxWidth="250"
                            TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"
-                           FontSize="11"
-                           Foreground="#333333" />
+                           FontSize="11"/>
             </Border>
 
             <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="10,0,2,0" />
