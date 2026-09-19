@@ -47,7 +47,7 @@ namespace Common.Converter
         /// </returns>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is true)
+            if (value is bool and true)
             {
                 return ActiveBrush; // Gold for Active
             }
