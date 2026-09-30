@@ -10,6 +10,9 @@ using Core.Apps.Rules;
 
 namespace Mediator.Rules
 {
+    /// <summary>
+    /// Unused Member Analyzer Tests.
+    /// </summary>
     [TestClass]
     public class UnusedMemberAnalyzerTests
     {

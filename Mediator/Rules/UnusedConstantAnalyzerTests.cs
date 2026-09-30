@@ -10,6 +10,9 @@ using Core.Apps.Rules;
 
 namespace Mediator.Rules
 {
+    /// <summary>
+    /// Unused Constant Tests.
+    /// </summary>
     [TestClass]
     public class UnusedConstantAnalyzerTests
     {
@@ -30,6 +33,9 @@ namespace Mediator.Rules
             Assert.AreEqual(0, diagnostics.Count);
         }
 
+        /// <summary>
+        /// Analyzes the project constant never referenced is flagged.
+        /// </summary>
         [TestMethod]
         public void AnalyzeProject_ConstantNeverReferenced_IsFlagged()
         {
@@ -44,6 +50,9 @@ namespace Mediator.Rules
             StringAssert.Contains(diagnostics[0].Message, "NeverRead");
         }
 
+        /// <summary>
+        /// Analyzes the project name only mentioned in a comment counts as usage false negative.
+        /// </summary>
         [TestMethod]
         public void AnalyzeProject_NameOnlyMentionedInAComment_CountsAsUsage_FalseNegative()
         {

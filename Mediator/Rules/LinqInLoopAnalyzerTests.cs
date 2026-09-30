@@ -16,20 +16,32 @@ namespace Mediator.Rules
     [TestClass]
     public class LinqInLoopAnalyzerTests
     {
+        /// <summary>
+        /// The temporary dir
+        /// </summary>
         private string _tempDir = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
             _tempDir = AnalyzerTestHelper.CreateTempDirectory();
         }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         [TestCleanup]
         public void Cleanup()
         {
             AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
         }
 
+        /// <summary>
+        /// Analyzes the linq in loop is flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_LinqInLoop_IsFlagged()
         {
@@ -55,6 +67,9 @@ class Sample
             Assert.IsTrue(diagnostics.Any(d => d.Message.Contains("ToList")), "Expected diagnostic for 'ToList'.");
         }
 
+        /// <summary>
+        /// Analyzes the linq outside loop is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_LinqOutsideLoop_IsNotFlagged()
         {

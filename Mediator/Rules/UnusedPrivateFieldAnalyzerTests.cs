@@ -59,6 +59,9 @@ class Sample
             StringAssert.Contains(diagnostics[0].Message, "_count");
         }
 
+        /// <summary>
+        /// Analyzes the private field read elsewhere in file is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_PrivateFieldReadElsewhereInFile_IsNotFlagged()
         {

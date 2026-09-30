@@ -13,6 +13,9 @@ namespace Mediator.Rules
     [TestClass]
     public class UnusedParameterAnalyzerTests
     {
+        /// <summary>
+        /// The temporary dir
+        /// </summary>
         private string _tempDir = null!;
 
         /// <summary>

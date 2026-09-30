@@ -16,20 +16,32 @@ namespace Mediator.Rules
     [TestClass]
     public class RethrowExceptionAnalyzerTests
     {
+        /// <summary>
+        /// The temporary dir
+        /// </summary>
         private string _tempDir = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
             _tempDir = AnalyzerTestHelper.CreateTempDirectory();
         }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         [TestCleanup]
         public void Cleanup()
         {
             AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
         }
 
+        /// <summary>
+        /// Analyzes the throw ex is flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_ThrowEx_IsFlagged()
         {
@@ -57,6 +69,9 @@ class Sample
             StringAssert.Contains(diagnostics[0].Message, "ex");
         }
 
+        /// <summary>
+        /// Analyzes the throw is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_Throw_IsNotFlagged()
         {

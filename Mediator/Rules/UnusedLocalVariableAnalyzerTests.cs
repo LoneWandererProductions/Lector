@@ -37,6 +37,9 @@ namespace Mediator.Rules
             AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
         }
 
+        /// <summary>
+        /// Analyzes the unused local variable is flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_UnusedLocalVariable_IsFlagged()
         {

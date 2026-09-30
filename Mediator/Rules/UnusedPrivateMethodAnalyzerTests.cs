@@ -18,18 +18,27 @@ namespace Mediator.Rules
     {
         private string _tempDir = null!;
 
+        /// <summary>
+        /// Setups this instance.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
             _tempDir = AnalyzerTestHelper.CreateTempDirectory();
         }
 
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
         [TestCleanup]
         public void Cleanup()
         {
             AnalyzerTestHelper.SafeDeleteDirectory(_tempDir);
         }
 
+        /// <summary>
+        /// Analyzes the unused private method is flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_UnusedPrivateMethod_IsFlagged()
         {
@@ -51,6 +60,9 @@ class Sample
             StringAssert.Contains(diagnostics[0].Message, "UnusedInternalMethod");
         }
 
+        /// <summary>
+        /// Analyzes the used private method is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_UsedPrivateMethod_IsNotFlagged()
         {
@@ -72,6 +84,9 @@ class Sample
             Assert.AreEqual(0, diagnostics.Count);
         }
 
+        /// <summary>
+        /// Analyzes the public method is not flagged.
+        /// </summary>
         [TestMethod]
         public void Analyze_PublicMethod_IsNotFlagged()
         {
