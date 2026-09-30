@@ -8,16 +8,12 @@
         mc:Ignorable="d"
         Background="{DynamicResource WindowBackgroundBrush}"
         Foreground="{DynamicResource TextPrimaryBrush}"
-        Title="Analyzer Viewer" 
+        Title="Analyzer Viewer"
         Height="450" Width="950">
 
     <Window.DataContext>
         <local:AnalyzerViewModel />
     </Window.DataContext>
-
-    <Window.Resources>
-        <conv:BooleanToVisibilityConverter x:Key="BoolToVisibility" Collapse="True" />
-    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -48,7 +44,7 @@
                            MaxWidth="250"
                            TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"
-                           FontSize="11"/>
+                           FontSize="11" />
             </Border>
 
             <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="10,0,2,0" />

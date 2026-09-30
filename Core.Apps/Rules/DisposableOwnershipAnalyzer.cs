@@ -404,24 +404,76 @@ namespace Core.Apps.Rules
 
         /// <summary>
         /// Approximates flow order using source position: true if a "&lt;name&gt;.Dispose()"
-        /// (or "this.&lt;name&gt;.Dispose()" when allowThisPrefix) call appears earlier in the
-        /// method than beforePosition. This is a textual approximation, not a full CFG walk -
-        /// consistent with the rest of this analyzer suite - but unlike the existing
-        /// DisposableAnalyzer it is position-aware, so a Dispose() call placed after the
-        /// overwrite it's supposed to guard no longer counts as "handled".
+        /// or "&lt;name&gt;?.Dispose()" (or with "this." prefix when allowThisPrefix) call appears
+        /// earlier in the method than beforePosition.
         /// </summary>
         private static bool HasDisposeCallBefore(MethodDeclarationSyntax method, string name, int beforePosition,
             bool allowThisPrefix = false)
         {
-            return method.DescendantNodes()
+            // 1. Direct calls: _current.Dispose() or this._current.Dispose()
+            var standardCalls = method.DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
                 .Where(inv => inv.SpanStart < beforePosition)
                 .Any(inv => inv.Expression is MemberAccessExpressionSyntax member &&
                             member.Name.Identifier.Text == "Dispose" &&
-                            (member.Expression is IdentifierNameSyntax id && id.Identifier.Text == name ||
-                             (allowThisPrefix && member.Expression is MemberAccessExpressionSyntax
-                                 { Expression: ThisExpressionSyntax, Name.Identifier.Text: var inner } &&
-                              inner == name)));
+                            IsTargetVariable(member.Expression, name, allowThisPrefix));
+
+            if (standardCalls)
+            {
+                return true;
+            }
+
+            // 2. Null-conditional calls: _current?.Dispose() or this._current?.Dispose()
+            var conditionalCalls = method.DescendantNodes()
+                .OfType<ConditionalAccessExpressionSyntax>()
+                .Where(cond => cond.SpanStart < beforePosition)
+                .Any(cond => IsTargetVariable(cond.Expression, name, allowThisPrefix) &&
+                             IsDisposeInvocation(cond.WhenNotNull));
+
+            return conditionalCalls;
+        }
+
+        /// <summary>
+        /// Helper to check if an expression matches the variable name (with optional 'this.' prefix).
+        /// </summary>
+        private static bool IsTargetVariable(ExpressionSyntax expression, string name, bool allowThisPrefix)
+        {
+            if (expression is IdentifierNameSyntax id && id.Identifier.Text == name)
+            {
+                return true;
+            }
+
+            if (allowThisPrefix && expression is MemberAccessExpressionSyntax
+                { Expression: ThisExpressionSyntax, Name.Identifier.Text: var inner } &&
+                inner == name)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Helper to check if a conditionally accessed expression executes Dispose().
+        /// </summary>
+        private static bool IsDisposeInvocation(ExpressionSyntax whenNotNull)
+        {
+            if (whenNotNull is InvocationExpressionSyntax inv)
+            {
+                if (inv.Expression is MemberBindingExpressionSyntax binding &&
+                    binding.Name.Identifier.Text == "Dispose")
+                {
+                    return true;
+                }
+
+                if (inv.Expression is MemberAccessExpressionSyntax member &&
+                    member.Name.Identifier.Text == "Dispose")
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -468,7 +520,7 @@ namespace Core.Apps.Rules
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine("♻️ Disposable Ownership Diagnostics:");
+            sb.AppendLine("♻️️ Disposable Ownership Diagnostics:");
             sb.AppendLine(new string('-', 50));
 
             foreach (var d in results)
