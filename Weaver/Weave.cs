@@ -26,7 +26,7 @@ namespace Weaver
         /// The synchronization lock object.
         /// We use a private object to prevent deadlocks from external locking on 'this'.
         /// </summary>
-        private readonly object _syncRoot = new();
+        private readonly Lock _syncRoot = new();
 
         /// <summary>
         /// Stores registered commands, keyed by (namespace, name, parameter count)
@@ -157,7 +157,7 @@ namespace Weaver
                 return ns == null
                     ? _extensions.Values.ToList()
                     : _extensions.Values.Where(e =>
-                        e.Namespace != null && e.Namespace.Equals(ns, StringComparison.OrdinalIgnoreCase)).ToList();
+                        e.Namespace?.Equals(ns, StringComparison.OrdinalIgnoreCase) == true).ToList();
             }
         }
 

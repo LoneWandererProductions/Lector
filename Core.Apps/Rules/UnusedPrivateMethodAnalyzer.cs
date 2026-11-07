@@ -64,12 +64,10 @@ namespace Core.Apps.Rules
             foreach (var methodDecl in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
             {
                 var symbol = model.GetDeclaredSymbol(methodDecl);
-                if (symbol == null)
+                if (symbol is not { DeclaredAccessibility: Microsoft.CodeAnalysis.Accessibility.Private })
                     continue;
 
                 // Ensure it is private
-                if (symbol.DeclaredAccessibility != Microsoft.CodeAnalysis.Accessibility.Private)
-                    continue;
 
                 // Exclude entry points, constructors, overrides, or interface implementations
                 if (symbol.Name == "Main" || symbol.IsOverride || symbol.ExplicitInterfaceImplementations.Length > 0)
@@ -77,9 +75,10 @@ namespace Core.Apps.Rules
 
                 // Check for usages (invocations, method group conversions, nameof, etc.)
                 var isReferenced = root.DescendantNodes()
-                    .OfType<IdentifierNameSyntax>()
-                    .Where(id => id.Parent != methodDecl && id.Identifier.Text == symbol.Name)
-                    .Any(id => SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, symbol));
+                        .OfType<IdentifierNameSyntax>()
+                        .Any(id => id.Parent != methodDecl && id.Identifier.Text == symbol.Name &&
+                                   SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(id).Symbol, symbol))
+                    ;
 
                 if (!isReferenced)
                 {
@@ -101,9 +100,11 @@ namespace Core.Apps.Rules
         {
             try
             {
-                var results = AnalyzerExecutor.ExecutePath(this, args, "Usage: UnusedPrivateMethod <fileOrDirectoryPath>");
+                var results =
+                    AnalyzerExecutor.ExecutePath(this, args, "Usage: UnusedPrivateMethod <fileOrDirectoryPath>");
                 return CommandResult.Ok($"Unused private methods found: {results.Count}\n" +
-                    string.Join("\n", results.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}")));
+                                        string.Join("\n",
+                                            results.Select(d => $"{d.FilePath}({d.LineNumber}): {d.Message}")));
             }
             catch (Exception ex)
             {

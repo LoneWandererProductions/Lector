@@ -36,7 +36,8 @@ namespace Core.Apps.Rules
         public string Name => "doccoverage";
 
         /// <inheritdoc cref="ICodeAnalyzer" />
-        public string Description => "Reports missing XML doc comments or missing <inheritdoc /> tags on types, methods, properties, and attributes.";
+        public string Description =>
+            "Reports missing XML doc comments or missing <inheritdoc /> tags on types, methods, properties, and attributes.";
 
         /// <inheritdoc />
         public int ParameterCount => 1;
@@ -74,7 +75,7 @@ namespace Core.Apps.Rules
                 }
 
                 // Retrieve members safely based on the specific declaration type
-                IEnumerable<MemberDeclarationSyntax> members = typeDecl switch
+                var members = typeDecl switch
                 {
                     TypeDeclarationSyntax t => t.Members,
                     EnumDeclarationSyntax e => e.Members,
@@ -146,9 +147,12 @@ namespace Core.Apps.Rules
         {
             return member switch
             {
-                MethodDeclarationSyntax m => m.Modifiers.Any(SyntaxKind.OverrideKeyword) || m.ExplicitInterfaceSpecifier != null,
-                PropertyDeclarationSyntax p => p.Modifiers.Any(SyntaxKind.OverrideKeyword) || p.ExplicitInterfaceSpecifier != null,
-                EventDeclarationSyntax e => e.Modifiers.Any(SyntaxKind.OverrideKeyword) || e.ExplicitInterfaceSpecifier != null,
+                MethodDeclarationSyntax m => m.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
+                                             m.ExplicitInterfaceSpecifier != null,
+                PropertyDeclarationSyntax p => p.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
+                                               p.ExplicitInterfaceSpecifier != null,
+                EventDeclarationSyntax e => e.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
+                                            e.ExplicitInterfaceSpecifier != null,
                 _ => false
             };
         }
